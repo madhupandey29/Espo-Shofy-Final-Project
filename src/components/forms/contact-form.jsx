@@ -1,48 +1,52 @@
 'use client';
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
-import {
-  useCreateContactDraftMutation,
-  useUpdateContactDraftMutation,
-  useSubmitContactFormMutation,
-  useGetContactDraftQuery,
-  useGetOfficeInfoQuery,
-} from '@/redux/features/contactApi';
+import React, { useState, useRef } from 'react';
 
-const DEFAULT_DRAFT_KEY = 'contact_draft_id';
 const DEFAULT_STORAGE_KEY = 'fabricpro_contact_form';
 
 function mapToBackend(f) {
   return {
-    companyName: f.companyName,
-    contactPerson: f.contactPerson,
-    email: f.email,
+    salutationName: f.salutation,
+    firstName: f.firstName,
+    lastName: f.lastName,
+    middleName: f.middleName,
+    emailAddress: f.email,
     phoneNumber: f.phone,
-    businessType: f.businessType,
-    annualFabricVolume: f.annualVolume,
-    primaryMarkets: f.primaryMarkets,
-    fabricTypesOfInterest: f.fabricTypes,
-    specificationsRequirements: f.specifications,
-    timeline: f.timeline,
-    additionalMessage: f.message,
+    accountName: f.companyName,
+    addressStreet: f.addressStreet,
+    addressCity: f.addressCity,
+    addressState: f.addressState,
+    addressCountry: f.addressCountry,
+    addressPostalCode: f.addressPostalCode,
+    opportunityAmountCurrency: f.opportunityAmountCurrency,
+    opportunityAmount: f.opportunityAmount ? parseFloat(f.opportunityAmount) : null,
+    cBusinessType: f.businessType ? [f.businessType] : [],
+    cFabricCategory: f.fabricCategory ? [f.fabricCategory] : [],
+    description: f.description,
   };
 }
 
 const EMPTY = {
-  companyName: '',
-  contactPerson: '',
+  salutation: '',
+  firstName: '',
+  lastName: '',
+  middleName: '',
   email: '',
   phone: '',
+  companyName: '',
+  addressStreet: '',
+  addressCity: '',
+  addressState: '',
+  addressCountry: '',
+  addressPostalCode: '',
+  opportunityAmountCurrency: 'USD',
+  opportunityAmount: '',
   businessType: '',
-  annualVolume: '',
-  primaryMarkets: '',
-  fabricTypes: [],
-  specifications: '',
-  timeline: '',
-  message: '',
+  fabricCategory: '',
+  description: '',
 };
 
-export default function ContactForm({ onSuccess, draftKey = DEFAULT_DRAFT_KEY, storageKey = DEFAULT_STORAGE_KEY }) {
+export default function ContactForm({ onSuccess, storageKey = DEFAULT_STORAGE_KEY }) {
   // Initial load
   const initialSnapshot = (() => {
     try {
@@ -61,84 +65,12 @@ export default function ContactForm({ onSuccess, draftKey = DEFAULT_DRAFT_KEY, s
     const s = Number(initialSnapshot?.currentStep);
     return s >= 1 && s <= 3 ? s : 1;
   });
-  const [draftId, setDraftId] = useState(() => initialSnapshot?.draftId || '');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [shake, setShake] = useState(false);
   const [validationErrors, setValidationErrors] = useState({});
 
-  const saveTimer = useRef(null);
-  const isSavingRef = useRef(false);
   const honeypotRef = useRef(null);
-  const hasHydrated = useRef(false);
-
-  const [createDraft] = useCreateContactDraftMutation();
-  const [updateDraft] = useUpdateContactDraftMutation();
-  const [submitForm, { isLoading: isSubmittingMutation, error: submitError }] = useSubmitContactFormMutation();
-  const { data: hydrated } = useGetContactDraftQuery(draftId, { skip: !draftId });
-  useGetOfficeInfoQuery(undefined, { skip: false });
-
-  // Debug Redux state
-  console.log('Redux mutation state:', {
-    isSubmittingMutation,
-    submitError,
-    isSubmitting
-  });
-
-  useEffect(() => {
-    if (hydrated?.data && !hasHydrated.current) {
-      const d = hydrated.data;
-      setFormData({
-        companyName: d.companyName ?? '',
-        contactPerson: d.contactPerson ?? '',
-        email: d.email ?? '',
-        phone: d.phoneNumber ?? '',
-        businessType: d.businessType ?? '',
-        annualVolume: d.annualFabricVolume ?? '',
-        primaryMarkets: d.primaryMarkets ?? '',
-        fabricTypes: Array.isArray(d.fabricTypesOfInterest) ? d.fabricTypesOfInterest : [],
-        specifications: d.specificationsRequirements ?? '',
-        timeline: d.timeline ?? '',
-        message: d.additionalMessage ?? '',
-      });
-      hasHydrated.current = true;
-    }
-  }, [hydrated]);
-
-  const persistDraft = useCallback(async () => {
-    if (isSavingRef.current) return;
-    isSavingRef.current = true;
-    try {
-      const payload = mapToBackend(formData);
-      let newId = draftId;
-
-      if (!draftId) {
-        const res = await createDraft(payload).unwrap();
-        newId = res?.data?._id;
-        if (newId) {
-          setDraftId(newId);
-          localStorage.setItem(draftKey, newId);
-        }
-      } else {
-        await updateDraft({ id: draftId, payload }).unwrap();
-      }
-
-      localStorage.setItem(storageKey, JSON.stringify({
-        formData,
-        currentStep,
-        draftId: newId,
-      }));
-    } catch (e) {
-      console.error('Autosave error:', e);
-    } finally {
-      isSavingRef.current = false;
-    }
-  }, [formData, draftId, createDraft, updateDraft, draftKey, storageKey, currentStep]);
-
-  const scheduleAutosave = useCallback(() => {
-    clearTimeout(saveTimer.current);
-    saveTimer.current = setTimeout(() => void persistDraft(), 600);
-  }, [persistDraft]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -157,21 +89,25 @@ export default function ContactForm({ onSuccess, draftKey = DEFAULT_DRAFT_KEY, s
       });
     }
     
-    scheduleAutosave();
-  };
-
-  const toggleFabric = (fabric) => {
-    setFormData((prev) => {
-      const exists = prev.fabricTypes.includes(fabric);
-      const next = exists ? prev.fabricTypes.filter((x) => x !== fabric) : [...prev.fabricTypes, fabric];
-      return { ...prev, fabricTypes: next };
-    });
-    scheduleAutosave();
+    // Save to localStorage
+    const updatedFormData = { ...formData, [name]: value };
+    localStorage.setItem(storageKey, JSON.stringify({
+      formData: updatedFormData,
+      currentStep,
+    }));
   };
 
   // Validation functions
   const validateStep1 = () => {
     const errors = {};
+    
+    if (!formData.firstName.trim()) {
+      errors.firstName = 'First name is required';
+    }
+    
+    if (!formData.lastName.trim()) {
+      errors.lastName = 'Last name is required';
+    }
     
     // Require either email or phone
     if (!formData.email && !formData.phone) {
@@ -228,11 +164,8 @@ export default function ContactForm({ onSuccess, draftKey = DEFAULT_DRAFT_KEY, s
 
   const resetAll = () => {
     localStorage.removeItem(storageKey);
-    localStorage.removeItem(draftKey);
     setFormData({ ...EMPTY });
     setCurrentStep(1);
-    setDraftId('');
-    hasHydrated.current = false;
   };
 
   const handleSubmit = async (e) => {
@@ -259,51 +192,31 @@ export default function ContactForm({ onSuccess, draftKey = DEFAULT_DRAFT_KEY, s
 
     setIsSubmitting(true);
     try {
-      clearTimeout(saveTimer.current);
-      
-      // Submit the final form
+      // Submit to the new EspoCRM API endpoint (full URL)
       const payload = mapToBackend(formData);
       console.log('Form data before mapping:', formData);
       console.log('Payload being submitted:', payload);
-      console.log('API endpoint will be called with:', {
-        url: '/contacts',
+      
+      const apiUrl = 'https://espo.egport.com/api/v1/LeadCapture/a4624c9bb58b8b755e3d94f1a25fc9be';
+      
+      console.log('API URL:', apiUrl);
+      console.log('Payload:', payload);
+      
+      const response = await fetch(apiUrl, {
         method: 'POST',
-        body: { ...payload, isSubmitted: true }
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload)
       });
       
-      // Try the Redux mutation first
-      try {
-        const result = await submitForm(payload).unwrap();
-        console.log('Form submitted successfully via Redux:', result);
-      } catch (reduxError) {
-        console.log('Redux mutation failed, trying direct API call:', reduxError);
-        
-        // Fallback to direct API call
-        const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://test.amrita-fashions.com/shopy';
-        const apiKey = process.env.NEXT_PUBLIC_API_KEY;
-        
-        console.log('Direct API call details:', {
-          apiBaseUrl,
-          hasApiKey: !!apiKey,
-          payload: { ...payload, isSubmitted: true }
-        });
-        
-        const response = await fetch(`${apiBaseUrl}/contacts`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            ...(apiKey && { 'x-api-key': apiKey })
-          },
-          body: JSON.stringify({ ...payload, isSubmitted: true })
-        });
-        
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        }
-        
-        const result = await response.json();
-        console.log('Form submitted successfully via direct API:', result);
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`HTTP ${response.status}: ${response.statusText} - ${errorText}`);
       }
+      
+      const result = await response.json();
+      console.log('Form submitted successfully:', result);
       
       resetAll();
       setShowSuccess(true);
@@ -313,38 +226,19 @@ export default function ContactForm({ onSuccess, draftKey = DEFAULT_DRAFT_KEY, s
       }, 2000);
     } catch (err) {
       console.error('Submission error:', err);
-      console.error('Error details:', {
-        status: err?.status,
-        data: err?.data,
-        message: err?.message,
-        originalStatus: err?.originalStatus
-      });
       
       // Show user-friendly error message
       let errorMessage = 'Failed to submit form. Please try again.';
       
-      if (err?.status === 404) {
+      if (err?.message?.includes('404')) {
         errorMessage = 'Submission endpoint not found. Please contact support.';
-      } else if (err?.status === 500) {
+      } else if (err?.message?.includes('500')) {
         errorMessage = 'Server error. Please try again later.';
-      } else if (err?.data?.message) {
-        errorMessage = err.data.message;
       } else if (err?.message) {
         errorMessage = err.message;
       }
       
       alert(errorMessage);
-      
-      // If submission fails, try to save as draft at least
-      try {
-        console.log('Attempting to save as draft after submission failure...');
-        await persistDraft();
-        console.log('Form saved as draft after submission failure');
-        alert('Form submission failed, but your data has been saved as a draft.');
-      } catch (draftError) {
-        console.error('Failed to save draft:', draftError);
-        alert('Form submission failed and could not save as draft. Please try again.');
-      }
     } finally {
       setIsSubmitting(false);
     }
@@ -612,21 +506,51 @@ export default function ContactForm({ onSuccess, draftKey = DEFAULT_DRAFT_KEY, s
                 </div>
               )}
               
-              <InputField
-                label="Company Name"
-                name="companyName"
-                placeholder="Your company name"
-                value={formData.companyName}
+              <InputSelect
+                label="Salutation"
+                name="salutation"
+                value={formData.salutation}
                 onChange={handleInputChange}
+                options={[
+                  ['', 'Select salutation'],
+                  ['Mr.', 'Mr.'],
+                  ['Ms.', 'Ms.'],
+                  ['Mrs.', 'Mrs.'],
+                  ['Dr.', 'Dr.'],
+                ]}
                 inputStyle={inputStyle}
                 labelStyle={labelStyle}
                 inputGroupStyle={inputGroupStyle}
               />
               <InputField
-                label="Contact Person"
-                name="contactPerson"
-                placeholder="Your full name"
-                value={formData.contactPerson}
+                label="First Name *"
+                name="firstName"
+                placeholder="Your first name"
+                value={formData.firstName}
+                onChange={handleInputChange}
+                inputStyle={validationErrors.firstName ? inputErrorStyle : inputStyle}
+                labelStyle={labelStyle}
+                inputGroupStyle={inputGroupStyle}
+                error={validationErrors.firstName}
+                errorTextStyle={errorTextStyle}
+              />
+              <InputField
+                label="Last Name *"
+                name="lastName"
+                placeholder="Your last name"
+                value={formData.lastName}
+                onChange={handleInputChange}
+                inputStyle={validationErrors.lastName ? inputErrorStyle : inputStyle}
+                labelStyle={labelStyle}
+                inputGroupStyle={inputGroupStyle}
+                error={validationErrors.lastName}
+                errorTextStyle={errorTextStyle}
+              />
+              <InputField
+                label="Middle Name"
+                name="middleName"
+                placeholder="Your middle name (optional)"
+                value={formData.middleName}
                 onChange={handleInputChange}
                 inputStyle={inputStyle}
                 labelStyle={labelStyle}
@@ -672,6 +596,79 @@ export default function ContactForm({ onSuccess, draftKey = DEFAULT_DRAFT_KEY, s
 
           {currentStep === 2 && (
             <div style={stepContentStyle}>
+              <InputField
+                label="Company Name"
+                name="companyName"
+                placeholder="Your company name"
+                value={formData.companyName}
+                onChange={handleInputChange}
+                inputStyle={inputStyle}
+                labelStyle={labelStyle}
+                inputGroupStyle={inputGroupStyle}
+              />
+              <InputField
+                label="Street Address"
+                name="addressStreet"
+                placeholder="Street address"
+                value={formData.addressStreet}
+                onChange={handleInputChange}
+                inputStyle={inputStyle}
+                labelStyle={labelStyle}
+                inputGroupStyle={inputGroupStyle}
+              />
+              <InputField
+                label="City"
+                name="addressCity"
+                placeholder="City"
+                value={formData.addressCity}
+                onChange={handleInputChange}
+                inputStyle={inputStyle}
+                labelStyle={labelStyle}
+                inputGroupStyle={inputGroupStyle}
+              />
+              <InputField
+                label="State/Province"
+                name="addressState"
+                placeholder="State or Province"
+                value={formData.addressState}
+                onChange={handleInputChange}
+                inputStyle={inputStyle}
+                labelStyle={labelStyle}
+                inputGroupStyle={inputGroupStyle}
+              />
+              <InputField
+                label="Country"
+                name="addressCountry"
+                placeholder="Country"
+                value={formData.addressCountry}
+                onChange={handleInputChange}
+                inputStyle={inputStyle}
+                labelStyle={labelStyle}
+                inputGroupStyle={inputGroupStyle}
+              />
+              <InputField
+                label="Postal Code"
+                name="addressPostalCode"
+                placeholder="Postal/ZIP code"
+                value={formData.addressPostalCode}
+                onChange={handleInputChange}
+                inputStyle={inputStyle}
+                labelStyle={labelStyle}
+                inputGroupStyle={inputGroupStyle}
+              />
+              <div style={actionsStyle}>
+                <button type="button" style={ghostBtnStyle} onClick={goBack}>
+                  Previous
+                </button>
+                <button type="button" style={primaryBtnStyle} onClick={goNext}>
+                  Next Step
+                </button>
+              </div>
+            </div>
+          )}
+
+          {currentStep === 3 && (
+            <div style={stepContentStyle}>
               <InputSelect
                 label="Business Type"
                 name="businessType"
@@ -690,93 +687,65 @@ export default function ContactForm({ onSuccess, draftKey = DEFAULT_DRAFT_KEY, s
                 inputGroupStyle={inputGroupStyle}
               />
               <InputSelect
-                label="Annual Fabric Volume"
-                name="annualVolume"
-                value={formData.annualVolume}
+                label="Fabric Category"
+                name="fabricCategory"
+                value={formData.fabricCategory}
                 onChange={handleInputChange}
                 options={[
-                  ['', 'Select volume range'],
-                  ['under-10k', 'Under 10,000 m'],
-                  ['10k-50k', '10,000–50,000 m'],
-                  ['50k-100k', '50,000–100,000 m'],
-                  ['100k-500k', '100,000–500,000 m'],
-                  ['over-500k', '500,000+ m'],
+                  ['', 'Select fabric category'],
+                  ['cotton', 'Cotton'],
+                  ['silk', 'Silk'],
+                  ['polyester', 'Polyester'],
+                  ['blends', 'Blends'],
+                  ['linen', 'Linen'],
+                  ['wool', 'Wool'],
+                  ['technical', 'Technical'],
+                  ['denim', 'Denim'],
                 ]}
                 inputStyle={inputStyle}
                 labelStyle={labelStyle}
                 inputGroupStyle={inputGroupStyle}
               />
-              <InputField
-                label="Primary Markets"
-                name="primaryMarkets"
-                placeholder="e.g., North America, Europe, Asia"
-                value={formData.primaryMarkets}
-                onChange={handleInputChange}
-                inputStyle={inputStyle}
-                labelStyle={labelStyle}
-                inputGroupStyle={inputGroupStyle}
-              />
-              <div style={{display: 'flex', flexDirection: 'column'}}>
-                <span style={labelStyle}>Fabric Types of Interest</span>
-                <div style={pillGroupStyle}>
-                  {['Cotton','Silk','Polyester','Blends','Linen','Wool','Technical','Denim'].map((f) => (
-                    <button
-                      type="button"
-                      key={f}
-                      style={formData.fabricTypes.includes(f) ? activePillStyle : pillStyle}
-                      onClick={() => toggleFabric(f)}
-                    >
-                      {f}
-                    </button>
-                  ))}
+              <div style={{display: 'flex', gap: '12px'}}>
+                <div style={{flex: '1'}}>
+                  <InputField
+                    label="Opportunity Amount"
+                    name="opportunityAmount"
+                    type="number"
+                    placeholder="0.00"
+                    value={formData.opportunityAmount}
+                    onChange={handleInputChange}
+                    inputStyle={inputStyle}
+                    labelStyle={labelStyle}
+                    inputGroupStyle={inputGroupStyle}
+                  />
+                </div>
+                <div style={{flex: '0 0 100px'}}>
+                  <InputSelect
+                    label="Currency"
+                    name="opportunityAmountCurrency"
+                    value={formData.opportunityAmountCurrency}
+                    onChange={handleInputChange}
+                    options={[
+                      ['USD', 'USD'],
+                      ['EUR', 'EUR'],
+                      ['GBP', 'GBP'],
+                      ['INR', 'INR'],
+                      ['CNY', 'CNY'],
+                    ]}
+                    inputStyle={inputStyle}
+                    labelStyle={labelStyle}
+                    inputGroupStyle={inputGroupStyle}
+                  />
                 </div>
               </div>
-              <div style={actionsStyle}>
-                <button type="button" style={ghostBtnStyle} onClick={goBack}>
-                  Previous
-                </button>
-                <button type="button" style={primaryBtnStyle} onClick={goNext}>
-                  Next Step
-                </button>
-              </div>
-            </div>
-          )}
-
-          {currentStep === 3 && (
-            <div style={stepContentStyle}>
               <InputTextArea
-                label="Specifications & Requirements"
-                name="specifications"
-                placeholder="Weight, width, color requirements, etc."
-                value={formData.specifications}
+                label="Description"
+                name="description"
+                placeholder="Please describe your requirements, specifications, or any additional information"
+                value={formData.description}
                 onChange={handleInputChange}
                 inputStyle={textareaStyle}
-                labelStyle={labelStyle}
-                inputGroupStyle={inputGroupStyle}
-              />
-              <InputTextArea
-                label="Additional Message"
-                name="message"
-                placeholder="Any additional requirements or questions"
-                value={formData.message}
-                onChange={handleInputChange}
-                inputStyle={textareaStyle}
-                labelStyle={labelStyle}
-                inputGroupStyle={inputGroupStyle}
-              />
-              <InputSelect
-                label="Timeline"
-                name="timeline"
-                value={formData.timeline}
-                onChange={handleInputChange}
-                options={[
-                  ['', 'Select timeline'],
-                  ['immediate', 'Within 1 month'],
-                  ['1-3-months', '1–3 months'],
-                  ['3-6-months', '3–6 months'],
-                  ['6-months-plus', '6+ months'],
-                ]}
-                inputStyle={inputStyle}
                 labelStyle={labelStyle}
                 inputGroupStyle={inputGroupStyle}
               />

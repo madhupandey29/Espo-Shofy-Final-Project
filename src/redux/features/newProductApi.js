@@ -401,7 +401,10 @@ export const newProductApi = apiSlice.injectEndpoints({
       query: (id) => `/groupcode/view/${id}`,
     }),
     getPopularNewProducts: builder.query({
-      query: () => "/product/fieldname/merchTags/PopularFabrics",
+      query: () => {
+        const popularTag = process.env.NEXT_PUBLIC_POPULAR_TAG || 'PopularFabrics';
+        return `/product/fieldname/merchTags/${popularTag}`;
+      },
       transformResponse: (res) => {
         if (res?.products) {
           return {
@@ -417,7 +420,10 @@ export const newProductApi = apiSlice.injectEndpoints({
       query: () => "/product/offers",
     }), */
     getTopRated: builder.query({
-      query: () => "/product/fieldname/merchTags/TopRatedFabrics",
+      query: () => {
+        const topRatedTag = process.env.NEXT_PUBLIC_TOP_RATED_TAG || 'TopRatedFabrics';
+        return `/product/fieldname/merchTags/${topRatedTag}`;
+      },
       transformResponse: (res) => {
         if (res?.products) {
           return {

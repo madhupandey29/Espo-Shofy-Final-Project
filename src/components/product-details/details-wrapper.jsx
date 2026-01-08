@@ -7,9 +7,6 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useDispatch, useSelector } from 'react-redux';
 
-import { useGetSubstructureQuery } from '@/redux/features/substructureApi';
-import { useGetContentByIdQuery } from '@/redux/features/contentApi';
-import { useGetSubfinishQuery } from '@/redux/features/subfinishApi';
 import { useGetSeoByProductQuery } from '@/redux/features/seoApi';
 import { useGetDesignByIdQuery } from '@/redux/features/designApi';
 import { useGetMotifSizeByIdQuery } from '@/redux/features/motifSizeApi';
@@ -19,6 +16,7 @@ import { add_to_wishlist } from '@/redux/features/wishlist-slice';
 /* ---------------- small helpers ---------------- */
 const nonEmpty = (v) =>
   v !== undefined && v !== null && (typeof v === 'number' || String(v).trim() !== '');
+
 const pick = (...xs) => xs.find(nonEmpty);
 
 const asNumber = (value) => {
@@ -29,23 +27,6 @@ const asNumber = (value) => {
 
 const isObjId = (s) => typeof s === 'string' && /^[a-f\d]{24}$/i.test(s);
 
-/* ---------------- lookup mini-components ---------------- */
-const StructureInfo = ({ id }) => {
-  const { data, isLoading, isError } = useGetSubstructureQuery(id, { skip: !id });
-  const value = !id ? 'N/A' : isLoading ? 'Loading…' : (isError || !data?.data?.name) ? 'N/A' : data.data.name;
-  return <span className="fact-value">{value}</span>;
-};
-const ContentInfo = ({ id }) => {
-  const { data, isLoading, isError } = useGetContentByIdQuery(id, { skip: !id });
-  const value = !id ? 'N/A' : isLoading ? 'Loading…' : (isError || !data?.data?.name) ? 'N/A' : data.data.name;
-  return <span className="fact-value">{value}</span>;
-};
-const FinishInfo = ({ id }) => {
-  const { data, isLoading, isError } = useGetSubfinishQuery(id, { skip: !id });
-  const value = !id ? 'N/A' : isLoading ? 'Loading…' : (isError || !data?.data?.name) ? 'N/A' : data.data.name;
-  return <span className="fact-value">{value}</span>;
-};
-
 /* ---------------- API helpers ---------------- */
 const API_BASE = (process.env.NEXT_PUBLIC_API_BASE_URL || '').replace(/\/+$/, '');
 const API_KEY = process.env.NEXT_PUBLIC_API_KEY;
@@ -54,8 +35,10 @@ const API_KEY_HEADER = process.env.NEXT_PUBLIC_API_KEY_HEADER || 'x-api-key';
 const fetchJson = async (url) => {
   const headers = { 'Content-Type': 'application/json' };
   if (API_KEY) headers[API_KEY_HEADER] = API_KEY;
+
   const res = await fetch(url, { headers, credentials: 'include' });
   if (!res.ok) return null;
+
   try {
     return await res.json();
   } catch {
@@ -65,21 +48,6 @@ const fetchJson = async (url) => {
 
 const getFirst = (...xs) => xs.find((x) => x !== undefined && x !== null);
 
-const fetchNameViaCandidates = async (candidates) => {
-  for (const path of candidates) {
-    const data = await fetchJson(`${API_BASE}${path}`);
-    const name = getFirst(
-       data?.productTitle,
-      data?.data?.name,
-      data?.data?.title,
-      data?.data?.size,
-      data?.name,
-    );
-    if (nonEmpty(name)) return String(name);
-  }
-  return null;
-};
-
 /* ----- Stars ----- */
 const Stars = ({ value }) => {
   const v = Math.max(0, Math.min(5, Number(value || 0)));
@@ -87,11 +55,16 @@ const Stars = ({ value }) => {
   const half = v - full >= 0.5 ? 1 : 0;
   const empty = 5 - full - half;
   const iconStyle = { marginRight: 4, color: '#f59e0b' };
+
   return (
     <span aria-label={`Rating ${v} out of 5`}>
-      {Array.from({ length: full }).map((_, i) => <i key={`f${i}`} className="fa-solid fa-star" style={iconStyle} />)}
+      {Array.from({ length: full }).map((_, i) => (
+        <i key={`f${i}`} className="fa-solid fa-star" style={iconStyle} />
+      ))}
       {half === 1 && <i className="fa-solid fa-star-half-stroke" style={iconStyle} />}
-      {Array.from({ length: empty }).map((_, i) => <i key={`e${i}`} className="fa-regular fa-star" style={iconStyle} />)}
+      {Array.from({ length: empty }).map((_, i) => (
+        <i key={`e${i}`} className="fa-regular fa-star" style={iconStyle} />
+      ))}
     </span>
   );
 };
@@ -114,23 +87,7 @@ const useDesignName = (design, designId) => {
   const { data: dQ } = useGetDesignByIdQuery(id, { skip: !id });
   const fromRtk = dQ?.data?.name;
 
-  const [fetched, setFetched] = useState(null);
-
-  useEffect(() => {
-    let live = true;
-    (async () => {
-      if (!API_BASE || !id || direct || fromRtk) { if (live) setFetched(null); return; }
-      const name = await fetchNameViaCandidates([
-        `/shopy/designs/${id}`,
-        `/designs/${id}`,
-        `/design/${id}`,
-      ]);
-      if (live) setFetched(name);
-    })();
-    return () => { live = false; };
-  }, [id, direct, fromRtk]);
-
-  return pick(direct, fromRtk, fetched);
+  return pick(direct, fromRtk);
 };
 
 const useMotifName = (motif, motifId) => {
@@ -150,57 +107,26 @@ const useMotifName = (motif, motifId) => {
   const { data: mQ } = useGetMotifSizeByIdQuery(id, { skip: !id });
   const fromRtk = mQ?.data?.name || mQ?.data?.size;
 
-  const [fetched, setFetched] = useState(null);
-
-  useEffect(() => {
-    let live = true;
-    (async () => {
-      if (!API_BASE || !id || direct || fromRtk) { if (live) setFetched(null); return; }
-      const name = await fetchNameViaCandidates([
-        `/shopy/motifs/${id}`,
-        `/motifs/${id}`,
-        `/motif/${id}`,
-      ]);
-      if (live) setFetched(name);
-    })();
-    return () => { live = false; };
-  }, [id, direct, fromRtk]);
-
-  return pick(direct, fromRtk, fetched);
+  return pick(direct, fromRtk);
 };
 
 const useColorNames = (colors) => {
   const arr = useMemo(() => {
     if (!colors) return [];
     if (Array.isArray(colors)) return colors;
-    if (typeof colors === 'string') return colors.split(',').map(s => s.trim()).filter(Boolean);
+    if (typeof colors === 'string') return colors.split(',').map((s) => s.trim()).filter(Boolean);
     return [];
   }, [colors]);
 
-  const givenNames = useMemo(() => arr
-    .map((x) => (typeof x === 'string' ? (!isObjId(x) ? x : null) : x?.name))
-    .filter(Boolean), [arr]);
+  const givenNames = useMemo(
+    () =>
+      arr
+        .map((x) => (typeof x === 'string' ? (!isObjId(x) ? x : null) : x?.name))
+        .filter(Boolean),
+    [arr]
+  );
 
-  const ids = useMemo(() => arr
-    .map((x) => (typeof x === 'string' ? (isObjId(x) ? x : null) : x?._id))
-    .filter(Boolean), [arr]);
-
-  const [fetched, setFetched] = useState([]);
-
-  useEffect(() => {
-    let live = true;
-    (async () => {
-      if (!API_BASE || !ids.length) { if (live) setFetched([]); return; }
-      const names = await Promise.all(ids.map((id) =>
-        fetchNameViaCandidates([`/shopy/colors/${id}`, `/colors/${id}`, `/color/${id}`])
-      ));
-      const ok = names.filter(Boolean);
-      if (live) setFetched(ok);
-    })();
-    return () => { live = false; };
-  }, [JSON.stringify(ids)]);
-
-  return (givenNames.length ? givenNames : fetched);
+  return givenNames;
 };
 
 /* ---------------- Main component ---------------- */
@@ -221,77 +147,101 @@ const DetailsWrapper = ({ productItem = {} }) => {
   };
 
   const {
+    id,
     _id,
+
+    name,
     productTitle,
+
     category,
     newCategoryId,
+
     description,
-    status,
+    shortProductDescription,
+    shortDescription,
+
     slug,
+    productslug,
+
     leadtime,
+    status,
     supplyModel,
 
-    // ✅ FIXED: Use direct values from API instead of IDs
     structure,
-    structureId,
     content,
-    contentId,
     finish,
-    finishId,
 
-    design, designId,
-    motif, motifId,
+    design,
+    designId,
 
-    color, colors,
+    motif,
+    motifId,
 
-    gsm, oz, cm, inch, width,
+    color,
+    colors,
+
+    gsm,
+    oz,
+    cm,
+    inch,
+    width,
+
+    // fields from API
+    uM,
+    salesMOQ,
+    fabricCode,
+    vendorFabricCode
   } = productItem;
 
-  // Extract supplyModel for display
+  const productId = pick(_id, id);
+  const slugValue = pick(slug, productslug);
+  const titleValue = pick(productTitle, name);
+
+  /* Fetch full product (slug) for reliable fields */
+  const [productFull, setProductFull] = useState(null);
+
+  useEffect(() => {
+    let live = true;
+    (async () => {
+      if (!API_BASE || !slugValue) {
+        if (live) setProductFull(null);
+        return;
+      }
+      const json = await fetchJson(`${API_BASE}/product/slug/${slugValue}`);
+      const data = json?.data || null;
+      if (live) setProductFull(data);
+    })();
+    return () => {
+      live = false;
+    };
+  }, [slugValue]);
+
   const supplyModelDisplay = pick(
-    productItem?.supplyModel,
+    supplyModel,
     productFull?.supplyModel,
     Array.isArray(leadtime) && leadtime.length > 0 ? leadtime[0] : null,
     status,
     'In Stock'
   );
 
-  /* ✅ Fetch product details for shortProductDescription (and other fields if needed) */
-  const [productFull, setProductFull] = useState(null);
-
-  useEffect(() => {
-    let live = true;
-    (async () => {
-      if (!API_BASE || !slug) { if (live) setProductFull(null); return; }
-      const json = await fetchJson(`${API_BASE}/product/slug/${slug}`);
-      const data = json?.data || null;
-      if (live) setProductFull(data);
-    })();
-    return () => { live = false; };
-  }, [slug]);
-
-  // ✅ Short description (prefer API field, fallback to existing description)
   const shortDescHtml = pick(
-    productItem?.shortProductDescription,
+    shortProductDescription,
     productFull?.shortProductDescription,
-    productItem?.shortDescription
+    shortDescription
   );
 
-  /* SEO: lead time / rating / reviews */
-  const { data: seoResp } = useGetSeoByProductQuery(_id, { skip: !_id });
+  const { data: seoResp } = useGetSeoByProductQuery(productId, { skip: !productId });
   const seoDoc = Array.isArray(seoResp?.data) ? seoResp?.data?.[0] : (seoResp?.data || seoResp);
-  const leadTimeDays = pick(seoDoc?.leadtime);
-  
-  // ✅ FIXED: Use rating from product data first, then SEO data
-  const ratingValue = pick(productItem?.ratingValue, seoDoc?.rating_value);
-  const ratingCount = pick(productItem?.ratingCount, seoDoc?.rating_count);
+
+  const ratingValue = pick(productItem?.ratingValue, productFull?.ratingValue, seoDoc?.rating_value);
+  const ratingCount = pick(productItem?.ratingCount, productFull?.ratingCount, seoDoc?.rating_count);
 
   const dispatch = useDispatch();
   const { wishlist } = useSelector((state) => state.wishlist);
-  const isInWishlist = wishlist.some((prd) => prd._id === _id);
+  const isInWishlist = wishlist?.some((prd) => pick(prd?._id, prd?.id) === productId);
   const toggleWishlist = () => dispatch(add_to_wishlist(productItem));
 
-  /* Computed fields */
+  /* Computed displays */
   const weightParts = [];
   if (nonEmpty(gsm)) weightParts.push(`${gsm} gsm`);
   if (nonEmpty(oz)) weightParts.push(`${Number(oz).toFixed(1)} oz`);
@@ -299,27 +249,50 @@ const DetailsWrapper = ({ productItem = {} }) => {
 
   const cmNum = asNumber(cm ?? width);
   const inchNum = asNumber(inch);
-  const widthDisplay = [
-    cmNum != null ? `${cmNum} cm` : undefined,
-    inchNum != null ? `${Math.round(inchNum)} inch` : undefined,
-  ].filter(Boolean).join(' / ') || 'N/A';
+  const widthDisplay =
+    [cmNum != null ? `${cmNum} cm` : undefined, inchNum != null ? `${Math.round(inchNum)} inch` : undefined]
+      .filter(Boolean)
+      .join(' / ') || 'N/A';
 
   const designName = useDesignName(design, designId);
   const motifName = useMotifName(motif || productItem?.motifsize, motifId);
-  const colorNames = useColorNames(Array.isArray(color) ? color : (Array.isArray(colors) ? colors : []));
+  const colorNames = useColorNames(Array.isArray(color) ? color : Array.isArray(colors) ? colors : []);
+
+  // ✅ IMPORTANT: better Fabric Code fallback (productItem + productFull + alternate keys)
+  const fabricCodeDisplay = pick(
+    fabricCode,
+    productItem?.fabricCode,
+    productItem?.fabriccode,
+    productFull?.fabricCode,
+    productFull?.fabricCode,
+    productFull?.fabriccode,
+    vendorFabricCode,
+    productItem?.vendorFabricCode,
+    productFull?.vendorFabricCode
+  );
+
+  // ✅ Keep unit only for MOQ formatting (but DO NOT show UNIT row)
+  const unitDisplay = pick(uM, productFull?.uM, productItem?.unit, productItem?.unitOfMeasure);
+
+  const moqNum = asNumber(pick(salesMOQ, productFull?.salesMOQ, productItem?.moq, productItem?.minOrderQty));
+  const moqDisplay = moqNum != null ? `${moqNum}${unitDisplay ? ` ${unitDisplay}` : ''}` : 'N/A';
+
+  const categoryBadge = useMemo(() => {
+    const c = pick(category?.name, newCategoryId?.name, category);
+    return nonEmpty(c) ? String(c) : 'N/A';
+  }, [category, newCategoryId, category]);
 
   return (
     <div className="product-details-modern-wrapper">
-      {/* Header Section */}
+      {/* Header */}
       <div className="product-header">
         <div className="product-category">
-          <span className="category-badge">{category?.name || newCategoryId?.name}</span>
+          <span className="category-badge">{categoryBadge}</span>
           <span className="stock-badge">{supplyModelDisplay}</span>
         </div>
-        
-        <h1 className="product-title" dangerouslySetInnerHTML={{ __html: highlight(productTitle) }} />
-        
-        {/* Short Description */}
+
+        <h1 className="product-title" dangerouslySetInnerHTML={{ __html: highlight(titleValue) }} />
+
         {nonEmpty(shortDescHtml) ? (
           <div className="product-description" dangerouslySetInnerHTML={{ __html: shortDescHtml }} />
         ) : (
@@ -327,49 +300,73 @@ const DetailsWrapper = ({ productItem = {} }) => {
         )}
       </div>
 
-      {/* Quick Facts Grid */}
+      {/* Specs */}
       <div className="quick-facts-section">
         <div className="facts-grid">
           <div className="fact-item">
             <span className="fact-label">Content</span>
-            <span className="fact-value">
-              {Array.isArray(content) ? content.join(', ') : (content || 'N/A')}
-            </span>
+            <span className="fact-value">{Array.isArray(content) ? content.join(', ') : content || 'N/A'}</span>
           </div>
+
           <div className="fact-item">
             <span className="fact-label">Width</span>
             <span className="fact-value">{widthDisplay}</span>
           </div>
+
           <div className="fact-item">
             <span className="fact-label">Weight</span>
             <span className="fact-value">{weightDisplay}</span>
           </div>
+
           <div className="fact-item">
             <span className="fact-label">Finish</span>
-            <span className="fact-value">
-              {Array.isArray(finish) ? finish.join(', ') : (finish || 'N/A')}
+            <span className="fact-value fact-value-wrap">
+              {Array.isArray(finish) ? finish.join(', ') : finish || 'N/A'}
             </span>
           </div>
+
           <div className="fact-item">
             <span className="fact-label">Design</span>
             <span className="fact-value">{design || designName || 'N/A'}</span>
           </div>
+
           <div className="fact-item">
             <span className="fact-label">Structure</span>
             <span className="fact-value">{structure || 'N/A'}</span>
           </div>
+
           <div className="fact-item">
             <span className="fact-label">Colors</span>
-            <span className="fact-value">{(colorNames && colorNames.length) ? colorNames.join(', ') : 'N/A'}</span>
+            <span className="fact-value">{colorNames?.length ? colorNames.join(', ') : 'N/A'}</span>
           </div>
+
           <div className="fact-item">
             <span className="fact-label">Motif</span>
             <span className="fact-value">{motif || motifName || 'N/A'}</span>
           </div>
+
+          {/* ✅ Removed UNIT row */}
+
+          <div className="fact-item">
+            <span className="fact-label">Fabric Code</span>
+            <span className="fact-value">{fabricCodeDisplay}</span>
+          </div>
+
+          <div className="fact-item">
+            <span className="fact-label">Sales MOQ</span>
+            <span className="fact-value">{moqDisplay}</span>
+          </div>
+
           <div className="fact-item">
             <span className="fact-label">Rating</span>
-            <div className="fact-value"><Stars value={ratingValue} /></div>
+            <span className="fact-value">
+              <span className="rating-inline">
+                <Stars value={ratingValue} />
+                {nonEmpty(ratingCount) ? <span className="rating-count">({ratingCount})</span> : null}
+              </span>
+            </span>
           </div>
+
           <div className="fact-item">
             <span className="fact-label">Supply Model</span>
             <span className="fact-value">{supplyModelDisplay}</span>
@@ -377,17 +374,19 @@ const DetailsWrapper = ({ productItem = {} }) => {
         </div>
       </div>
 
-      {/* Action Buttons */}
+      {/* Actions */}
       <div className="action-section">
         <div className="action-buttons">
           <button className="action-btn primary">
             <i className="fa-regular fa-file-lines"></i>
             <span className="btn-text">Request Sample</span>
           </button>
+
           <button className="action-btn secondary">
             <i className="fa-regular fa-comment-dots"></i>
             <span className="btn-text">Request Quote</span>
           </button>
+
           <button
             type="button"
             onClick={toggleWishlist}
@@ -405,9 +404,8 @@ const DetailsWrapper = ({ productItem = {} }) => {
           height: fit-content;
         }
 
-        /* Header Section - Balanced */
         .product-header {
-          margin-bottom: 20px;
+          margin-bottom: 18px;
         }
 
         .product-category {
@@ -419,96 +417,121 @@ const DetailsWrapper = ({ productItem = {} }) => {
 
         .category-badge {
           display: inline-block;
-          padding: 5px 10px;
+          padding: 6px 12px;
           background: var(--tp-theme-primary);
           color: var(--tp-common-white);
           font-size: 11px;
-          font-weight: 600;
+          font-weight: 700;
           text-transform: uppercase;
-          border-radius: 14px;
+          border-radius: 999px;
           font-family: var(--tp-ff-jost);
         }
 
         .stock-badge {
           display: inline-block;
-          padding: 5px 10px;
+          padding: 6px 12px;
           background: var(--tp-theme-green);
           color: var(--tp-common-white);
           font-size: 11px;
-          font-weight: 600;
+          font-weight: 700;
           text-transform: lowercase;
-          border-radius: 14px;
+          border-radius: 999px;
           font-family: var(--tp-ff-jost);
         }
 
         .product-title {
           font-family: var(--tp-ff-jost);
           font-size: 28px;
-          font-weight: 700;
+          font-weight: 800;
           color: var(--tp-text-1);
-          margin: 0 0 12px 0;
+          margin: 0 0 10px 0;
           line-height: 1.2;
+          letter-spacing: -0.2px;
         }
 
         .product-description {
           font-family: var(--tp-ff-roboto);
           font-size: 15px;
-          line-height: 1.5;
+          line-height: 1.6;
           color: var(--tp-text-2);
-          margin: 0 0 20px 0;
+          margin: 0;
         }
 
-        /* Quick Facts Section - Balanced */
+        /* ✅ Cleaner spec “table” UI */
         .quick-facts-section {
-          background: var(--tp-grey-1);
-          border-radius: 10px;
-          padding: 16px;
-          margin-bottom: 20px;
+          background: var(--tp-common-white);
+          border-radius: 12px;
+          margin-top: 16px;
           border: 1px solid var(--tp-grey-2);
+          overflow: hidden;
         }
 
         .facts-grid {
           display: grid;
           grid-template-columns: 1fr 1fr;
-          gap: 12px;
-          font-size: 14px;
         }
 
         .fact-item {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          padding: 6px 0;
+          display: grid;
+          grid-template-columns: 130px 1fr;
+          gap: 10px;
+          padding: 14px 14px;
           border-bottom: 1px solid var(--tp-grey-2);
+          align-items: start;
         }
 
-        .fact-item:last-child {
+        /* right column divider on desktop */
+        .fact-item:nth-child(odd) {
+          border-right: 1px solid var(--tp-grey-2);
+        }
+
+        .fact-item:last-child,
+        .fact-item:nth-last-child(2) {
           border-bottom: none;
         }
 
         .fact-label {
           font-family: var(--tp-ff-jost);
           font-size: 12px;
-          font-weight: 600;
+          font-weight: 800;
           color: var(--tp-text-2);
           text-transform: uppercase;
-          letter-spacing: 0.3px;
-          min-width: 70px;
+          letter-spacing: 0.4px;
+          line-height: 1.2;
+          padding-top: 2px;
         }
 
         .fact-value {
           font-family: var(--tp-ff-roboto);
           font-size: 13px;
-          font-weight: 500;
+          font-weight: 600;
           color: var(--tp-text-1);
           text-align: right;
-          flex: 1;
+          line-height: 1.35;
+          word-break: break-word;
         }
 
-        /* Action Section - Improved for mobile */
+        .fact-value-wrap {
+          white-space: normal;
+        }
+
+        .rating-inline {
+          display: inline-flex;
+          align-items: center;
+          justify-content: flex-end;
+          gap: 8px;
+          width: 100%;
+        }
+
+        .rating-count {
+          font-size: 12px;
+          color: var(--tp-text-2);
+          font-weight: 700;
+        }
+
+        /* Actions */
         .action-section {
-          margin-top: 20px;
-          margin-bottom: 10px;
+          margin-top: 18px;
         }
 
         .action-buttons {
@@ -525,26 +548,15 @@ const DetailsWrapper = ({ productItem = {} }) => {
           gap: 8px;
           padding: 14px 10px;
           border: none;
-          border-radius: 10px;
+          border-radius: 12px;
           font-family: var(--tp-ff-jost);
           font-size: 13px;
-          font-weight: 600;
+          font-weight: 800;
           text-transform: uppercase;
-          letter-spacing: 0.3px;
+          letter-spacing: 0.35px;
           transition: all 0.2s ease;
           cursor: pointer;
           min-height: 50px;
-        }
-
-        .action-btn i {
-          font-size: 16px;
-          flex-shrink: 0;
-        }
-
-        .btn-text {
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
         }
 
         .action-btn.primary {
@@ -553,7 +565,6 @@ const DetailsWrapper = ({ productItem = {} }) => {
         }
 
         .action-btn.primary:hover {
-          background: var(--tp-theme-1);
           transform: translateY(-1px);
         }
 
@@ -564,9 +575,6 @@ const DetailsWrapper = ({ productItem = {} }) => {
         }
 
         .action-btn.secondary:hover {
-          background: var(--tp-common-white);
-          color: var(--tp-theme-primary);
-          border: 2px solid var(--tp-theme-primary);
           transform: translateY(-1px);
         }
 
@@ -576,7 +584,7 @@ const DetailsWrapper = ({ productItem = {} }) => {
           height: 50px;
           background: var(--tp-common-white);
           border: 2px solid var(--tp-grey-3);
-          border-radius: 10px;
+          border-radius: 12px;
           display: flex;
           align-items: center;
           justify-content: center;
@@ -585,37 +593,28 @@ const DetailsWrapper = ({ productItem = {} }) => {
           transition: all 0.2s ease;
           cursor: pointer;
           flex-shrink: 0;
-          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-
-        .wishlist-btn:hover {
-          border-color: var(--tp-theme-primary);
-          color: var(--tp-theme-primary);
-          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
         }
 
         .wishlist-btn.active {
           background: var(--tp-theme-primary);
           border-color: var(--tp-theme-primary);
           color: var(--tp-common-white);
-          box-shadow: 0 4px 12px rgba(var(--tp-theme-primary-rgb), 0.3);
         }
 
-        /* Responsive Design - Improved for mobile buttons */
         @media (max-width: 768px) {
           .product-title {
             font-size: 20px;
-            line-height: 1.3;
-            word-wrap: break-word;
-            overflow-wrap: break-word;
           }
 
           .facts-grid {
             grid-template-columns: 1fr;
-            gap: 6px;
           }
 
-          /* Improved mobile button layout */
+          .fact-item {
+            border-right: none !important;
+          }
+
           .action-buttons {
             display: grid;
             grid-template-columns: 1fr 1fr auto;
@@ -627,20 +626,6 @@ const DetailsWrapper = ({ productItem = {} }) => {
             min-height: 44px;
             padding: 10px 8px;
             font-size: 11px;
-            gap: 4px;
-            width: 100%;
-            overflow: hidden;
-          }
-
-          .action-btn i {
-            font-size: 14px;
-          }
-
-          .btn-text {
-            font-size: 11px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            max-width: 100%;
           }
 
           .wishlist-btn {
@@ -648,45 +633,10 @@ const DetailsWrapper = ({ productItem = {} }) => {
             min-width: 44px;
             height: 44px;
             font-size: 16px;
-            align-self: stretch;
-          }
-          
-          .fact-label {
-            min-width: 60px;
-            font-size: 11px;
-          }
-          
-          .fact-value {
-            font-size: 12px;
-          }
-        }
-
-        @media (max-width: 640px) {
-          /* Stack layout for very small screens */
-          .action-buttons {
-            grid-template-columns: 1fr;
-            gap: 10px;
-          }
-          
-          .wishlist-btn {
-            width: 100%;
-            min-width: auto;
-            height: 44px;
-            margin-top: 5px;
           }
         }
 
         @media (max-width: 480px) {
-          .product-title {
-            font-size: 18px;
-            line-height: 1.25;
-          }
-
-          .quick-facts-section {
-            padding: 10px;
-          }
-
-          /* Compact three-column layout for small phones */
           .action-buttons {
             grid-template-columns: 1fr 1fr auto;
             gap: 6px;
@@ -696,15 +646,6 @@ const DetailsWrapper = ({ productItem = {} }) => {
             min-height: 40px;
             padding: 8px 6px;
             font-size: 10px;
-            gap: 3px;
-          }
-
-          .action-btn i {
-            font-size: 12px;
-          }
-
-          .btn-text {
-            font-size: 10px;
           }
 
           .wishlist-btn {
@@ -712,38 +653,6 @@ const DetailsWrapper = ({ productItem = {} }) => {
             min-width: 40px;
             height: 40px;
             font-size: 14px;
-          }
-          
-          .fact-label {
-            min-width: 50px;
-            font-size: 10px;
-          }
-          
-          .fact-value {
-            font-size: 11px;
-          }
-        }
-
-        /* Alternative: Icon-only buttons for very small screens */
-        @media (max-width: 360px) {
-          .action-btn {
-            padding: 8px 4px;
-          }
-          
-          .btn-text {
-            display: none;
-          }
-          
-          .action-btn i {
-            margin: 0;
-            font-size: 14px;
-          }
-          
-          .wishlist-btn {
-            width: 36px;
-            min-width: 36px;
-            height: 36px;
-            font-size: 13px;
           }
         }
       `}</style>

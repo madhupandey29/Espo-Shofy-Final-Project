@@ -9,25 +9,27 @@ import { FaXTwitter } from 'react-icons/fa6';
 export default function ContactArea() {
   const { data: officeInfo, isLoading, error } = useGetOfficeInformationQuery();
 
-  // Map API response to expected format - no fallbacks since filtering is done at API level
-  const apiData = officeInfo?.data?.[0];
-  const contactData = apiData
+  // Use the same filtering logic as footer - get the first filtered company
+  const office = officeInfo?.success && Array.isArray(officeInfo?.data) && officeInfo.data.length ? officeInfo.data[0] : null;
+
+  // Map API response to expected format using the same pattern as footer
+  const contactData = office
     ? {
-        email: apiData.primaryEmail,
-        phone: apiData.phone1,
-        phone2: apiData.phone2,
-        officeAddress: apiData.addressStreet && apiData.addressCity 
-          ? `${apiData.addressStreet}, ${apiData.addressCity}, ${apiData.addressState}, ${apiData.addressCountry} — ${apiData.addressPostalCode}`
+        email: office.primaryEmail,
+        phone: office.phone1,
+        phone2: office.phone2,
+        officeAddress: office.addressStreet && office.addressCity 
+          ? `${office.addressStreet}, ${office.addressCity}, ${office.addressState}, ${office.addressCountry} — ${office.addressPostalCode}`
           : null,
-        factoryAddress: apiData.factoryAddress || null,
-        warehouseAddress: apiData.warehouseAddress || null,
-        uaeOfficeAddress: apiData.uaeOfficeAddress || null,
-        facebook: apiData.facebookUrl || '',
-        instagram: apiData.instagramUrl || '',
-        linkedin: apiData.linkedinUrl || '',
-        twitter: apiData.xUrl || '',
-        youtube: apiData.youtubeUrl || '',
-        pinterest: apiData.pinterestUrl || '',
+        factoryAddress: office.factoryAddress || null,
+        warehouseAddress: office.warehouseAddress || null,
+        uaeOfficeAddress: office.uaeOfficeAddress || null,
+        facebook: office.facebookUrl || '',
+        instagram: office.instagramUrl || '',
+        linkedin: office.linkedinUrl || '',
+        twitter: office.xUrl || '',
+        youtube: office.youtubeUrl || '',
+        pinterest: office.pinterestUrl || '',
       }
     : {
         email: null,
