@@ -32,6 +32,18 @@ const pickUrlDeep = function pick(v) {
   return '';
 };
 
+// Generate slug from product name
+const generateSlug = (name) => {
+  if (!name) return '';
+  return String(name)
+    .toLowerCase()
+    .trim()
+    .replace(/[^\w\s-]/g, '') // Remove special characters
+    .replace(/\s+/g, '-') // Replace spaces with hyphens
+    .replace(/-+/g, '-') // Replace multiple hyphens with single
+    .replace(/^-|-$/g, ''); // Remove leading/trailing hyphens
+};
+
 function absoluteUrlFromAnything(src) {
   const raw = pickUrlDeep(src);
   if (!raw) return '';
@@ -214,9 +226,13 @@ const WeeksFeatured = () => {
       >
         {items.map((item, idx) => {
           const p = item?.product || item;
-          const pid = p?._id || idx;
+          const pid = p?._id || p?.id || idx;
           const title = p?.name || item?.title || 'Product Name';
           const imageUrl = getImageUrl(item);
+          
+          // Use aiTempOutput as slug if available, then fabricCode, then generated slug, then pid
+          const slug = p?.slug || p?.productslug || p?.seoSlug || p?.aiTempOutput || p?.fabricCode || generateSlug(title) || pid;
+          const detailsHref = `/fabric/${encodeURIComponent(slug)}`;
           
           // Debug logging for weeks-featured
           console.log(`Featured Product ${idx}:`, { 
@@ -226,11 +242,8 @@ const WeeksFeatured = () => {
             image2CloudUrl: p?.image2CloudUrl,
             image3CloudUrl: p?.image3CloudUrl,
             finalImageUrl: imageUrl,
-            slug 
+            slug: slug
           });
-          
-          const slug = p?.slug || pid;
-          const detailsHref = `/fabric/${encodeURIComponent(slug)}`;
 
           // ✅ Top-left badge text comes from productTag[]
           const tagArr = getTagArray(p, item);

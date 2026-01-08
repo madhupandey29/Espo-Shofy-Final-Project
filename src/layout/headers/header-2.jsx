@@ -282,7 +282,7 @@ const HeaderTwo = ({ style_2 = false }) => {
     if (explicitPick && selIndex >= 0 && results[selIndex]) {
       const p = results[selIndex];
       if (p?.slug) {
-        go(`/product-details/${p.slug}`, { keepQuery: false }); // ✅ slug only
+        go(`/fabric/${p.slug}`, { keepQuery: false }); // ✅ slug only
         return;
       }
     }
@@ -543,7 +543,7 @@ const HeaderTwo = ({ style_2 = false }) => {
                                   onClick={() => {
                                     // ✅ click opens product only if slug exists
                                     if (p?.slug) {
-                                      go(`/product-details/${p.slug}`, { keepQuery: false });
+                                      go(`/fabric/${p.slug}`, { keepQuery: false });
                                     } else {
                                       go(`/shop?q=${encodeURIComponent(query)}`, { keepQuery: true });
                                     }

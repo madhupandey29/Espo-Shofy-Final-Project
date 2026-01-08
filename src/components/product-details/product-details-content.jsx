@@ -6,6 +6,7 @@ import DetailsThumbWrapper from './details-thumb-wrapper';
 import DetailsWrapper from './details-wrapper';
 import DetailsTabNav from './details-tab-nav';
 import RelatedProducts from './related-products';
+import DetailsSuitableKeywords from './details-desc-suitable';
 
 import { useGetSeoByProductQuery } from '@/redux/features/seoApi';
 
@@ -159,6 +160,9 @@ export default function ProductDetailsContent({ productItem }) {
           </div>
         </div>
       </div>
+
+      {/* Suitable For & Keywords Section */}
+      <DetailsSuitableKeywords product={p} />
 
       {/* Related */}
       <section className="tp-related-product pt-95 pb-50">

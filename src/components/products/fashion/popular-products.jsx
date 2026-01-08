@@ -24,6 +24,18 @@ const cleanStringUrl = (s) => {
   return v.startsWith('//') ? `https:${v}` : v;
 };
 
+// Generate slug from product name
+const generateSlug = (name) => {
+  if (!name) return '';
+  return String(name)
+    .toLowerCase()
+    .trim()
+    .replace(/[^\w\s-]/g, '') // Remove special characters
+    .replace(/\s+/g, '-') // Replace spaces with hyphens
+    .replace(/-+/g, '-') // Replace multiple hyphens with single
+    .replace(/^-|-$/g, ''); // Remove leading/trailing hyphens
+};
+
 const pickUrlDeep = function pick(v) {
   if (!v) return '';
   if (typeof v === 'string') return cleanStringUrl(v);
@@ -205,9 +217,10 @@ export default function PopularProducts() {
         {items.map((seoDoc, idx) => {
           const p = seoDoc.product || seoDoc;
           const src = getItemImage(seoDoc);
-          const pid = p?._id;
-          const slug = p?.slug || pid;
+          const pid = p?._id || p?.id || idx;
           const pname = p?.name ?? 'Product';
+          // Use aiTempOutput as slug if available, then fabricCode, then generated slug, then pid
+          const slug = p?.slug || p?.productslug || p?.seoSlug || p?.aiTempOutput || p?.fabricCode || generateSlug(pname) || pid;
           const detailsHref = slug ? `/fabric/${slug}` : '#';
           const eager = idx < 3;
 

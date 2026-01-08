@@ -226,7 +226,7 @@ const ProductItem = ({ product, index = 0 }) => {
 
   const titleText = stripHtml(titleHtml).trim() || 'Product';
 
-  const slug = product?.slug || product?.productslug || product?.product?.slug || seoDoc?.slug || productId;
+  const slug = product?.slug || product?.productslug || product?.product?.slug || product?.aiTempOutput || product?.fabricCode || seoDoc?.slug || productId;
 
   const categoryLabel =
     pick(
