@@ -64,16 +64,18 @@ export default function ShopArea({ shop_right = false, hidden_sidebar = false, i
   const [currPage,        setCurrPage]        = useState(1);
   const [currentApiPage,  setCurrentApiPage]  = useState(1);
   const [selectedFilters, setSelectedFilters] = useState({});
-  const [allLoadedProducts, setAllLoadedProducts] = useState(initialProducts);
-  const [hasMorePages, setHasMorePages] = useState(totalProducts > 50);
+  const [allLoadedProducts, setAllLoadedProducts] = useState(initialProducts || []);
+  const [hasMorePages, setHasMorePages] = useState(totalProducts > (initialProducts?.length || 0));
   const [searchResults, setSearchResults] = useState(null);
   const [isSearchActive, setIsSearchActive] = useState(!!searchQuery);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
 
   const handleFilterChange = (obj) => {
     setCurrPage(1);
     setCurrentApiPage(1);
     setSelectedFilters(obj);
-    setAllLoadedProducts(initialProducts); // Reset to initial products when filtering
+    // Don't reset allLoadedProducts immediately to prevent flicker
+    setHasMorePages(totalProducts > (initialProducts?.length || 0));
   };
   
   const handleSlider = (val) => {
@@ -86,7 +88,10 @@ export default function ShopArea({ shop_right = false, hidden_sidebar = false, i
     setSelectValue(e.value);
   };
 
-  const loadMoreProducts = () => {
+  const loadMoreProducts = async () => {
+    if (isLoadingMore || !hasMorePages) return;
+    
+    setIsLoadingMore(true);
     setCurrentApiPage(prev => prev + 1);
   };
 
@@ -172,6 +177,7 @@ export default function ShopArea({ shop_right = false, hidden_sidebar = false, i
     selectedFilters, handleFilterChange,
     loadMoreProducts,
     hasMorePages,
+    isLoadingMore,
     totalProducts: isSearchActive ? (searchResults?.total || 0) : totalProducts,
     isSearchActive,
     searchResults,
@@ -189,7 +195,6 @@ export default function ShopArea({ shop_right = false, hidden_sidebar = false, i
   const allQ           = useGetAllNewProductsQuery({ limit: 50, page: currentApiPage }, {
                           skip: gsm || oz || quantity || purchasePrice ||
                                 (minPrice && maxPrice && minPrice === maxPrice) ||
-                                currentApiPage === 1 || // Skip if it's page 1 (we have initial data)
                                 isSearchActive, // Skip API calls when search is active
                         });
 
@@ -208,24 +213,37 @@ export default function ShopArea({ shop_right = false, hidden_sidebar = false, i
       return searchResults.data || [];
     }
     
-    // Use API data if available, otherwise fall back to initialProducts
-    if (productsData?.data && Array.isArray(productsData.data)) {
-      return productsData.data;
+    // Always use allLoadedProducts for consistency, which includes initial + loaded products
+    if (allLoadedProducts.length > 0) {
+      return allLoadedProducts;
     }
-    // Fall back to initialProducts from server-side rendering
+    
+    // Fallback to initial products if allLoadedProducts is empty
     return Array.isArray(initialProducts) ? initialProducts : [];
-  }, [productsData?.data, initialProducts, isSearchActive, searchResults]);
+  }, [isSearchActive, searchResults, allLoadedProducts, initialProducts]);
 
   // Handle loading more products
   useEffect(() => {
-    if (productsData?.data && currentApiPage > 1) {
-      setAllLoadedProducts(prev => [...prev, ...productsData.data]);
+    if (productsData?.data && currentApiPage > 1 && !isSearchActive) {
+      setAllLoadedProducts(prev => {
+        // Avoid duplicates by checking if products are already loaded
+        const existingIds = new Set(prev.map(p => p._id || p.id));
+        const newProducts = productsData.data.filter(p => !existingIds.has(p._id || p.id));
+        return [...prev, ...newProducts];
+      });
       
       // Check if there are more pages
       const totalPages = productsData?.pagination?.totalPages || Math.ceil(totalProducts / 50);
       setHasMorePages(currentApiPage < totalPages);
+      setIsLoadingMore(false);
+    } else if (currentApiPage === 1 && productsData?.data) {
+      // For first page, just set the initial products
+      setAllLoadedProducts(productsData.data);
+      const totalPages = productsData?.pagination?.totalPages || Math.ceil(totalProducts / 50);
+      setHasMorePages(totalPages > 1);
+      setIsLoadingMore(false);
     }
-  }, [productsData, currentApiPage, totalProducts]);
+  }, [productsData, currentApiPage, totalProducts, isSearchActive]);
 
   // auto-expand price slider max
   useEffect(() => {
@@ -258,9 +276,10 @@ export default function ShopArea({ shop_right = false, hidden_sidebar = false, i
     }
 
     // 2) sort
-    if (selectValue === 'Low to High')  items = [...items].sort((a,b)=>a.salesPrice-b.salesPrice);
-    if (selectValue === 'High to Low')  items = [...items].sort((a,b)=>b.salesPrice-a.salesPrice);
-    if (selectValue === 'New Added')    items = [...items].sort((a,b)=>new Date(b.published_at)-new Date(a.published_at));
+    if (selectValue === 'nameAsc')   items = [...items].sort((a,b) => (a.name || '').localeCompare(b.name || ''));
+    if (selectValue === 'nameDesc')  items = [...items].sort((a,b) => (b.name || '').localeCompare(a.name || ''));
+    if (selectValue === 'new')       items = [...items].sort((a,b) => new Date(b.createdAt || b.published_at || 0) - new Date(a.createdAt || a.published_at || 0));
+    if (selectValue === 'old')       items = [...items].sort((a,b) => new Date(a.createdAt || a.published_at || 0) - new Date(b.createdAt || b.published_at || 0));
 
     // 3) URL‐string filters
     const slugify = s => s?.toLowerCase().replace(/&/g,'').split(' ').join('-');

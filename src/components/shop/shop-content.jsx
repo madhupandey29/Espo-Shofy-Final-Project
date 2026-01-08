@@ -29,6 +29,7 @@ const ShopContent = ({
     handleFilterChange,
     loadMoreProducts,
     hasMorePages,
+    isLoadingMore,
     totalProducts,
   } = otherProps || {};
 
@@ -163,23 +164,31 @@ const ShopContent = ({
                     </div>
                     <div className="col-xl-5">
                       <div className="shopTopRight" role="region" aria-label="Sort toolbar">
-                        {/* Sort */}
+                        {/* Enhanced Sort Dropdown */}
                         {selectHandleFilter && (
                           <div className="shopSort d-none d-lg-block">
-                            <select 
-                              onChange={(e) => {
-                                if (selectHandleFilter) {
-                                  selectHandleFilter({ value: e.target.value });
-                                }
-                              }} 
-                              aria-label="Sort products"
-                            >
-                              <option value="default">Sort: Recommended</option>
-                              <option value="new">What's New</option>
-                              <option value="priceLow">Price: Low to High</option>
-                              <option value="priceHigh">Price: High to Low</option>
-                              <option value="nameAsc">Name: A to Z</option>
-                            </select>
+                            <div className="sort-dropdown-wrapper">
+                              <select 
+                                onChange={(e) => {
+                                  if (selectHandleFilter) {
+                                    selectHandleFilter({ value: e.target.value });
+                                  }
+                                }} 
+                                aria-label="Sort products"
+                                className="sort-select"
+                              >
+                                <option value="default">Sort: Recommended</option>
+                                <option value="nameAsc">Name: A to Z</option>
+                                <option value="nameDesc">Name: Z to A</option>
+                                <option value="new">Recently Added</option>
+                                <option value="old">First Added</option>
+                              </select>
+                              <div className="sort-dropdown-icon">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+                                  <path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                </svg>
+                              </div>
+                            </div>
                           </div>
                         )}
 
@@ -223,20 +232,36 @@ const ShopContent = ({
                       ))}
                     </div>
 
-                    {/* Load More */}
+                    {/* Enhanced Load More Button */}
                     {(products.length < (totalProducts || all_products.length)) && (
-                      <div className="load-more-wrapper mt-30">
-                        <button
-                          type="button"
-                          className="load-more-btn"
-                          onClick={() => {
-                            if (hasMorePages && loadMoreProducts) {
-                              loadMoreProducts();
-                            }
-                          }}
-                        >
-                          Load More ({(totalProducts || all_products.length) - products.length} more)
-                        </button>
+                      <div className="load-more-wrapper">
+                        <div className="load-more-container">
+                          <div className="load-more-info">
+                            <span className="products-shown">
+                              Showing {filteredRows.length} of {totalProducts || all_products.length} products
+                            </span>
+                          </div>
+                          <button
+                            type="button"
+                            className={`load-more-btn enhanced ${isLoadingMore ? 'loading' : ''}`}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              if (hasMorePages && loadMoreProducts && !isLoadingMore) {
+                                loadMoreProducts();
+                              }
+                            }}
+                            disabled={!hasMorePages || isLoadingMore}
+                          >
+                            <span className="load-more-text">
+                              {isLoadingMore ? 'Loading...' : 'Load More'}
+                            </span>
+                            {!isLoadingMore && (
+                              <span className="load-more-count">
+                                ({Math.min(50, (totalProducts || all_products.length) - products.length)})
+                              </span>
+                            )}
+                          </button>
+                        </div>
                       </div>
                     )}
                   </>
@@ -258,11 +283,6 @@ const ShopContent = ({
           place-items: center;
           padding: 8px 0;
         }
-        .shop-sidebar-col {
-          flex: 0 0 270px;
-          max-width: 270px;
-          padding-left: 0;
-        }
         .shop-main-col { min-width: 0; }
         .products-grid{
           display:grid;
@@ -274,7 +294,140 @@ const ShopContent = ({
         @media (min-width: 1200px){
           .products-grid{ grid-template-columns: repeat(4, minmax(0, 1fr)); }
         }
-        .load-more-wrapper{ display:flex; justify-content:center; }
+        .load-more-wrapper{ 
+          display: flex; 
+          justify-content: center; 
+          margin-top: 40px;
+          padding: 20px 0;
+        }
+        
+        .load-more-container {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 16px;
+          max-width: 400px;
+          width: 100%;
+        }
+        
+        .load-more-info {
+          text-align: center;
+        }
+        
+        .products-shown {
+          font-size: 14px;
+          color: var(--tp-text-2);
+          font-weight: 500;
+          letter-spacing: 0.3px;
+        }
+        
+        .load-more-btn.enhanced {
+          background: white;
+          color: var(--tp-theme-primary);
+          border: 2px solid var(--tp-theme-primary);
+          padding: 8px 20px;
+          border-radius: 6px;
+          font-size: 14px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 6px;
+          min-width: auto;
+          white-space: nowrap;
+          box-shadow: 0 2px 6px rgba(44, 76, 151, 0.15);
+          position: relative;
+          overflow: hidden;
+        }
+        
+        .load-more-btn.enhanced:before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: -100%;
+          width: 100%;
+          height: 100%;
+          background: var(--tp-theme-primary);
+          transition: left 0.3s ease;
+          z-index: 0;
+        }
+        
+        .load-more-btn.enhanced:hover:before {
+          left: 0;
+        }
+        
+        .load-more-btn.enhanced:hover {
+          color: white;
+          border-color: var(--tp-theme-primary);
+          box-shadow: 0 3px 12px rgba(44, 76, 151, 0.25);
+          transform: translateY(-1px);
+        }
+        
+        .load-more-text,
+        .load-more-count {
+          position: relative;
+          z-index: 1;
+          transition: color 0.3s ease;
+        }
+        
+        .load-more-text {
+          font-size: 14px;
+          font-weight: 600;
+          letter-spacing: 0.3px;
+        }
+        
+        .load-more-count {
+          font-size: 12px;
+          font-weight: 500;
+          opacity: 0.8;
+        }
+        
+        .load-more-btn.enhanced:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
+          transform: none;
+        }
+        
+        .load-more-btn.enhanced:disabled:hover {
+          transform: none;
+          box-shadow: 0 2px 6px rgba(44, 76, 151, 0.15);
+          color: var(--tp-theme-primary);
+        }
+        
+        .load-more-btn.enhanced:disabled:before {
+          left: -100%;
+        }
+        
+        .load-more-btn.enhanced.loading {
+          pointer-events: none;
+        }
+        
+        .load-more-btn.enhanced.loading .load-more-text {
+          animation: pulse 1.5s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.6; }
+        }
+        
+        @media (max-width: 640px) {
+          .load-more-btn.enhanced {
+            padding: 7px 16px;
+            font-size: 13px;
+            gap: 4px;
+          }
+          
+          .load-more-text {
+            font-size: 13px;
+          }
+          
+          .load-more-count {
+            font-size: 11px;
+          }
+        }
         @media (max-width: 991.98px){
           .shop-sidebar-col{ flex:1 1 auto; max-width:100%; }
         }
@@ -293,6 +446,65 @@ const ShopContent = ({
           font: 600 13px/1 var(--tp-ff-roboto);
           color:var(--tp-text-1);
           cursor:pointer;
+        }
+        
+        /* Enhanced Sort Dropdown Styling */
+        .sort-dropdown-wrapper {
+          position: relative;
+          display: inline-block;
+        }
+        
+        .sort-select {
+          appearance: none;
+          -webkit-appearance: none;
+          -moz-appearance: none;
+          height: 44px;
+          min-width: 180px;
+          border: 2px solid var(--tp-grey-2);
+          border-radius: 12px;
+          padding: 0 40px 0 16px;
+          background: var(--tp-common-white);
+          font: 600 13px/1 var(--tp-ff-roboto);
+          color: var(--tp-text-1);
+          cursor: pointer;
+          transition: all 0.3s ease;
+          box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+        }
+        
+        .sort-select:hover {
+          border-color: var(--tp-theme-primary);
+          box-shadow: 0 4px 12px rgba(44, 76, 151, 0.15);
+        }
+        
+        .sort-select:focus {
+          outline: none;
+          border-color: var(--tp-theme-primary);
+          box-shadow: 0 0 0 3px rgba(44, 76, 151, 0.12);
+        }
+        
+        .sort-dropdown-icon {
+          position: absolute;
+          right: 12px;
+          top: 50%;
+          transform: translateY(-50%);
+          pointer-events: none;
+          color: var(--tp-text-2);
+          transition: all 0.3s ease;
+        }
+        
+        .sort-dropdown-wrapper:hover .sort-dropdown-icon {
+          color: var(--tp-theme-primary);
+        }
+        
+        .sort-select option {
+          padding: 8px 16px;
+          font-weight: 500;
+          color: var(--tp-text-1);
+          background: var(--tp-common-white);
+        }
+        
+        .sort-select option:hover {
+          background: var(--tp-grey-1);
         }
         @media (max-width: 640px){
           .shopTopRight{

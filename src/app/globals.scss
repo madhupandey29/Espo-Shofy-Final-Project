@@ -253,21 +253,95 @@ h1,h2,h3,h4,h5,h6{
 }
 
 /* ===========================
-   Sticky Sidebar (Filter panel)
+   Simple Sticky Sidebar (Filter panel) - CSS Only Solution
    =========================== */
 .sticky-filter{
   position: sticky;
-  top: var(--header-offset);
-  max-height: calc(100vh - var(--header-offset));
-  overflow: auto;
+  top: var(--header-offset, 88px);
+  max-height: calc(100vh - var(--header-offset, 88px) - 40px);
+  overflow-y: auto;
+  overflow-x: hidden;
   overscroll-behavior: contain;
-  padding-right: .5rem; /* space near scrollbar */
+  padding-right: 8px;
+  align-self: flex-start;
 }
-.sticky-filter::-webkit-scrollbar{ width:8px; }
-.sticky-filter::-webkit-scrollbar-track{ background:transparent; }
-.sticky-filter::-webkit-scrollbar-thumb{ background: #d5d5d5; border-radius:8px; }
-.sticky-filter:hover::-webkit-scrollbar-thumb{ background:#c0c0c0; }
-.sticky-filter{ scrollbar-width:thin; scrollbar-color:#d5d5d5 transparent; }
+
+.sticky-filter::-webkit-scrollbar { 
+  width: 6px; 
+}
+
+.sticky-filter::-webkit-scrollbar-track { 
+  background: transparent; 
+}
+
+.sticky-filter::-webkit-scrollbar-thumb { 
+  background: #d5d5d5; 
+  border-radius: 3px; 
+}
+
+.sticky-filter:hover::-webkit-scrollbar-thumb { 
+  background: #c0c0c0; 
+}
+
+.sticky-filter { 
+  scrollbar-width: thin; 
+  scrollbar-color: #d5d5d5 transparent; 
+}
+
+/* Ensure proper layout */
+.shop-content-wrapper {
+  display: flex;
+  align-items: flex-start;
+  gap: 24px;
+}
+
+.shop-sidebar-col {
+  flex: 0 0 320px;
+  max-width: 320px;
+}
+
+.shop-main-col {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Enhanced sidebar spacing for wider layout */
+@media (min-width: 1200px) {
+  .tp-shop-area .container {
+    max-width: 1400px; /* Allow more space for wider sidebar */
+  }
+}
+
+/* Ensure products grid adapts to available space */
+.products-grid {
+  width: 100%;
+  min-width: 0; /* Allow grid to shrink */
+}
+
+/* Better responsive behavior for the wider sidebar */
+@media (max-width: 1199.98px) {
+  .shop-sidebar-col {
+    flex: 0 0 300px !important;
+    max-width: 300px !important;
+  }
+  
+  .sticky-filter {
+    max-width: 300px;
+  }
+}
+
+@media (max-width: 991.98px) {
+  .shop-sidebar-col {
+    flex: 1 1 auto !important;
+    max-width: 100% !important;
+    margin-right: 0 !important;
+  }
+  
+  .sticky-filter {
+    position: static !important;
+    max-height: none !important;
+  }
+}
 
 @media (max-width: 991.98px){
   .sticky-filter{

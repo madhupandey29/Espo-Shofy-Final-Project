@@ -3,16 +3,16 @@
 import React, { useMemo, useState } from 'react';
 import { useGetFieldValuesQuery } from '@/redux/api/apiSlice';
 
-/* Myntra-like order */
+/* Enhanced filter configuration with accordion support */
 const FIELD_FILTERS = [
-  { key: 'category', label: 'CATEGORIES', searchable: false, limit: 8 },
-  { key: 'brand', label: 'BRAND', searchable: true, limit: 8 },
-  { key: 'color', label: 'COLOR', searchable: true, limit: 8 },
-  { key: 'content', label: 'CONTENT', searchable: true, limit: 8 },
-  { key: 'design', label: 'DESIGN', searchable: true, limit: 8 },
-  { key: 'structure', label: 'STRUCTURE', searchable: true, limit: 8 },
-  { key: 'finish', label: 'FINISH', searchable: true, limit: 8 },
-  { key: 'motif', label: 'MOTIF', searchable: true, limit: 8 },
+  { key: 'category', label: 'CATEGORIES', searchable: false, limit: 8, defaultOpen: true },
+  { key: 'brand', label: 'BRAND', searchable: true, limit: 8, defaultOpen: false },
+  { key: 'color', label: 'COLOR', searchable: true, limit: 12, defaultOpen: true }, // Increased limit for colors
+  { key: 'content', label: 'CONTENT', searchable: true, limit: 8, defaultOpen: false },
+  { key: 'design', label: 'DESIGN', searchable: true, limit: 8, defaultOpen: false },
+  { key: 'structure', label: 'STRUCTURE', searchable: true, limit: 8, defaultOpen: false },
+  { key: 'finish', label: 'FINISH', searchable: true, limit: 8, defaultOpen: false },
+  { key: 'motif', label: 'MOTIF', searchable: true, limit: 8, defaultOpen: false },
 ];
 
 export const FIELD_FILTERS_MAP = Object.fromEntries(FIELD_FILTERS.map((f) => [f.key, f]));
@@ -23,6 +23,7 @@ const UI = {
   muted: 'var(--tp-text-2)',
   border: 'var(--tp-grey-2)',
   bg: 'var(--tp-common-white)',
+  lightBg: 'var(--tp-grey-1)',
 };
 
 const COLOR_MAP = {
@@ -47,17 +48,99 @@ const COLOR_MAP = {
   Charcoal: '#36454f',
 };
 
+// Function to get hex color for a color name
+function getColorHex(colorName) {
+  // First check if it's a direct match in COLOR_MAP
+  if (COLOR_MAP[colorName]) {
+    return COLOR_MAP[colorName];
+  }
+  
+  // Check case-insensitive match
+  const lowerName = colorName.toLowerCase();
+  for (const [key, value] of Object.entries(COLOR_MAP)) {
+    if (key.toLowerCase() === lowerName) {
+      return value;
+    }
+  }
+  
+  // Enhanced color mapping for common fabric colors
+  const fabricColorMap = {
+    'lemon yellow': '#FFFACD',
+    'lemon': '#FFFACD',
+    'bold teal': '#008B8B',
+    'bottle green': '#006A4E',
+    'bright orange': '#FF8C00',
+    'butter yellow': '#FFDB58',
+    'camel': '#C19A6B',
+    'caramel': '#AF6F09',
+    'chocolate brown': '#7B3F00',
+    'forest green': '#228B22',
+    'royal blue': '#4169E1',
+    'navy blue': '#000080',
+    'sky blue': '#87CEEB',
+    'mint green': '#98FB98',
+    'coral': '#FF7F50',
+    'salmon': '#FA8072',
+    'lavender': '#E6E6FA',
+    'peach': '#FFCBA4',
+    'ivory': '#FFFFF0',
+    'khaki': '#F0E68C',
+    'burgundy': '#800020',
+    'wine': '#722F37',
+    'mustard': '#FFDB58',
+    'rust': '#B7410E',
+    'sage': '#9CAF88',
+    'slate': '#708090',
+    'charcoal': '#36454F',
+    'steel': '#4682B4',
+    'copper': '#B87333',
+    'bronze': '#CD7F32',
+    'gold': '#FFD700',
+    'silver': '#C0C0C0',
+    'rose': '#FF66CC',
+    'blush': '#DE5D83',
+    'mauve': '#E0B0FF',
+    'plum': '#8E4585',
+    'emerald': '#50C878',
+    'jade': '#00A86B',
+    'turquoise': '#40E0D0',
+    'aqua': '#00FFFF',
+    'lime': '#00FF00',
+    'olive': '#808000',
+    'tan': '#D2B48C',
+    'sand': '#C2B280',
+    'stone': '#928E85',
+    'ash': '#B2BEB5',
+  };
+  
+  // Check fabric color map
+  if (fabricColorMap[lowerName]) {
+    return fabricColorMap[lowerName];
+  }
+  
+  // Check if color name contains keywords
+  for (const [keyword, hex] of Object.entries(fabricColorMap)) {
+    if (lowerName.includes(keyword) || keyword.includes(lowerName)) {
+      return hex;
+    }
+  }
+  
+  // Default fallback
+  return '#C9C9CF';
+}
+
 function normalizeOptions(rawValues) {
   const arr = Array.isArray(rawValues) ? rawValues : [];
   return arr
     .map((v) => {
       if (v == null) return null;
-      if (typeof v === 'string' || typeof v === 'number') return { value: String(v), count: null };
+      if (typeof v === 'string' || typeof v === 'number') return { value: String(v), count: null, hex: null };
       if (typeof v === 'object') {
         const value = v.value ?? v.name ?? v.label ?? '';
         const count = typeof v.count === 'number' ? v.count : typeof v.total === 'number' ? v.total : null;
+        const hex = v.hex || null; // Extract hex value from API response
         if (!value) return null;
-        return { value: String(value), count };
+        return { value: String(value), count, hex };
       }
       return null;
     })
@@ -73,15 +156,48 @@ function SearchIcon() {
   );
 }
 
+function ChevronIcon({ isOpen }) {
+  return (
+    <svg 
+      width="16" 
+      height="16" 
+      viewBox="0 0 24 24" 
+      fill="none" 
+      style={{ 
+        transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+        transition: 'transform 0.2s ease'
+      }}
+    >
+      <path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  );
+}
+
 export default function EnhancedShopSidebarFilters({ onFilterChange, selected = {}, onResetAll }) {
   const [openSearch, setOpenSearch] = useState({});
   const [query, setQuery] = useState({});
   const [showAll, setShowAll] = useState({});
+  
+  // Initialize accordion state with default open sections
+  const [accordionState, setAccordionState] = useState(() => {
+    const initial = {};
+    FIELD_FILTERS.forEach(filter => {
+      initial[filter.key] = filter.defaultOpen || false;
+    });
+    return initial;
+  });
 
   const totalActive = Object.values(selected).reduce(
     (sum, v) => sum + (Array.isArray(v) ? v.length : 0),
     0
   );
+
+  const toggleAccordion = (filterKey) => {
+    setAccordionState(prev => ({
+      ...prev,
+      [filterKey]: !prev[filterKey]
+    }));
+  };
 
   const toggleValue = (filterKey, value) => {
     const current = Array.isArray(selected?.[filterKey]) ? selected[filterKey] : [];
@@ -120,20 +236,28 @@ export default function EnhancedShopSidebarFilters({ onFilterChange, selected = 
       </div>
 
       <div className="mSections">
-        {FIELD_FILTERS.map((f) => (
-          <FilterSection
-            key={f.key}
-            filter={f}
-            selectedValues={selected?.[f.key] || []}
-            openSearch={!!openSearch[f.key]}
-            query={query[f.key] || ''}
-            showAll={!!showAll[f.key]}
-            setOpenSearch={(v) => setOpenSearch((p) => ({ ...p, [f.key]: v }))}
-            setQuery={(v) => setQuery((p) => ({ ...p, [f.key]: v }))}
-            setShowAll={(v) => setShowAll((p) => ({ ...p, [f.key]: v }))}
-            onToggleValue={(val) => toggleValue(f.key, val)}
-          />
-        ))}
+        {FIELD_FILTERS.map((f) => {
+          const isOpen = accordionState[f.key];
+          const activeCount = Array.isArray(selected?.[f.key]) ? selected[f.key].length : 0;
+          
+          return (
+            <FilterSection
+              key={f.key}
+              filter={f}
+              selectedValues={selected?.[f.key] || []}
+              openSearch={!!openSearch[f.key]}
+              query={query[f.key] || ''}
+              showAll={!!showAll[f.key]}
+              isAccordionOpen={isOpen}
+              activeCount={activeCount}
+              onToggleAccordion={() => toggleAccordion(f.key)}
+              setOpenSearch={(v) => setOpenSearch((p) => ({ ...p, [f.key]: v }))}
+              setQuery={(v) => setQuery((p) => ({ ...p, [f.key]: v }))}
+              setShowAll={(v) => setShowAll((p) => ({ ...p, [f.key]: v }))}
+              onToggleValue={(val) => toggleValue(f.key, val)}
+            />
+          );
+        })}
       </div>
 
       <style jsx global>{`
@@ -141,43 +265,46 @@ export default function EnhancedShopSidebarFilters({ onFilterChange, selected = 
           width: 100%;
           background: ${UI.bg};
           border: 1px solid ${UI.border};
+          border-radius: 12px;
           font-family: var(--tp-ff-roboto);
+          box-shadow: 0 2px 8px rgba(0,0,0,0.04);
         }
 
         .mHeader {
-          padding: 14px 14px 10px;
+          padding: 16px 18px 12px;
           border-bottom: 1px solid ${UI.border};
           display: flex;
           justify-content: space-between;
           align-items: center;
-          background: ${UI.bg};
+          background: ${UI.lightBg};
           position: sticky;
           top: 0;
           z-index: 5;
+          border-radius: 12px 12px 0 0;
         }
 
         .mHeaderLeft {
           display: flex;
           align-items: center;
-          gap: 10px;
+          gap: 12px;
         }
 
         .mHeaderTitle {
-          font-size: 14px;
+          font-size: 15px;
           font-weight: 800;
-          letter-spacing: 0.6px;
+          letter-spacing: 0.8px;
           color: ${UI.text};
         }
 
         .mBadge {
           background: ${UI.pink};
           color: white;
-          font-size: 12px;
+          font-size: 11px;
           font-weight: 800;
-          padding: 2px 8px;
-          border-radius: 12px;
-          line-height: 18px;
-          min-width: 22px;
+          padding: 3px 9px;
+          border-radius: 14px;
+          line-height: 16px;
+          min-width: 24px;
           text-align: center;
         }
 
@@ -188,30 +315,93 @@ export default function EnhancedShopSidebarFilters({ onFilterChange, selected = 
           font-size: 12px;
           font-weight: 800;
           cursor: pointer;
-          letter-spacing: 0.3px;
+          letter-spacing: 0.4px;
+          padding: 6px 8px;
+          border-radius: 6px;
+          transition: background-color 0.2s ease;
+        }
+
+        .mClearAll:hover {
+          background: rgba(255, 105, 180, 0.1);
         }
 
         .mSection {
-          padding: 12px 14px;
           border-bottom: 1px solid ${UI.border};
+          transition: all 0.2s ease;
+        }
+
+        .mSection:last-child {
+          border-bottom: none;
+          border-radius: 0 0 12px 12px;
         }
 
         .mSectionHead {
           display: flex;
           align-items: center;
           justify-content: space-between;
-          margin-bottom: 10px;
+          padding: 14px 18px;
+          cursor: pointer;
+          user-select: none;
+          transition: background-color 0.2s ease;
+          position: relative;
+        }
+
+        .mSectionHead:hover {
+          background: ${UI.lightBg};
+        }
+
+        .mSectionHeadLeft {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          flex: 1;
         }
 
         .mSectionTitle {
-          font-size: 12px;
-          font-weight: 800;
-          letter-spacing: 0.6px;
+          font-size: 13px;
+          font-weight: 700;
+          letter-spacing: 0.5px;
           color: ${UI.text};
           text-transform: uppercase;
         }
 
+        .mSectionBadge {
+          background: ${UI.pink};
+          color: white;
+          font-size: 10px;
+          font-weight: 700;
+          padding: 2px 6px;
+          border-radius: 10px;
+          line-height: 14px;
+          min-width: 18px;
+          text-align: center;
+        }
+
+        .mSectionActions {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+
         .mSearchBtn {
+          border: none;
+          background: transparent;
+          padding: 6px;
+          cursor: pointer;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          border-radius: 50%;
+          color: ${UI.muted};
+          transition: all 0.2s ease;
+        }
+
+        .mSearchBtn:hover {
+          background: rgba(0,0,0,0.05);
+          color: ${UI.text};
+        }
+
+        .mAccordionToggle {
           border: none;
           background: transparent;
           padding: 4px;
@@ -219,28 +409,75 @@ export default function EnhancedShopSidebarFilters({ onFilterChange, selected = 
           display: inline-flex;
           align-items: center;
           justify-content: center;
-          border-radius: 50%;
           color: ${UI.muted};
+          transition: all 0.2s ease;
         }
 
-        .mSearchBtn:hover {
-          background: var(--tp-grey-1);
+        .mAccordionToggle:hover {
+          color: ${UI.text};
+        }
+
+        .mSectionContent {
+          overflow: hidden;
+          transition: all 0.3s ease;
+        }
+
+        .mSectionContent.closed {
+          max-height: 0;
+          opacity: 0;
+        }
+
+        .mSectionContent.open {
+          max-height: 400px;
+          opacity: 1;
+        }
+
+        .mSectionInner {
+          padding: 0 18px 16px;
+          max-height: 350px;
+          overflow-y: auto;
+          overflow-x: hidden;
+        }
+
+        /* Custom scrollbar for filter sections */
+        .mSectionInner::-webkit-scrollbar {
+          width: 6px;
+        }
+
+        .mSectionInner::-webkit-scrollbar-track {
+          background: transparent;
+        }
+
+        .mSectionInner::-webkit-scrollbar-thumb {
+          background: #d5d5d5;
+          border-radius: 3px;
+        }
+
+        .mSectionInner::-webkit-scrollbar-thumb:hover {
+          background: #c0c0c0;
+        }
+
+        .mSectionInner {
+          scrollbar-width: thin;
+          scrollbar-color: #d5d5d5 transparent;
         }
 
         .mSearchRow {
-          margin: 10px 0 12px;
+          margin: 0 0 14px;
         }
 
         .mSearchInput {
           width: 100%;
           border: 1px solid ${UI.border};
           border-radius: 8px;
-          padding: 8px 10px;
+          padding: 10px 12px;
           font-size: 13px;
           outline: none;
           color: ${UI.text};
           background: ${UI.bg};
+          transition: all 0.2s ease;
         }
+        
         .mSearchInput:focus{
           border-color: var(--tp-theme-primary);
           box-shadow: 0 0 0 3px rgba(44, 76, 151, 0.12);
@@ -249,18 +486,24 @@ export default function EnhancedShopSidebarFilters({ onFilterChange, selected = 
         .mList {
           display: flex;
           flex-direction: column;
-          gap: 10px;
+          gap: 12px;
         }
 
         .mItem {
           display: flex;
           align-items: center;
-          gap: 10px;
+          gap: 12px;
           cursor: pointer;
           user-select: none;
           color: ${UI.text};
           font-size: 14px;
-          line-height: 18px;
+          line-height: 20px;
+          padding: 2px 0;
+          transition: all 0.2s ease;
+        }
+
+        .mItem:hover {
+          color: ${UI.pink};
         }
 
         .mItem input {
@@ -270,14 +513,16 @@ export default function EnhancedShopSidebarFilters({ onFilterChange, selected = 
         }
 
         .mCheck {
-          width: 16px;
-          height: 16px;
-          border: 1px solid #bfc0c6;
+          width: 18px;
+          height: 18px;
+          border: 2px solid #bfc0c6;
+          border-radius: 3px;
           display: inline-flex;
           align-items: center;
           justify-content: center;
-          flex: 0 0 16px;
+          flex: 0 0 18px;
           background: white;
+          transition: all 0.2s ease;
         }
 
         .mItem input:checked + .mCheck {
@@ -295,11 +540,11 @@ export default function EnhancedShopSidebarFilters({ onFilterChange, selected = 
         }
 
         .mDot {
-          width: 14px;
-          height: 14px;
+          width: 16px;
+          height: 16px;
           border-radius: 50%;
-          border: 1px solid #d4d5d9;
-          flex: 0 0 14px;
+          border: 2px solid #d4d5d9;
+          flex: 0 0 16px;
         }
 
         .mText {
@@ -308,27 +553,53 @@ export default function EnhancedShopSidebarFilters({ onFilterChange, selected = 
           overflow: hidden;
           text-overflow: ellipsis;
           white-space: nowrap;
+          font-weight: 500;
         }
 
         .mCount {
           color: ${UI.muted};
           font-size: 12px;
           flex: 0 0 auto;
+          font-weight: 600;
         }
 
         .mMore {
-          margin-top: 10px;
+          margin-top: 12px;
           color: ${UI.pink};
           font-size: 13px;
           font-weight: 700;
           cursor: pointer;
           display: inline-block;
+          padding: 4px 0;
+          transition: all 0.2s ease;
+        }
+
+        .mMore:hover {
+          text-decoration: underline;
         }
 
         .mState {
           color: ${UI.muted};
           font-size: 13px;
-          padding: 4px 0;
+          padding: 8px 0;
+          text-align: center;
+          font-style: italic;
+        }
+
+        /* Responsive improvements for wider sidebar */
+        @media (min-width: 1200px) {
+          .mList {
+            gap: 10px;
+          }
+          
+          .mItem {
+            font-size: 13px;
+            line-height: 18px;
+          }
+          
+          .mSectionInner {
+            padding: 0 16px 14px;
+          }
         }
       `}</style>
     </aside>
@@ -341,6 +612,9 @@ function FilterSection({
   openSearch,
   query,
   showAll,
+  isAccordionOpen,
+  activeCount,
+  onToggleAccordion,
   setOpenSearch,
   setQuery,
   setShowAll,
@@ -353,6 +627,7 @@ function FilterSection({
   const options = useMemo(() => {
     const raw = data?.values || [];
     const norm = normalizeOptions(raw);
+    
     if (!query?.trim()) return norm;
     const q = query.trim().toLowerCase();
     return norm.filter((o) => o.value.toLowerCase().includes(q));
@@ -367,84 +642,122 @@ function FilterSection({
 
   return (
     <section className="mSection">
-      <div className="mSectionHead">
-        <div className="mSectionTitle">{filter.label}</div>
+      <div className="mSectionHead" onClick={onToggleAccordion}>
+        <div className="mSectionHeadLeft">
+          <div className="mSectionTitle">{filter.label}</div>
+          {activeCount > 0 && <span className="mSectionBadge">{activeCount}</span>}
+        </div>
 
-        {filter.searchable && (
+        <div className="mSectionActions">
+          {filter.searchable && (
+            <button
+              type="button"
+              className="mSearchBtn"
+              onClick={(e) => {
+                e.stopPropagation();
+                setOpenSearch(!openSearch);
+              }}
+              aria-label="Search filter options"
+              title="Search"
+            >
+              <SearchIcon />
+            </button>
+          )}
+          
           <button
             type="button"
-            className="mSearchBtn"
-            onClick={() => setOpenSearch(!openSearch)}
-            aria-label="Search filter options"
-            title="Search"
+            className="mAccordionToggle"
+            aria-label={isAccordionOpen ? 'Collapse section' : 'Expand section'}
           >
-            <SearchIcon />
+            <ChevronIcon isOpen={isAccordionOpen} />
           </button>
-        )}
+        </div>
       </div>
 
-      {filter.searchable && openSearch && (
-        <div className="mSearchRow">
-          <input
-            className="mSearchInput"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder={`Search ${filter.label.toLowerCase()}...`}
-          />
-        </div>
-      )}
+      <div className={`mSectionContent ${isAccordionOpen ? 'open' : 'closed'}`}>
+        <div className="mSectionInner">
+          {filter.searchable && openSearch && (
+            <div className="mSearchRow">
+              <input
+                className="mSearchInput"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder={`Search ${filter.label.toLowerCase()}...`}
+              />
+            </div>
+          )}
 
-      {isLoading && <div className="mState">Loading...</div>}
-      {error && <div className="mState">Failed to load</div>}
+          {isLoading && <div className="mState">Loading...</div>}
+          {error && <div className="mState">Failed to load</div>}
 
-      {!isLoading && !error && (
-        <>
-          <div className="mList">
-            {limited.map((opt) => {
-              const val = opt.value;
-              const checked = Array.isArray(selectedValues) && selectedValues.includes(String(val));
+          {!isLoading && !error && (
+            <>
+              <div className="mList">
+                {limited.map((opt) => {
+                  const val = opt.value;
+                  const checked = Array.isArray(selectedValues) && selectedValues.includes(String(val));
 
-              const isColor = filter.key === 'color';
-              const dotColor = COLOR_MAP[val] || COLOR_MAP[val?.trim?.()] || '#c9c9cf';
-              const needsWhiteBorder = String(val).toLowerCase() === 'white';
+                  const isColor = filter.key === 'color';
+                  // Use enhanced color mapping function
+                  const dotColor = isColor ? getColorHex(val) : '#c9c9cf';
+                  const needsWhiteBorder = String(val).toLowerCase().includes('white') || 
+                                         dotColor.toLowerCase() === '#ffffff' ||
+                                         dotColor.toLowerCase() === '#fffff0' ||
+                                         dotColor.toLowerCase() === '#fffacd';
 
-              return (
-                <label key={val} className="mItem" title={val}>
-                  <input type="checkbox" checked={checked} onChange={() => onToggleValue(val)} />
-                  <span className="mCheck" aria-hidden="true" />
+                  return (
+                    <label key={val} className="mItem" title={val}>
+                      <input type="checkbox" checked={checked} onChange={() => onToggleValue(val)} />
+                      <span className="mCheck" aria-hidden="true" />
 
-                  {isColor && (
-                    <span
-                      className="mDot"
-                      style={{
-                        background: dotColor,
-                        borderColor: needsWhiteBorder ? '#bfc0c6' : '#d4d5d9',
+                      {isColor && (
+                        <span
+                          className="mDot"
+                          style={{
+                            background: dotColor,
+                            borderColor: needsWhiteBorder ? '#bfc0c6' : dotColor,
+                          }}
+                          aria-hidden="true"
+                        />
+                      )}
+
+                      <span className="mText">{val}</span>
+
+                      {typeof opt.count === 'number' && <span className="mCount">({opt.count})</span>}
+                    </label>
+                  );
+                })}
+              </div>
+
+              {remaining > 0 && (
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginTop: '12px' }}>
+                  <span className="mMore" onClick={() => setShowAll(true)}>
+                    + {remaining} more
+                  </span>
+                  {filter.searchable && (
+                    <span 
+                      className="mMore" 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setOpenSearch(true);
                       }}
-                      aria-hidden="true"
-                    />
+                      style={{ fontSize: '12px', opacity: 0.7 }}
+                    >
+                      or search
+                    </span>
                   )}
+                </div>
+              )}
 
-                  <span className="mText">{val}</span>
-
-                  {typeof opt.count === 'number' && <span className="mCount">({opt.count})</span>}
-                </label>
-              );
-            })}
-          </div>
-
-          {remaining > 0 && (
-            <span className="mMore" onClick={() => setShowAll(true)}>
-              + {remaining} more
-            </span>
+              {showAll && options.length > (filter.limit ?? 8) && (
+                <span className="mMore" onClick={() => setShowAll(false)} style={{ marginTop: '12px', display: 'block' }}>
+                  Show less
+                </span>
+              )}
+            </>
           )}
-
-          {showAll && options.length > (filter.limit ?? 8) && (
-            <span className="mMore" onClick={() => setShowAll(false)} style={{ marginLeft: 12 }}>
-              Show less
-            </span>
-          )}
-        </>
-      )}
+        </div>
+      </div>
     </section>
   );
 }
