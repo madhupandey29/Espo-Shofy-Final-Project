@@ -143,6 +143,9 @@ async function fetchProductsSSR() {
     process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:7000/landing";
   const API_BASE2 = trimEndSlash(RAW_BASE);
 
+  // Get merchTag filter from environment variable
+  const MERCH_TAG_FILTER = process.env.NEXT_PUBLIC_MERCH_TAG_FILTER;
+
   const candidates = [
     `${API_BASE2}/product?limit=50&page=1`, // Fetch first 50 products
     `${API_BASE2}/product/?limit=50&page=1`, // Alternative with explicit page
@@ -162,33 +165,60 @@ async function fetchProductsSSR() {
       
       console.log('Server-side API Response:', payload); // Debug log
       
+      let products = [];
+      
       // Handle the new API response structure
       if (payload?.success && payload?.data && Array.isArray(payload.data)) {
-        return {
-          products: payload.data,
-          total: payload.total || payload.data.length,
-          pagination: payload.pagination
-        };
+        products = payload.data;
+      } else if (payload?.products && Array.isArray(payload.products)) {
+        products = payload.products;
+      } else {
+        const data =
+          (Array.isArray(payload?.data) && payload.data) ||
+          (Array.isArray(payload) && payload) ||
+          (Array.isArray(payload?.data?.items) && payload.data.items) ||
+          [];
+        products = Array.isArray(data) ? data : [];
       }
-      
-      if (payload?.products && Array.isArray(payload.products)) {
-        return {
-          products: payload.products,
-          total: payload.total || payload.products.length,
-          pagination: payload.pagination
-        };
-      }
-      
-      const data =
-        (Array.isArray(payload?.data) && payload.data) ||
-        (Array.isArray(payload) && payload) ||
-        (Array.isArray(payload?.data?.items) && payload.data.items) ||
-        [];
 
+      // Filter products by merchTags if MERCH_TAG_FILTER is set
+      if (MERCH_TAG_FILTER && products.length > 0) {
+        console.log(`Filtering products by merchTag: ${MERCH_TAG_FILTER}`);
+        
+        const filteredProducts = products.filter(product => {
+          // Check if product has merchTags field and it's an array
+          if (!product.merchTags || !Array.isArray(product.merchTags)) {
+            console.log(`Product ${product.name || product.id} has no merchTags or invalid format`);
+            return false;
+          }
+          
+          // Check if the required merchTag exists in the product's merchTags array
+          const hasRequiredTag = product.merchTags.includes(MERCH_TAG_FILTER);
+          
+          if (!hasRequiredTag) {
+            console.log(`Product ${product.name || product.id} doesn't have required merchTag: ${MERCH_TAG_FILTER}`);
+          }
+          
+          return hasRequiredTag;
+        });
+
+        console.log(`Filtered ${filteredProducts.length} products out of ${products.length} total products`);
+        
+        return {
+          products: filteredProducts,
+          total: filteredProducts.length,
+          pagination: payload.pagination,
+          filtered: true,
+          filterTag: MERCH_TAG_FILTER
+        };
+      }
+
+      // Return all products if no filter is set
       return {
-        products: Array.isArray(data) ? data : [],
-        total: payload.total || data.length,
-        pagination: payload.pagination || null
+        products: products,
+        total: payload.total || products.length,
+        pagination: payload.pagination,
+        filtered: false
       };
     } catch (error) {
       console.error('Server-side fetch error:', error);
@@ -196,7 +226,7 @@ async function fetchProductsSSR() {
     }
   }
 
-  return { products: [], total: 0, pagination: null };
+  return { products: [], total: 0, pagination: null, filtered: false };
 }
 
 /* ---------------------------------------------
@@ -221,13 +251,31 @@ export default async function ShopPage() {
         }}
       >
         Shop - Browse All Products
+        {initialData.filtered && ` - ${initialData.filterTag} Collection`}
       </h1>
 
       <div className="shop-page-spacing">
+        {/* Show filter info if products are filtered */}
+        {initialData.filtered && (
+          <div style={{ 
+            padding: '10px 20px', 
+            backgroundColor: '#f8f9fa', 
+            borderLeft: '4px solid #007bff',
+            margin: '20px 0',
+            fontSize: '14px',
+            color: '#495057'
+          }}>
+            <strong>Filtered Collection:</strong> Showing {initialData.total} products 
+            with merchTag "{initialData.filterTag}"
+          </div>
+        )}
+        
         <ShopArea 
           initialProducts={initialData.products} 
           totalProducts={initialData.total}
           initialPagination={initialData.pagination}
+          isFiltered={initialData.filtered}
+          filterTag={initialData.filterTag}
         />
       </div>
 

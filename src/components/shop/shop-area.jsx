@@ -36,10 +36,20 @@ const PROPERTY_MAP = Object.freeze({
   subsuitable:'subsuitable',
 });
 
-export default function ShopArea({ shop_right = false, hidden_sidebar = false, initialProducts = [], totalProducts = 0, initialPagination = null }) {
+export default function ShopArea({ 
+  shop_right = false, 
+  hidden_sidebar = false, 
+  initialProducts = [], 
+  totalProducts = 0, 
+  initialPagination = null,
+  isFiltered = false,
+  filterTag = null
+}) {
   console.log('ShopArea Debug:', { 
     initialProductsLength: initialProducts.length, 
-    totalProducts, 
+    totalProducts,
+    isFiltered,
+    filterTag, 
     initialPagination 
   });
 
