@@ -147,10 +147,10 @@ async function fetchProductsSSR() {
   const MERCH_TAG_FILTER = process.env.NEXT_PUBLIC_MERCH_TAG_FILTER;
 
   const candidates = [
-    `${API_BASE2}/product?limit=50&page=1`, // Fetch first 50 products
-    `${API_BASE2}/product/?limit=50&page=1`, // Alternative with explicit page
-    `${API_BASE2}/products?limit=50`,
-    `${API_BASE2}/catalog/products?limit=50`,
+    `${API_BASE2}/product?limit=200&page=1`, // Fetch more products to account for filtering
+    `${API_BASE2}/product/?limit=200&page=1`, // Alternative with explicit page
+    `${API_BASE2}/products?limit=200`,
+    `${API_BASE2}/catalog/products?limit=200`,
   ];
 
   for (const url of candidates) {
@@ -183,26 +183,42 @@ async function fetchProductsSSR() {
 
       // Filter products by merchTags if MERCH_TAG_FILTER is set
       if (MERCH_TAG_FILTER && products.length > 0) {
-        console.log(`Filtering products by merchTag: ${MERCH_TAG_FILTER}`);
+        console.log(`🔍 Filtering products by merchTag: "${MERCH_TAG_FILTER}"`);
+        console.log(`📊 Total products before filtering: ${products.length}`);
         
-        const filteredProducts = products.filter(product => {
+        const filteredProducts = products.filter((product, index) => {
           // Check if product has merchTags field and it's an array
           if (!product.merchTags || !Array.isArray(product.merchTags)) {
-            console.log(`Product ${product.name || product.id} has no merchTags or invalid format`);
+            console.log(`❌ Product ${index + 1} (${product.name || product.id}) - No merchTags field or not an array`);
+            return false;
+          }
+          
+          // Check if merchTags array is empty
+          if (product.merchTags.length === 0) {
+            console.log(`⚪ Product ${index + 1} (${product.name || product.id}) - Empty merchTags array`);
             return false;
           }
           
           // Check if the required merchTag exists in the product's merchTags array
           const hasRequiredTag = product.merchTags.includes(MERCH_TAG_FILTER);
           
-          if (!hasRequiredTag) {
-            console.log(`Product ${product.name || product.id} doesn't have required merchTag: ${MERCH_TAG_FILTER}`);
+          if (hasRequiredTag) {
+            console.log(`✅ Product ${index + 1} (${product.name || product.id}) - HAS required merchTag: ${MERCH_TAG_FILTER}`);
+            console.log(`   merchTags: [${product.merchTags.join(', ')}]`);
+          } else {
+            console.log(`❌ Product ${index + 1} (${product.name || product.id}) - Missing required merchTag: ${MERCH_TAG_FILTER}`);
+            console.log(`   Current merchTags: [${product.merchTags.join(', ')}]`);
           }
           
           return hasRequiredTag;
         });
 
-        console.log(`Filtered ${filteredProducts.length} products out of ${products.length} total products`);
+        console.log(`📈 Filtered results: ${filteredProducts.length} products out of ${products.length} total`);
+        
+        if (filteredProducts.length === 0) {
+          console.log(`⚠️  WARNING: No products found with merchTag "${MERCH_TAG_FILTER}"`);
+          console.log(`💡 Suggestion: Check if your products have the correct merchTag values in the API`);
+        }
         
         return {
           products: filteredProducts,
@@ -255,21 +271,6 @@ export default async function ShopPage() {
       </h1>
 
       <div className="shop-page-spacing">
-        {/* Show filter info if products are filtered */}
-        {initialData.filtered && (
-          <div style={{ 
-            padding: '10px 20px', 
-            backgroundColor: '#f8f9fa', 
-            borderLeft: '4px solid #007bff',
-            margin: '20px 0',
-            fontSize: '14px',
-            color: '#495057'
-          }}>
-            <strong>Filtered Collection:</strong> Showing {initialData.total} products 
-            with merchTag "{initialData.filterTag}"
-          </div>
-        )}
-        
         <ShopArea 
           initialProducts={initialData.products} 
           totalProducts={initialData.total}
