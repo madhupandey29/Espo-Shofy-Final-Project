@@ -11,7 +11,7 @@ import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 import 'swiper/css/autoplay';
 
-import { useGetPopularNewProductsQuery } from '@/redux/features/newProductApi';
+import { useGetAllProductsForFilteringQuery } from '@/redux/features/newProductApi';
 import ErrorMsg from '@/components/common/error-msg';
 import { HomeTwoPopularPrdLoader } from '@/components/loader';
 
@@ -178,8 +178,61 @@ const CARD_W = 260;
 const CARD_H = 300;
 
 export default function PopularProducts() {
-  const { data, isError, isLoading } = useGetPopularNewProductsQuery();
+  const { data: sharedData, isError, isLoading, error } = useGetAllProductsForFilteringQuery();
   const swiperRef = useRef(null);
+
+  // Filter products for Popular section (BOTH PopularFabrics AND ecatalogue tags)
+  const data = React.useMemo(() => {
+    if (!sharedData) {
+      return null; // Still loading
+    }
+    
+    if (!sharedData.success || !Array.isArray(sharedData.data)) {
+      return sharedData; // Return error state as-is
+    }
+
+    const products = sharedData.data;
+    const popularTag = 'PopularFabrics';
+    const catalogueTag = 'ecatalogue';
+    
+    console.log(`🔍 Popular Products: Filtering for tags "${popularTag}" AND "${catalogueTag}"`);
+    console.log(`📊 Total shared products: ${products.length}`);
+    
+    const filteredProducts = products.filter(product => {
+      if (!product.merchTags || !Array.isArray(product.merchTags)) {
+        return false;
+      }
+      
+      // Product must have BOTH tags
+      const hasPopularTag = product.merchTags.includes(popularTag);
+      const hasCatalogueTag = product.merchTags.includes(catalogueTag);
+      
+      return hasPopularTag && hasCatalogueTag;
+    });
+    
+    console.log(`📈 Popular Products filtered results: ${filteredProducts.length} products`);
+    if (filteredProducts.length > 0) {
+      console.log('Popular Products found:', filteredProducts.map(p => ({ 
+        name: p.name, 
+        merchTags: p.merchTags 
+      })));
+    } else {
+      console.log('⚠️ No products found with both tags. Sample product merchTags:', 
+        products.slice(0, 3).map(p => ({ name: p.name, merchTags: p.merchTags }))
+      );
+    }
+    
+    return {
+      ...sharedData,
+      data: filteredProducts,
+      total: filteredProducts.length,
+      filtered: true,
+      filterTags: [popularTag, catalogueTag]
+    };
+  }, [sharedData]);
+
+  // Debug logging
+  console.log('PopularProducts Debug:', { data, isError, isLoading, error });
 
   useEffect(() => {
     const handleResize = () => {
@@ -193,14 +246,44 @@ export default function PopularProducts() {
 
   let carousel = <ErrorMsg msg="No Products found!" />;
   if (isLoading) carousel = <HomeTwoPopularPrdLoader loading />;
-  if (!isLoading && isError) carousel = <ErrorMsg msg="There was an error" />;
+  if (!isLoading && isError) {
+    console.error('❌ Popular Products RTK Query Error:', error);
+    carousel = (
+      <div style={{ padding: '40px 20px', textAlign: 'center' }}>
+        <h4 style={{ color: '#ef4444', marginBottom: '16px' }}>Unable to Load Popular Products</h4>
+        <p style={{ color: '#6b7280', marginBottom: '16px' }}>
+          {error?.data?.message || error?.data?.error || error?.message || 'There was an error loading popular products'}
+        </p>
+        <p style={{ fontSize: '14px', color: '#9ca3af' }}>
+          Please check your internet connection and try again.
+        </p>
+      </div>
+    );
+  }
+
+  // Check if data has an error (API returned error response but RTK Query didn't treat it as error)
+  if (!isLoading && !isError && data && data.success === false) {
+    console.error('❌ Popular Products API Error Response:', data);
+    carousel = (
+      <div style={{ padding: '40px 20px', textAlign: 'center' }}>
+        <h4 style={{ color: '#ef4444', marginBottom: '16px' }}>Unable to Load Popular Products</h4>
+        <p style={{ color: '#6b7280', marginBottom: '16px' }}>
+          API Error: {data.error || data.message || 'API returned an error'}
+        </p>
+        <p style={{ fontSize: '14px', color: '#9ca3af' }}>
+          The server is experiencing issues. Please try again later.
+        </p>
+      </div>
+    );
+  }
 
   if (
     !isLoading &&
     !isError &&
-    (data?.status === 1 || data?.success === true) &&
+    data &&
+    data.success === true &&
     Array.isArray(data?.data) &&
-    data.data.length
+    data.data.length > 0
   ) {
     const items = data.data;
 

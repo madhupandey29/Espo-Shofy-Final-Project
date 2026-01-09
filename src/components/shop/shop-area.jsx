@@ -43,14 +43,16 @@ export default function ShopArea({
   totalProducts = 0, 
   initialPagination = null,
   isFiltered = false,
-  filterTag = null
+  filterTag = null,
+  allFilteredProducts = []
 }) {
   console.log('ShopArea Debug:', { 
     initialProductsLength: initialProducts.length, 
     totalProducts,
     isFiltered,
     filterTag, 
-    initialPagination 
+    initialPagination,
+    allFilteredProductsLength: allFilteredProducts?.length || 0
   });
 
   // ────── URL params ─────────────────────────
@@ -75,17 +77,29 @@ export default function ShopArea({
   const [currentApiPage,  setCurrentApiPage]  = useState(1);
   const [selectedFilters, setSelectedFilters] = useState({});
   const [allLoadedProducts, setAllLoadedProducts] = useState(initialProducts || []);
-  const [hasMorePages, setHasMorePages] = useState(totalProducts > (initialProducts?.length || 0));
+  const [hasMorePages, setHasMorePages] = useState(() => {
+    if (isFiltered && allFilteredProducts?.length > 0) {
+      // For filtered results, check if there are more filtered products to show
+      return allFilteredProducts.length > (initialProducts?.length || 0);
+    }
+    // For unfiltered results, use total count
+    return totalProducts > (initialProducts?.length || 0);
+  });
   const [searchResults, setSearchResults] = useState(null);
   const [isSearchActive, setIsSearchActive] = useState(!!searchQuery);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [allFilteredProductsCache, setAllFilteredProductsCache] = useState(allFilteredProducts || []);
 
   const handleFilterChange = (obj) => {
     setCurrPage(1);
     setCurrentApiPage(1);
     setSelectedFilters(obj);
     // Don't reset allLoadedProducts immediately to prevent flicker
-    setHasMorePages(totalProducts > (initialProducts?.length || 0));
+    if (isFiltered && allFilteredProductsCache?.length > 0) {
+      setHasMorePages(allFilteredProductsCache.length > (initialProducts?.length || 0));
+    } else {
+      setHasMorePages(totalProducts > (initialProducts?.length || 0));
+    }
   };
   
   const handleSlider = (val) => {
@@ -188,7 +202,11 @@ export default function ShopArea({
     loadMoreProducts,
     hasMorePages,
     isLoadingMore,
-    totalProducts: isSearchActive ? (searchResults?.total || 0) : totalProducts,
+    totalProducts: isSearchActive 
+      ? (searchResults?.total || 0) 
+      : isFiltered && allFilteredProductsCache?.length > 0
+        ? allFilteredProductsCache.length 
+        : totalProducts,
     isSearchActive,
     searchResults,
     handleSearchResults,
@@ -202,10 +220,19 @@ export default function ShopArea({
   const priceQ         = useGetPriceUptoQuery(minPrice, {
                           skip: !(minPrice && maxPrice && minPrice === maxPrice),
                         });
-  const allQ           = useGetAllNewProductsQuery({ limit: 50, page: currentApiPage }, {
-                          skip: gsm || oz || quantity || purchasePrice ||
-                                (minPrice && maxPrice && minPrice === maxPrice) ||
-                                isSearchActive, // Skip API calls when search is active
+  
+  // Only use API query if we don't have initial products and no specific filters are applied
+  const shouldSkipApiQuery = gsm || oz || quantity || purchasePrice ||
+                            (minPrice && maxPrice && minPrice === maxPrice) ||
+                            isSearchActive || // Skip API calls when search is active
+                            (initialProducts && initialProducts.length > 0); // Skip if we have server-side data
+  
+  const allQ           = useGetAllNewProductsQuery({ 
+                          limit: 50, 
+                          page: currentApiPage,
+                          merchTag: filterTag || undefined // Use the filterTag passed from server
+                        }, {
+                          skip: shouldSkipApiQuery,
                         });
 
   const { data: productsData, isLoading, isError } =
@@ -215,6 +242,10 @@ export default function ShopArea({
     purchasePrice  ? purchasePriceQ :
     (minPrice && maxPrice && minPrice === maxPrice) ? priceQ :
     allQ;
+
+  // Override loading and error states if we have initial products
+  const actualIsLoading = isLoading && (!initialProducts || initialProducts.length === 0);
+  const actualIsError = isError && (!initialProducts || initialProducts.length === 0);
 
   // memoize so we don’t rebuild [] on every render
   const products = useMemo(() => {
@@ -235,37 +266,89 @@ export default function ShopArea({
   // Handle loading more products
   useEffect(() => {
     if (productsData?.data && currentApiPage > 1 && !isSearchActive) {
-      setAllLoadedProducts(prev => {
-        // Avoid duplicates by checking if products are already loaded
-        const existingIds = new Set(prev.map(p => p._id || p.id));
-        const newProducts = productsData.data.filter(p => !existingIds.has(p._id || p.id));
-        return [...prev, ...newProducts];
+      // For filtered results, handle pagination from cached filtered products
+      if (productsData.filtered && productsData.allFilteredProducts) {
+        const { limit = 50 } = { limit: 50 }; // Default limit
+        const startIndex = (currentApiPage - 1) * limit;
+        const endIndex = Math.min(startIndex + limit, productsData.allFilteredProducts.length);
+        const pageProducts = productsData.allFilteredProducts.slice(startIndex, endIndex);
+        
+        setAllLoadedProducts(prev => {
+          const existingIds = new Set(prev.map(p => p._id || p.id));
+          const newProducts = pageProducts.filter(p => !existingIds.has(p._id || p.id));
+          const merged = [...prev, ...newProducts];
+          
+          console.log('Loading more filtered products:', {
+            page: currentApiPage,
+            newProductsCount: newProducts.length,
+            totalLoadedCount: merged.length,
+            totalFilteredAvailable: productsData.allFilteredProducts.length
+          });
+          
+          return merged;
+        });
+        
+        const hasMore = endIndex < productsData.allFilteredProducts.length;
+        setHasMorePages(hasMore);
+        setIsLoadingMore(false);
+      } else {
+        // Standard unfiltered pagination
+        setAllLoadedProducts(prev => {
+          const existingIds = new Set(prev.map(p => p._id || p.id));
+          const newProducts = productsData.data.filter(p => !existingIds.has(p._id || p.id));
+          const merged = [...prev, ...newProducts];
+          
+          console.log('Loading more products:', {
+            page: currentApiPage,
+            newProductsCount: newProducts.length,
+            totalLoadedCount: merged.length
+          });
+          
+          return merged;
+        });
+        
+        const totalPages = productsData?.pagination?.totalPages || Math.ceil(totalProducts / 50);
+        const hasMore = currentApiPage < totalPages;
+        setHasMorePages(hasMore);
+        setIsLoadingMore(false);
+      }
+    } else if (currentApiPage === 1 && productsData?.data) {
+      // For first page, set the initial products
+      console.log('Setting initial products:', {
+        count: productsData.data.length,
+        isFiltered: productsData.filtered,
+        filterTag: productsData.filterTag,
+        originalCount: productsData.originalCount,
+        filteredCount: productsData.filteredCount
       });
       
-      // Check if there are more pages
-      const totalPages = productsData?.pagination?.totalPages || Math.ceil(totalProducts / 50);
-      setHasMorePages(currentApiPage < totalPages);
-      setIsLoadingMore(false);
-    } else if (currentApiPage === 1 && productsData?.data) {
-      // For first page, just set the initial products
       setAllLoadedProducts(productsData.data);
-      const totalPages = productsData?.pagination?.totalPages || Math.ceil(totalProducts / 50);
-      setHasMorePages(totalPages > 1);
+      
+      // Update cached filtered products if available
+      if (productsData.allFilteredProducts) {
+        setAllFilteredProductsCache(productsData.allFilteredProducts);
+        const hasMore = productsData.allFilteredProducts.length > productsData.data.length;
+        setHasMorePages(hasMore);
+      } else {
+        const totalPages = productsData?.pagination?.totalPages || Math.ceil(totalProducts / 50);
+        setHasMorePages(totalPages > 1);
+      }
+      
       setIsLoadingMore(false);
     }
   }, [productsData, currentApiPage, totalProducts, isSearchActive]);
 
   // auto-expand price slider max
   useEffect(() => {
-    if (!isLoading && !isError && products.length) {
+    if (!actualIsLoading && !actualIsError && products.length) {
       const max = products.reduce((m, pr) => Math.max(m, +pr.salesPrice||0), 0);
       if (max > priceValue[1]) setPriceValue(([lo]) => [lo, max]);
     }
-  }, [isLoading, isError, products, priceValue]);
+  }, [actualIsLoading, actualIsError, products, priceValue]);
 
   // ────── Filtering & sorting ─────────────────
   const filteredProducts = useMemo(() => {
-    if (isLoading || isError) return [];
+    if (actualIsLoading || actualIsError) return [];
 
     let items = products;
 
@@ -305,7 +388,7 @@ export default function ShopArea({
 
     return items;
   }, [
-    isLoading, isError, products,
+    actualIsLoading, actualIsError, products,
     selectedFilters, selectValue,
     category, filterColor, filterStructure, filterContent, filterFinish,
     minPrice, maxPrice,
@@ -313,35 +396,31 @@ export default function ShopArea({
 
   // ────── Choose which main component to show ───
   let content;
-  if (isLoading)           content = <ShopLoader loading />;
-  else if (isError)        content = (
-    <div className="shop-error-container" style={{ padding: '40px 20px', textAlign: 'center' }}>
-      <div className="shop-error-content">
-        <h3 style={{ color: '#ef4444', marginBottom: '16px' }}>Products Temporarily Unavailable</h3>
+  if (actualIsLoading)           content = <ShopLoader loading />;
+  else if (actualIsError)        content = (
+    <div className="shop-loading-container" style={{ padding: '40px 20px', textAlign: 'center' }}>
+      <div className="shop-loading-content">
+        <div style={{ 
+          display: 'inline-block', 
+          width: '40px', 
+          height: '40px', 
+          border: '4px solid #f3f3f3',
+          borderTop: '4px solid #3498db',
+          borderRadius: '50%',
+          animation: 'spin 1s linear infinite',
+          marginBottom: '20px'
+        }}></div>
+        <h3 style={{ color: '#374151', marginBottom: '16px' }}>Loading Products...</h3>
         <p style={{ color: '#6b7280', marginBottom: '24px' }}>
-          We're experiencing technical difficulties loading products. This appears to be a backend database issue.
+          Please wait while we fetch the latest products for you.
         </p>
-        <div style={{ background: '#f9fafb', padding: '16px', borderRadius: '8px', marginBottom: '24px' }}>
-          <p style={{ fontSize: '14px', color: '#374151', margin: 0 }}>
-            <strong>Technical Details:</strong> The API is returning a database error related to Category ObjectId casting. 
-            Please contact the backend team to fix the Category model data.
-          </p>
-        </div>
-        <button 
-          onClick={() => window.location.reload()} 
-          style={{
-            background: '#3b82f6',
-            color: 'white',
-            border: 'none',
-            padding: '12px 24px',
-            borderRadius: '6px',
-            cursor: 'pointer',
-            fontSize: '16px'
-          }}
-        >
-          Try Again
-        </button>
       </div>
+      <style dangerouslySetInnerHTML={{__html: `
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+      `}} />
     </div>
   );
 
@@ -370,7 +449,7 @@ else if (hidden_sidebar) {
       {content}
 
       {/* off-canvas filter */}
-      {!isLoading && !isError && (
+      {!actualIsLoading && !actualIsError && (
         <ShopFilterOffCanvas
           all_products={products}
           otherProps={otherProps}

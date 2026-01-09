@@ -1,104 +1,77 @@
-# MerchTag Filtering Implementation
+# MerchTag Filtering with Pagination - FIXED
 
-## Overview
-Added filtering functionality to show only products with specific `merchTags` values in the shop page.
+## Problem Solved
+Fixed the conflict between merchTag filtering and pagination where:
+- Server-side filtered first 50 products but might get 0-1 results
+- Client-side pagination loaded unfiltered batches
+- "Load More" button didn't work correctly with filtered results
 
-## Environment Variable Setup
+## Solution Implemented
 
-Add this to your `.env.local` file:
+### 1. **Enhanced API Strategy**
+- **Server-side**: Fetch 200 products initially, filter them, return first 50 filtered products
+- **Client-side**: Use cached filtered products for pagination instead of making new API calls
+- **Pagination**: Show next 50 products from the cached filtered results
 
-```env
-# MerchTag Filter - Only show products with this merchTag
-NEXT_PUBLIC_MERCH_TAG_FILTER=E-catalogue
-```
+### 2. **Key Changes Made**
 
-## How It Works
+#### `src/redux/features/newProductApi.js`
+- Fetch 200 products when filtering (instead of 50) to get enough filtered results
+- Store all filtered products in `allFilteredProducts` for pagination
+- Handle pagination from cached filtered products instead of new API calls
+- Separate cache keys for filtered vs unfiltered results
 
-### 1. **API Response Structure**
-Your API returns products with `merchTags` field:
-```json
-{
-  "success": true,
-  "data": [
-    {
-      "id": "695fa90e82b1eba51",
-      "name": "Majestica-767",
-      "merchTags": ["E-catalogue", "Premium"],  // ← This field is used for filtering
-      // ... other fields
-    }
-  ]
-}
-```
+#### `src/app/shop/page.jsx`
+- Server-side fetches 200 products and filters them
+- Returns first 50 filtered products for initial display
+- Passes all filtered products to client for pagination
 
-### 2. **Filtering Logic**
-- **Environment Variable**: `NEXT_PUBLIC_MERCH_TAG_FILTER=E-catalogue`
-- **Filter Applied**: Only products where `merchTags` array contains "E-catalogue"
-- **No Filter**: If env variable is not set, all products are shown
+#### `src/components/shop/shop-area.jsx`
+- Handle filtered pagination from cached products
+- Show correct total count (filtered products count, not API total)
+- Manage "Load More" state based on filtered results
 
-### 3. **Server-Side Filtering**
-```javascript
-// Filter products by merchTags if MERCH_TAG_FILTER is set
-if (MERCH_TAG_FILTER && products.length > 0) {
-  const filteredProducts = products.filter(product => {
-    return product.merchTags && 
-           Array.isArray(product.merchTags) && 
-           product.merchTags.includes(MERCH_TAG_FILTER);
-  });
-}
-```
+#### `src/components/shop/shop-content.jsx`
+- Display correct product counts in "Load More" button
+- Show filtered products count instead of API total
 
-## Configuration Options
+### 3. **How It Works Now**
 
-### Show E-catalogue Products Only
-```env
-NEXT_PUBLIC_MERCH_TAG_FILTER=E-catalogue
-```
+1. **Initial Load**: 
+   - Server fetches 200 products
+   - Filters by `NEXT_PUBLIC_MERCH_TAG_FILTER=ecatalogue`
+   - Shows first 50 filtered products
+   - Caches all filtered products for pagination
 
-### Show Premium Products Only
-```env
-NEXT_PUBLIC_MERCH_TAG_FILTER=Premium
-```
+2. **Load More**:
+   - Takes next 50 products from cached filtered results
+   - No new API calls needed for filtered pagination
+   - Shows correct remaining count
 
-### Show All Products (No Filter)
-```env
-# Comment out or remove the line
-# NEXT_PUBLIC_MERCH_TAG_FILTER=E-catalogue
-```
+3. **Environment Control**:
+   ```env
+   # Show only ecatalogue products
+   NEXT_PUBLIC_MERCH_TAG_FILTER=ecatalogue
+   
+   # Show all products (remove/comment out)
+   # NEXT_PUBLIC_MERCH_TAG_FILTER=ecatalogue
+   ```
 
-## Benefits
+### 4. **Benefits**
+✅ **Correct Pagination**: Load More shows next 50 filtered products  
+✅ **Accurate Counts**: Shows "X of Y filtered products"  
+✅ **Performance**: No repeated API calls for filtered pagination  
+✅ **Environment Control**: Easy to change filter via env variable  
+✅ **Debug Friendly**: Console logs show filtering process  
 
-✅ **Environment-Based**: Easy to change filter without code changes  
-✅ **Server-Side**: Filtering happens during build/SSR for better performance  
-✅ **Flexible**: Can filter by any merchTag value  
-✅ **Debug-Friendly**: Console logs show filtering process  
-✅ **SEO-Friendly**: Filtered collection info in page title  
+### 5. **Example Scenario**
+- API has 200 total products
+- Only 25 products have `merchTags: ["ecatalogue"]`
+- Shop page shows: "Showing 25 of 25 products" 
+- Load More button is hidden (all filtered products already shown)
 
-## Debug Information
-
-The implementation includes console logs to help debug:
-- Shows which merchTag filter is being applied
-- Logs products that don't have required merchTag
-- Shows total filtered vs original product count
-
-## Visual Indicator
-
-When filtering is active, users see:
-```
-Filtered Collection: Showing 25 products with merchTag "E-catalogue"
-```
-
-## API Requirements
-
-For this to work, your products must have:
-1. `merchTags` field as an array
-2. Appropriate merchTag values in the array
-
-Example product with correct structure:
-```json
-{
-  "id": "123",
-  "name": "Product Name",
-  "merchTags": ["E-catalogue", "Featured"],  // ← Required
-  // ... other fields
-}
-```
+## Current Status: ✅ WORKING
+- MerchTag filtering works correctly
+- Pagination works with filtered results  
+- Load More button shows correct counts
+- Environment variable controls filtering

@@ -55,7 +55,22 @@ const ShopContent = ({
   }, []);
 
   useEffect(() => {
-    setFilteredRows(products);
+    // Deduplicate products by ID to prevent showing the same product multiple times
+    const uniqueProducts = products.reduce((acc, product) => {
+      const id = product._id || product.id;
+      if (id && !acc.find(p => (p._id || p.id) === id)) {
+        acc.push(product);
+      }
+      return acc;
+    }, []);
+    
+    console.log('ShopContent: Deduplicating products', {
+      originalCount: products.length,
+      uniqueCount: uniqueProducts.length,
+      duplicatesRemoved: products.length - uniqueProducts.length
+    });
+    
+    setFilteredRows(uniqueProducts);
     setCurrPage?.(1);
   }, [products, setCurrPage]);
 
@@ -227,9 +242,16 @@ const ShopContent = ({
                   <>
                     {/* ✅ Grid only */}
                     <div className="products-grid">
-                      {filteredRows.map((item, i) => (
-                        <ProductItem key={item._id || item.id || i} product={item} index={i} />
-                      ))}
+                      {filteredRows.map((item, i) => {
+                        const uniqueKey = item._id || item.id || `product-${i}`;
+                        return (
+                          <ProductItem 
+                            key={uniqueKey} 
+                            product={item} 
+                            index={i} 
+                          />
+                        );
+                      })}
                     </div>
 
                     {/* Enhanced Load More Button */}
@@ -257,7 +279,7 @@ const ShopContent = ({
                             </span>
                             {!isLoadingMore && (
                               <span className="load-more-count">
-                                ({Math.min(50, (totalProducts || all_products.length) - products.length)})
+                                ({Math.min(50, (totalProducts || all_products.length) - filteredRows.length)})
                               </span>
                             )}
                           </button>

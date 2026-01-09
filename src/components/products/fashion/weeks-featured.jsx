@@ -11,7 +11,7 @@ import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 import 'swiper/css/autoplay';
 
-import { useGetTopRatedQuery } from '@/redux/features/newProductApi';
+import { useGetAllProductsForFilteringQuery } from '@/redux/features/newProductApi';
 import ErrorMsg from '@/components/common/error-msg';
 import { HomeTwoFeaturedPrdLoader } from '@/components/loader';
 
@@ -193,8 +193,61 @@ const CARD_H = 320;
 
 /* ---------------- component ---------------- */
 const WeeksFeatured = () => {
-  const { data: products, isError, isLoading } = useGetTopRatedQuery();
+  const { data: sharedData, isError, isLoading, error } = useGetAllProductsForFilteringQuery();
   const swiperRef = useRef(null);
+
+  // Filter products for Top Rated section (BOTH TopRatedFabrics AND ecatalogue tags)
+  const products = React.useMemo(() => {
+    if (!sharedData) {
+      return null; // Still loading
+    }
+    
+    if (!sharedData.success || !Array.isArray(sharedData.data)) {
+      return sharedData; // Return error state as-is
+    }
+
+    const allProducts = sharedData.data;
+    const topRatedTag = 'TopRatedFabrics';
+    const catalogueTag = 'ecatalogue';
+    
+    console.log(`🔍 Top Rated Products: Filtering for tags "${topRatedTag}" AND "${catalogueTag}"`);
+    console.log(`📊 Total shared products: ${allProducts.length}`);
+    
+    const filteredProducts = allProducts.filter(product => {
+      if (!product.merchTags || !Array.isArray(product.merchTags)) {
+        return false;
+      }
+      
+      // Product must have BOTH tags
+      const hasTopRatedTag = product.merchTags.includes(topRatedTag);
+      const hasCatalogueTag = product.merchTags.includes(catalogueTag);
+      
+      return hasTopRatedTag && hasCatalogueTag;
+    });
+    
+    console.log(`📈 Top Rated Products filtered results: ${filteredProducts.length} products`);
+    if (filteredProducts.length > 0) {
+      console.log('Top Rated Products found:', filteredProducts.map(p => ({ 
+        name: p.name, 
+        merchTags: p.merchTags 
+      })));
+    } else {
+      console.log('⚠️ No products found with both tags. Sample product merchTags:', 
+        allProducts.slice(0, 3).map(p => ({ name: p.name, merchTags: p.merchTags }))
+      );
+    }
+    
+    return {
+      ...sharedData,
+      data: filteredProducts,
+      total: filteredProducts.length,
+      filtered: true,
+      filterTags: [topRatedTag, catalogueTag]
+    };
+  }, [sharedData]);
+
+  // Debug logging
+  console.log('WeeksFeatured Debug:', { products, isError, isLoading, error });
 
   useEffect(() => {
     const handleResize = () => {
@@ -209,8 +262,36 @@ const WeeksFeatured = () => {
 
   let content = null;
   if (isLoading) content = <HomeTwoFeaturedPrdLoader loading />;
-  else if (isError) content = <ErrorMsg msg="There was an error" />;
-  else if (!products?.data?.length) content = <ErrorMsg msg="No Products found!" />;
+  else if (isError) {
+    console.error('❌ Top Rated Products RTK Query Error:', error);
+    content = (
+      <div style={{ padding: '40px 20px', textAlign: 'center' }}>
+        <h4 style={{ color: '#ef4444', marginBottom: '16px' }}>Unable to Load Top Rated Products</h4>
+        <p style={{ color: '#6b7280', marginBottom: '16px' }}>
+          {error?.data?.message || error?.data?.error || error?.message || 'There was an error loading top rated products'}
+        </p>
+        <p style={{ fontSize: '14px', color: '#9ca3af' }}>
+          Please check your internet connection and try again.
+        </p>
+      </div>
+    );
+  }
+  // Check if data has an error (API returned error response but RTK Query didn't treat it as error)
+  else if (products && products.success === false) {
+    console.error('❌ Top Rated Products API Error Response:', products);
+    content = (
+      <div style={{ padding: '40px 20px', textAlign: 'center' }}>
+        <h4 style={{ color: '#ef4444', marginBottom: '16px' }}>Unable to Load Top Rated Products</h4>
+        <p style={{ color: '#6b7280', marginBottom: '16px' }}>
+          API Error: {products.error || products.message || 'API returned an error'}
+        </p>
+        <p style={{ fontSize: '14px', color: '#9ca3af' }}>
+          The server is experiencing issues. Please try again later.
+        </p>
+      </div>
+    );
+  }
+  else if (!products?.data?.length || products.success !== true) content = <ErrorMsg msg="No Products found!" />;
   else {
     const items = products.data;
 

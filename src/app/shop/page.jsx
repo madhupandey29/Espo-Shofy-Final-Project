@@ -135,8 +135,8 @@ export async function generateMetadata() {
 }
 
 /**
- * Fetch products on the server (SSR).
- * Adjust the endpoint if your API differs.
+ * Fetch products on the server (SSR) - Initial load only.
+ * For pagination, we'll use client-side API calls with filtering.
  */
 async function fetchProductsSSR() {
   const RAW_BASE =
@@ -147,7 +147,7 @@ async function fetchProductsSSR() {
   const MERCH_TAG_FILTER = process.env.NEXT_PUBLIC_MERCH_TAG_FILTER;
 
   const candidates = [
-    `${API_BASE2}/product?limit=200&page=1`, // Fetch more products to account for filtering
+    `${API_BASE2}/product?limit=200&page=1`, // Fetch more products for filtering
     `${API_BASE2}/product/?limit=200&page=1`, // Alternative with explicit page
     `${API_BASE2}/products?limit=200`,
     `${API_BASE2}/catalog/products?limit=200`,
@@ -166,12 +166,15 @@ async function fetchProductsSSR() {
       console.log('Server-side API Response:', payload); // Debug log
       
       let products = [];
+      let totalProducts = 0;
       
       // Handle the new API response structure
       if (payload?.success && payload?.data && Array.isArray(payload.data)) {
         products = payload.data;
+        totalProducts = payload.total || payload.data.length;
       } else if (payload?.products && Array.isArray(payload.products)) {
         products = payload.products;
+        totalProducts = payload.total || payload.products.length;
       } else {
         const data =
           (Array.isArray(payload?.data) && payload.data) ||
@@ -179,62 +182,50 @@ async function fetchProductsSSR() {
           (Array.isArray(payload?.data?.items) && payload.data.items) ||
           [];
         products = Array.isArray(data) ? data : [];
+        totalProducts = payload.total || products.length;
       }
 
-      // Filter products by merchTags if MERCH_TAG_FILTER is set
+      // Apply merchTag filtering if MERCH_TAG_FILTER is set
       if (MERCH_TAG_FILTER && products.length > 0) {
-        console.log(`🔍 Filtering products by merchTag: "${MERCH_TAG_FILTER}"`);
-        console.log(`📊 Total products before filtering: ${products.length}`);
+        console.log(`🔍 Server-side filtering by merchTag: "${MERCH_TAG_FILTER}"`);
+        console.log(`📊 Initial batch: ${products.length} products`);
         
         const filteredProducts = products.filter((product, index) => {
-          // Check if product has merchTags field and it's an array
           if (!product.merchTags || !Array.isArray(product.merchTags)) {
-            console.log(`❌ Product ${index + 1} (${product.name || product.id}) - No merchTags field or not an array`);
             return false;
           }
           
-          // Check if merchTags array is empty
           if (product.merchTags.length === 0) {
-            console.log(`⚪ Product ${index + 1} (${product.name || product.id}) - Empty merchTags array`);
             return false;
           }
           
-          // Check if the required merchTag exists in the product's merchTags array
-          const hasRequiredTag = product.merchTags.includes(MERCH_TAG_FILTER);
-          
-          if (hasRequiredTag) {
-            console.log(`✅ Product ${index + 1} (${product.name || product.id}) - HAS required merchTag: ${MERCH_TAG_FILTER}`);
-            console.log(`   merchTags: [${product.merchTags.join(', ')}]`);
-          } else {
-            console.log(`❌ Product ${index + 1} (${product.name || product.id}) - Missing required merchTag: ${MERCH_TAG_FILTER}`);
-            console.log(`   Current merchTags: [${product.merchTags.join(', ')}]`);
-          }
-          
-          return hasRequiredTag;
+          return product.merchTags.includes(MERCH_TAG_FILTER);
         });
 
-        console.log(`📈 Filtered results: ${filteredProducts.length} products out of ${products.length} total`);
+        console.log(`📈 Server-side filtered results: ${filteredProducts.length} products from batch`);
         
-        if (filteredProducts.length === 0) {
-          console.log(`⚠️  WARNING: No products found with merchTag "${MERCH_TAG_FILTER}"`);
-          console.log(`💡 Suggestion: Check if your products have the correct merchTag values in the API`);
-        }
+        // Return first 50 filtered products for initial display
+        const initialProducts = filteredProducts.slice(0, 50);
         
         return {
-          products: filteredProducts,
-          total: filteredProducts.length,
+          products: initialProducts,
+          total: totalProducts, // Keep original total for API pagination
           pagination: payload.pagination,
           filtered: true,
-          filterTag: MERCH_TAG_FILTER
+          filterTag: MERCH_TAG_FILTER,
+          initialBatchSize: products.length,
+          filteredFromBatch: filteredProducts.length,
+          allFilteredProducts: filteredProducts // Store all filtered products
         };
       }
 
-      // Return all products if no filter is set
+      // Return first 50 products if no filter is set
       return {
-        products: products,
-        total: payload.total || products.length,
+        products: products.slice(0, 50),
+        total: totalProducts,
         pagination: payload.pagination,
-        filtered: false
+        filtered: false,
+        initialBatchSize: products.length
       };
     } catch (error) {
       console.error('Server-side fetch error:', error);
@@ -277,6 +268,7 @@ export default async function ShopPage() {
           initialPagination={initialData.pagination}
           isFiltered={initialData.filtered}
           filterTag={initialData.filterTag}
+          allFilteredProducts={initialData.allFilteredProducts}
         />
       </div>
 
