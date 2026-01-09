@@ -14,7 +14,9 @@ async function getSiteSettings() {
   try {
     const res = await fetch(
       `${process.env.NEXT_PUBLIC_API_BASE_URL}/sitesettings`,
-      { cache: 'no-store' }
+      { 
+        next: { revalidate: 3600 } // Cache for 1 hour
+      }
     );
     
     if (!res.ok) return null;
@@ -49,7 +51,9 @@ async function getCompanyInformation() {
   try {
     const res = await fetch(
       `${process.env.NEXT_PUBLIC_API_BASE_URL}/companyinformation`,
-      { cache: 'no-store' }
+      { 
+        next: { revalidate: 3600 } // Cache for 1 hour
+      }
     );
     
     if (!res.ok) return null;

@@ -154,7 +154,6 @@ async function fetchProductsSSR() {
     try {
       const res = await fetch(url, {
         headers: buildApiHeaders(),
-        cache: "force-cache",
         next: { revalidate },
       });
       if (!res.ok) continue;
