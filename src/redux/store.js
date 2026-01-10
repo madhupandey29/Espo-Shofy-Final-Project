@@ -1,6 +1,5 @@
 import { configureStore } from "@reduxjs/toolkit";
 import { apiSlice } from "./api/apiSlice";
-import { seoApi } from "./features/seoApi";
 import { userApi } from "./features/userApi";
 import authSlice from "./features/auth/authSlice";
 import cartSlice from "./features/cartSlice";
@@ -24,7 +23,6 @@ const logger = (store) => (next) => (action) => {
 const store = configureStore({
   reducer: {
     [apiSlice.reducerPath]: apiSlice.reducer,
-    [seoApi.reducerPath]: seoApi.reducer,
     [userApi.reducerPath]: userApi.reducer,
     auth: authSlice,
     productModal: productModalSlice,
@@ -64,7 +62,7 @@ const store = configureStore({
           "meta.baseQueryMeta",
         ],
       },
-    }).concat([apiSlice.middleware, seoApi.middleware, userApi.middleware, logger]),
+    }).concat([apiSlice.middleware, userApi.middleware, logger]),
   devTools: process.env.NODE_ENV !== "production",
 });
 

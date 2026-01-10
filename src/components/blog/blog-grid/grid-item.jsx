@@ -32,7 +32,8 @@ const normalizeImg = (v) => {
 };
 
 const GridItem = ({ blog, style_2 = false, index = 0 }) => {
-  const id = blog?._id;
+  const id = blog?.id || blog?._id;
+  const slug = blog?.slug || id; // Use slug if available, fallback to id
 
   const img1 = normalizeImg(blog?.blogimage1);
   const img2 = normalizeImg(blog?.blogimage2);
@@ -57,7 +58,7 @@ const GridItem = ({ blog, style_2 = false, index = 0 }) => {
   return (
     <article className={`tp-blog-grid-item ${style_2 ? 'tp-blog-grid-style2' : ''} p-relative mb-30 blog-card`}>
       <div className="blog-card__thumb mb-30">
-        <Link href={`/blog-details/${id}`} className="block">
+        <Link href={`/blog-details/${slug}`} className="block">
           <Image
             src={src}
             alt={plainTitle}
@@ -79,7 +80,7 @@ const GridItem = ({ blog, style_2 = false, index = 0 }) => {
         </div>
 
         <h3 className="tp-blog-grid-title">
-          <Link href={`/blog-details/${id}`}>
+          <Link href={`/blog-details/${slug}`}>
             <span dangerouslySetInnerHTML={{ __html: rawTitle }} />
           </Link>
         </h3>
@@ -87,7 +88,7 @@ const GridItem = ({ blog, style_2 = false, index = 0 }) => {
         <div className="tp-blog-grid-excerpt" dangerouslySetInnerHTML={{ __html: desc }} />
 
         <div className="tp-blog-grid-btn">
-          <Link href={`/blog-details/${id}`} className="tp-link-btn-3">
+          <Link href={`/blog-details/${slug}`} className="tp-link-btn-3">
             Read More <ArrowRightLong />
           </Link>
         </div>

@@ -13,7 +13,7 @@ import { toggleWishlistItem } from '@/redux/features/wishlist-slice';
 import { Cart, CartActive, Wishlist, WishlistActive, QuickView, Share } from '@/svg';
 import { handleProductModal } from '@/redux/features/productModalSlice';
 import { useGetProductsByGroupcodeQuery } from '@/redux/features/productApi';
-import { useGetSeoByProductQuery } from '@/redux/features/seoApi';
+import { useGetProductsByCollectionQuery } from '@/redux/features/newProductApi';
 
 import useGlobalSearch from '@/hooks/useGlobalSearch';
 import { buildSearchPredicate } from '@/utils/searchMiddleware';
@@ -172,8 +172,7 @@ const ProductItem = ({ product, index = 0 }) => {
 
   /* title, slug, category */
   const productId = getAnyId(product);
-  const { data: seoResp } = useGetSeoByProductQuery(productId, { skip: !productId });
-  const seoDoc = Array.isArray(seoResp?.data) ? seoResp?.data?.[0] : seoResp?.data;
+  const seoDoc = null; // Removed SEO API call
 
   const titleHtml =
     pick(
@@ -208,6 +207,15 @@ const ProductItem = ({ product, index = 0 }) => {
   const optionCount = Array.isArray(groupItems) ? groupItems.length : 0;
   const showOptionsBadge = !!groupcodeId && !isFetching && !isError && optionCount > 1;
 
+  /* collection count */
+  const collectionId = product?.collectionId || product?.collection?.id || product?.collection?._id || null;
+  const { data: collectionData = {}, isFetching: collectionFetching, isError: collectionError } = useGetProductsByCollectionQuery(collectionId, { skip: !collectionId });
+  
+  // Handle both old and new response structures
+  const collectionItems = Array.isArray(collectionData?.data) ? collectionData.data : Array.isArray(collectionData) ? collectionData : [];
+  const collectionCount = collectionData?.total || collectionItems.length;
+  const showCollectionBadge = !!collectionId && !collectionFetching && !collectionError && collectionCount > 1;
+
   /* values */
   const fabricTypeVal =
     toText(pick(product?.fabricType, product?.fabric_type, product?.category, seoDoc?.fabricType)) || 'Woven Fabrics';
@@ -238,7 +246,7 @@ const ProductItem = ({ product, index = 0 }) => {
   const leadTimeVal = toText(pick(product?.leadTime, product?.lead_time, seoDoc?.leadTime));
 
   const details = uniq(
-    [fabricTypeVal, contentVal, weightVal, designVal, colorsVal, widthVal, structureVal, motifVal, leadTimeVal].filter(
+    [fabricTypeVal, contentVal, weightVal, designVal, colorsVal, widthVal, finishVal, structureVal, motifVal, leadTimeVal].filter(
       (v) => nonEmpty(v) && !isNoneish(v)
     )
   );
@@ -428,6 +436,33 @@ const ProductItem = ({ product, index = 0 }) => {
               </button>
             )}
 
+            {showCollectionBadge && (
+              <button
+                type="button"
+                className="collection-ribbon"
+                onClick={() => router.push(`/fabric/${slug}`)}
+                aria-label={`${collectionCount} items in collection for ${titleText}`}
+                title={`${collectionCount} items in collection`}
+              >
+                <span className="ribbon-inner collection-inner">
+                  <span className="ribbon-icon" aria-hidden="true">
+                    <Image
+                      src="/assets/img/banner/layers.png"
+                      alt="Collection Items"
+                      title="Collection Items"
+                      width={18}
+                      height={18}
+                      className="layers-icon"
+                      loading="lazy"
+                    />
+                  </span>
+                  <span className="ribbon-text">
+                    <strong>{collectionCount}</strong> Items
+                  </span>
+                </span>
+              </button>
+            )}
+
             <div className="product-actions">
               <button
                 type="button"
@@ -526,24 +561,37 @@ const ProductItem = ({ product, index = 0 }) => {
       </div>
 
       <style jsx>{`
+        /* Mobile-first grid: 1 product per row on mobile, multiple on desktop */
         :global(.products-grid) {
           display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-          gap: 20px;
+          grid-template-columns: 1fr; /* Mobile: 1 column */
+          gap: 24px;
           margin: 0;
           padding: 0;
           width: 100%;
         }
+        @media (min-width: 640px) {
+          :global(.products-grid) {
+            grid-template-columns: repeat(2, 1fr); /* Small tablet: 2 columns */
+            gap: 20px;
+          }
+        }
         @media (min-width: 768px) {
           :global(.products-grid) {
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); /* Tablet: auto-fill */
             gap: 24px;
+          }
+        }
+        @media (min-width: 1024px) {
+          :global(.products-grid) {
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); /* Desktop */
+            gap: 28px;
           }
         }
         @media (min-width: 1200px) {
           :global(.products-grid) {
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 28px;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); /* Large desktop */
+            gap: 32px;
           }
         }
         :global(.products-grid .product-col) {
@@ -565,50 +613,56 @@ const ProductItem = ({ product, index = 0 }) => {
           position: relative;
           width: 100%;
           height: 100%;
-          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .fashion-product-card:hover {
-          transform: translateY(-4px);
+          transform: translateY(-6px);
         }
 
         .card-wrapper {
           background: var(--bg-white);
           border: 1px solid var(--border-color);
-          border-radius: 12px;
+          border-radius: 16px;
           overflow: hidden;
-          box-shadow: 0 2px 12px rgba(44, 76, 151, 0.08);
+          box-shadow: 0 4px 20px rgba(44, 76, 151, 0.08);
           height: 100%;
           display: flex;
           flex-direction: column;
-          transition: all 0.3s ease;
+          transition: all 0.4s ease;
+          position: relative;
         }
 
         .fashion-product-card:hover .card-wrapper {
           border-color: var(--primary);
-          box-shadow: 0 8px 24px rgba(44, 76, 151, 0.15);
+          box-shadow: 0 12px 32px rgba(44, 76, 151, 0.18);
         }
 
-        /* ✅ BIGGER IMAGE ON MOBILE (medium), bigger on desktop */
+        /* Enhanced image container with gradient overlay */
         .product-image-container {
           position: relative;
           width: 100%;
           overflow: hidden;
-          background-color: #f9fafb;
+          background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
           display: flex;
           align-items: center;
           justify-content: center;
 
-          height: 220px; /* mobile */
+          height: 280px; /* mobile - bigger image */
+        }
+        @media (min-width: 640px) {
+          .product-image-container {
+            height: 260px; /* small tablet */
+          }
         }
         @media (min-width: 768px) {
           .product-image-container {
-            height: 250px; /* tablet/desktop */
+            height: 280px; /* tablet/desktop */
           }
         }
         @media (min-width: 1200px) {
           .product-image-container {
-            height: 270px; /* large desktop */
+            height: 300px; /* large desktop */
           }
         }
 
@@ -618,82 +672,136 @@ const ProductItem = ({ product, index = 0 }) => {
           height: 100%;
         }
 
-        /* ✅ reduce padding on mobile so image looks bigger */
+        /* Enhanced image styling with bigger images */
         .image-wrapper {
           position: relative;
           width: 100%;
           height: 100%;
-          padding: 10px; /* mobile */
+          padding: 8px; /* mobile - less padding for bigger image */
         }
         @media (min-width: 768px) {
           .image-wrapper {
-            padding: 16px;
+            padding: 12px; /* desktop - less padding for bigger image */
           }
         }
 
-        /* ✅ Make image fill better on mobile */
         :global(.img-main) {
           width: 100% !important;
           height: 100% !important;
           object-position: center;
           display: block;
           background: #fff;
-          border-radius: 10px;
-          transition: transform 0.4s ease;
+          border-radius: 12px;
+          transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+          box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
 
-          object-fit: cover !important; /* mobile: looks bigger */
-        }
-        @media (min-width: 768px) {
-          :global(.img-main) {
-            object-fit: contain !important; /* desktop: keep full fabric visible */
-          }
+          /* Remove object-fit contain - use cover for bigger appearance */
+          object-fit: cover !important;
         }
 
         .fashion-product-card:hover :global(.img-main) {
-          transform: scale(1.03);
+          transform: scale(1.05);
+          box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
         }
 
         .image-overlay {
           position: absolute;
           inset: 0;
-          background: linear-gradient(to bottom, rgba(0, 0, 0, 0) 70%, rgba(0, 0, 0, 0.02) 100%);
+          background: linear-gradient(to bottom, rgba(0, 0, 0, 0) 60%, rgba(0, 0, 0, 0.04) 100%);
           z-index: 1;
           pointer-events: none;
+          border-radius: 12px;
         }
 
         .options-ribbon {
           position: absolute;
-          left: 12px;
-          bottom: 12px;
+          left: 16px;
+          bottom: 16px;
           border: 0;
           background: transparent;
           cursor: pointer;
           z-index: 3;
         }
 
+        .collection-ribbon {
+          position: absolute;
+          left: 50%;
+          bottom: 16px;
+          transform: translateX(-50%);
+          border: 0;
+          background: transparent;
+          cursor: pointer;
+          z-index: 3;
+          animation: subtle-bounce 2s ease-in-out infinite;
+        }
+
+        @keyframes subtle-bounce {
+          0%, 100% {
+            transform: translateX(-50%) translateY(0);
+          }
+          50% {
+            transform: translateX(-50%) translateY(-2px);
+          }
+        }
+
+        .collection-ribbon:hover {
+          animation: none;
+        }
+
         .ribbon-inner {
           display: flex;
           align-items: center;
-          gap: 6px;
-          height: 28px;
-          padding: 0 12px;
-          border-radius: 14px;
-          background: linear-gradient(135deg, #1e824c 0%, #166534 100%);
-          border: 1px solid rgba(255, 255, 255, 0.9);
-          box-shadow: 0 3px 10px rgba(30, 130, 76, 0.3);
-          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          justify-content: center;
+          gap: 8px;
+          height: 36px;
+          padding: 0 16px;
+          border-radius: 18px;
+          background: linear-gradient(135deg, #4f46e5 0%, #3730a3 100%);
+          border: 2px solid rgba(255, 255, 255, 0.95);
+          box-shadow: 0 6px 20px rgba(79, 70, 229, 0.35);
+          transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+          backdrop-filter: blur(12px);
+          position: relative;
+          overflow: hidden;
         }
 
-        .ribbon-inner:hover {
+        .ribbon-inner::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: -100%;
+          width: 100%;
+          height: 100%;
+          background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+          transition: left 0.6s ease;
+        }
+
+        .collection-inner {
+          background: linear-gradient(135deg, #4f46e5 0%, #3730a3 100%);
+          box-shadow: 0 6px 20px rgba(79, 70, 229, 0.35);
+        }
+
+        .ribbon-inner:hover,
+        .collection-inner:hover {
           transform: scale(1.05);
-          box-shadow: 0 4px 14px rgba(30, 130, 76, 0.4);
+          box-shadow: 0 8px 24px rgba(79, 70, 229, 0.45);
+        }
+
+        .ribbon-inner:hover::before {
+          left: 100%;
+        }
+
+        .collection-inner:hover {
+          box-shadow: 0 8px 24px rgba(79, 70, 229, 0.45);
         }
 
         .ribbon-icon {
-          display: inline-grid;
-          place-items: center;
-          width: 16px;
-          height: 16px;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          width: 20px;
+          height: 20px;
+          flex-shrink: 0;
         }
 
         .badge-icon {
@@ -703,30 +811,51 @@ const ProductItem = ({ product, index = 0 }) => {
           filter: brightness(0) invert(1);
         }
 
+        .layers-icon {
+          width: 20px;
+          height: 20px;
+          filter: brightness(0) invert(1) drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
+          opacity: 0.95;
+          transition: all 0.3s ease;
+        }
+
+        .collection-inner:hover .layers-icon {
+          transform: scale(1.1) rotate(5deg);
+          opacity: 1;
+        }
+
+        .collection-icon {
+          width: 16px;
+          height: 16px;
+          color: #fff;
+        }
+
         .ribbon-text {
-          font-size: 12px;
+          font-size: 14px;
           font-weight: 600;
           color: #fff;
-          letter-spacing: 0.2px;
+          letter-spacing: 0.4px;
           line-height: 1;
+          text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+          white-space: nowrap;
         }
 
         .ribbon-text strong {
           font-weight: 700;
-          margin-right: 2px;
-          font-size: 13px;
+          margin-right: 4px;
+          font-size: 15px;
         }
 
         .product-actions {
           position: absolute;
-          top: 12px;
-          right: 12px;
+          top: 14px;
+          right: 14px;
           display: flex;
           flex-direction: column;
-          gap: 8px;
+          gap: 10px;
           opacity: 0;
-          transform: translateY(-8px);
-          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          transform: translateY(-10px);
+          transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
           z-index: 3;
         }
 
@@ -758,22 +887,22 @@ const ProductItem = ({ product, index = 0 }) => {
         }
 
         .action-button {
-          width: 32px;
-          height: 32px;
-          border-radius: 8px;
+          width: 36px;
+          height: 36px;
+          border-radius: 10px;
           display: grid;
           place-items: center;
-          background: rgba(255, 255, 255, 0.98);
-          backdrop-filter: blur(8px);
-          border: 1px solid var(--border-color);
-          box-shadow: 0 2px 8px rgba(44, 76, 151, 0.1);
+          background: rgba(255, 255, 255, 0.95);
+          backdrop-filter: blur(12px);
+          border: 1px solid rgba(44, 76, 151, 0.1);
+          box-shadow: 0 4px 12px rgba(44, 76, 151, 0.12);
           transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
           cursor: pointer;
         }
 
         .action-button :global(svg) {
-          width: 16px;
-          height: 16px;
+          width: 18px;
+          height: 18px;
           color: var(--text-primary);
           transition: all 0.3s ease;
         }
@@ -781,8 +910,8 @@ const ProductItem = ({ product, index = 0 }) => {
         .action-button:hover {
           background: var(--primary);
           border-color: var(--primary);
-          box-shadow: 0 4px 12px rgba(44, 76, 151, 0.25);
-          transform: scale(1.08);
+          box-shadow: 0 6px 16px rgba(44, 76, 151, 0.3);
+          transform: scale(1.1);
         }
 
         .action-button:hover :global(svg) {
@@ -813,13 +942,13 @@ const ProductItem = ({ product, index = 0 }) => {
         }
 
         .product-info {
-          padding: 16px;
-          border-top: 1px solid var(--border-color);
+          padding: 18px;
+          border-top: 1px solid rgba(44, 76, 151, 0.08);
           background: var(--bg-white);
           flex-grow: 1;
           display: flex;
           flex-direction: column;
-          min-height: 160px;
+          min-height: 170px;
         }
 
         .product-category {
@@ -828,11 +957,11 @@ const ProductItem = ({ product, index = 0 }) => {
 
         .product-title {
           font-family: var(--tp-ff-jost, 'Poppins', sans-serif);
-          font-size: 15px;
+          font-size: 16px;
           font-weight: 600;
           line-height: 1.4;
           color: var(--text-primary);
-          margin: 0 0 12px;
+          margin: 0 0 14px;
           display: -webkit-box;
           -webkit-line-clamp: 2;
           -webkit-box-orient: vertical;
@@ -851,22 +980,15 @@ const ProductItem = ({ product, index = 0 }) => {
           color: var(--primary);
         }
 
-        /* ✅ SHOW ALL DETAILS ON MOBILE (no cut) */
+        /* Enhanced specifications display - always 2 columns even on mobile */
         .spec-columns {
           display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 0 12px;
+          grid-template-columns: 1fr 1fr; /* Always 2 columns on all screen sizes */
+          gap: 0 14px;
           margin-top: auto;
           flex-grow: 1;
-
-          max-height: none; /* remove cut */
-          overflow: visible; /* remove cut */
-        }
-
-        @media (max-width: 380px) {
-          .spec-columns {
-            grid-template-columns: 1fr;
-          }
+          max-height: none;
+          overflow: visible;
         }
 
         .spec-col {
@@ -878,9 +1000,9 @@ const ProductItem = ({ product, index = 0 }) => {
         .spec-row {
           display: flex;
           align-items: flex-start;
-          padding: 4px 0;
+          padding: 5px 0;
           border-bottom: 1px solid rgba(44, 76, 151, 0.06);
-          min-height: 28px;
+          min-height: 30px;
         }
 
         .spec-row:last-child {
@@ -888,14 +1010,12 @@ const ProductItem = ({ product, index = 0 }) => {
         }
 
         .spec-value {
-          font-size: 12px;
+          font-size: 13px;
           font-weight: 500;
           color: var(--text-secondary);
           line-height: 1.4;
           position: relative;
-          padding-left: 12px;
-
-          /* ✅ allow full text (no clamp) */
+          padding-left: 14px;
           display: block;
           overflow: visible;
           text-overflow: initial;
@@ -907,11 +1027,12 @@ const ProductItem = ({ product, index = 0 }) => {
           content: '';
           position: absolute;
           left: 0;
-          top: 8px;
-          width: 4px;
-          height: 4px;
+          top: 9px;
+          width: 5px;
+          height: 5px;
           border-radius: 50%;
-          background: var(--secondary);
+          background: linear-gradient(135deg, var(--secondary) 0%, #b8860b 100%);
+          box-shadow: 0 1px 3px rgba(214, 167, 75, 0.3);
         }
 
         .price-wrapper {

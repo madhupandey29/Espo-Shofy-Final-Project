@@ -23,10 +23,26 @@ const fmt = (iso) => {
 const html = (s) => ({ __html: s || '' });
 
 const BlogDetailsArea = ({ blog }) => {
-  const hero =
-    blog?.blogimage1 || blog?.blogimage2 || '/images/placeholder-16x9.jpg';
-  const inlineImg =
-    blog?.blogimage2 && blog.blogimage2 !== hero ? blog.blogimage2 : null;
+  // Handle case when blog is null or undefined
+  if (!blog) {
+    return (
+      <section className="tp-postbox-details-area pb-120 pt-95">
+        <div className="container" style={{ maxWidth: 1200, margin: '0 auto', padding: '0 30px' }}>
+          <div className="row">
+            <div className="col-xl-12">
+              <div className="text-center">
+                <h2>Blog not found</h2>
+                <p>The requested blog post could not be found.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  const hero = blog?.blogimage1 || blog?.blogimage2 || '/images/placeholder-16x9.jpg';
+  const inlineImg = blog?.blogimage2 && blog.blogimage2 !== hero ? blog.blogimage2 : null;
 
   return (
     <section className="tp-postbox-details-area pb-120 pt-95">
@@ -86,14 +102,6 @@ const BlogDetailsArea = ({ blog }) => {
           <div className="col-xl-9 col-lg-8">
             <div className="tp-postbox-details-main-wrapper">
               <div className="tp-postbox-details-content">
-
-                {/* If your backend sends these with tags, render them raw */}
-                {blog?.heading && (
-                  <h4
-                    className="tp-postbox-details-heading"
-                    dangerouslySetInnerHTML={html(blog.heading)}
-                  />
-                )}
 
                 {blog?.paragraph1 && (
                   <p

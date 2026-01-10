@@ -12,15 +12,6 @@ export const revalidate = 120;
 /* ---------------------------------------------
    Helpers (plain JS, no TS types)
 ---------------------------------------------- */
-function buildApiHeaders() {
-  const headers = { "Content-Type": "application/json" };
-  const apiKey = process.env.NEXT_PUBLIC_API_KEY || "";
-  const adminEmail = process.env.NEXT_PUBLIC_ADMIN_EMAIL || "";
-  if (apiKey) headers["x-api-key"] = apiKey;
-  if (adminEmail) headers["x-admin-email"] = adminEmail;
-  return headers;
-}
-
 function trimEndSlash(s = "") {
   return String(s || "").replace(/\/+$/, "");
 }
@@ -135,10 +126,9 @@ export async function generateMetadata() {
 }
 
 /**
- * Fetch products on the server (SSR) - Initial load only.
- * For pagination, we'll use client-side API calls with filtering.
+ * Fetch ALL products on the server (SSR) - Get all 123 products
  */
-async function fetchProductsSSR() {
+async function fetchAllProducts() {
   const RAW_BASE =
     process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:7000/landing";
   const API_BASE2 = trimEndSlash(RAW_BASE);
@@ -146,101 +136,183 @@ async function fetchProductsSSR() {
   // Get merchTag filter from environment variable
   const MERCH_TAG_FILTER = process.env.NEXT_PUBLIC_MERCH_TAG_FILTER;
 
-  const candidates = [
-    `${API_BASE2}/product?limit=200&page=1`, // Fetch more products for filtering
-    `${API_BASE2}/product/?limit=200&page=1`, // Alternative with explicit page
-    `${API_BASE2}/products?limit=200`,
-    `${API_BASE2}/catalog/products?limit=200`,
+  console.log('🔍 Fetching ALL 123 products...');
+  console.log('API Base:', API_BASE2);
+  console.log('MerchTag Filter:', MERCH_TAG_FILTER);
+
+  try {
+    // ✅ FIX: Use the general product endpoint with limit=150 to get all 123 products
+    const url = `${API_BASE2}/product?limit=150`;
+    console.log('📡 Fetching all products:', url);
+    
+    const res = await fetch(url, {
+      next: { revalidate },
+    });
+    
+    console.log('📊 Response status:', res.status);
+    
+    if (!res.ok) {
+      console.log('❌ Failed:', res.status, res.statusText);
+      // Fallback to collection-based approach
+      return await fetchFromCollections(API_BASE2, MERCH_TAG_FILTER);
+    }
+
+    const payload = await res.json();
+    
+    console.log('✅ API Response:', {
+      success: payload.success,
+      dataLength: payload.data?.length,
+      total: payload.total,
+      hasData: !!payload.data,
+      isArray: Array.isArray(payload.data)
+    });
+    
+    let products = [];
+    let totalProducts = 0;
+    
+    // Handle the API response structure
+    if (payload?.success && payload?.data && Array.isArray(payload.data)) {
+      products = payload.data;
+      totalProducts = payload.total || payload.data.length;
+    } else if (payload?.products && Array.isArray(payload.products)) {
+      products = payload.products;
+      totalProducts = payload.total || payload.products.length;
+    } else if (Array.isArray(payload)) {
+      products = payload;
+      totalProducts = payload.length;
+    } else {
+      console.log('❌ Unexpected API response structure');
+      // Fallback to collection-based approach
+      return await fetchFromCollections(API_BASE2, MERCH_TAG_FILTER);
+    }
+
+    console.log(`📦 Got ${products.length} products from API`);
+
+    // Check collection distribution
+    const collectionStats = {};
+    products.forEach(product => {
+      const collectionName = product.collectionName || 'No Collection';
+      collectionStats[collectionName] = (collectionStats[collectionName] || 0) + 1;
+    });
+    
+    console.log('📦 Collection distribution:');
+    Object.entries(collectionStats).forEach(([collection, count]) => {
+      console.log(`  ${collection}: ${count} products`);
+    });
+
+    // Apply merchTag filtering if MERCH_TAG_FILTER is set
+    if (MERCH_TAG_FILTER && products.length > 0) {
+      console.log(`🔍 Filtering by merchTag: "${MERCH_TAG_FILTER}"`);
+      
+      const filteredProducts = products.filter((product) => {
+        if (!product.merchTags || !Array.isArray(product.merchTags)) {
+          return false;
+        }
+        
+        if (product.merchTags.length === 0) {
+          return false;
+        }
+        
+        return product.merchTags.includes(MERCH_TAG_FILTER);
+      });
+
+      console.log(`✅ Filtered to ${filteredProducts.length} products`);
+      
+      return {
+        products: filteredProducts,
+        total: filteredProducts.length,
+        filtered: true,
+        filterTag: MERCH_TAG_FILTER
+      };
+    }
+
+    // Return ALL products if no filter is set
+    console.log(`✅ Returning all ${products.length} products`);
+    
+    return {
+      products: products,
+      total: totalProducts,
+      filtered: false
+    };
+  } catch (error) {
+    console.error('❌ API Error:', error.message);
+    // Fallback to collection-based approach
+    return await fetchFromCollections(API_BASE2, MERCH_TAG_FILTER);
+  }
+}
+
+/**
+ * Fallback: Fetch from collections if main endpoint fails
+ */
+async function fetchFromCollections(API_BASE2, MERCH_TAG_FILTER) {
+  console.log('🔄 Falling back to collection-based fetch...');
+  
+  const collectionIds = [
+    '690a0e676132664ee', // Nokia collection
+    '695f9b0b956eb958b'  // Majestica collection
   ];
 
-  for (const url of candidates) {
+  let allProducts = [];
+  let totalProducts = 0;
+
+  // Fetch products from each collection
+  for (const collectionId of collectionIds) {
     try {
+      const url = `${API_BASE2}/product/fieldname/collectionId/${collectionId}?limit=100`;
+      console.log('📡 Fetching from collection:', url);
+      
       const res = await fetch(url, {
-        headers: buildApiHeaders(),
-        next: { revalidate },
+        next: { revalidate: 120 },
       });
-      if (!res.ok) continue;
-
-      const payload = await res.json();
       
-      console.log('Server-side API Response:', payload); // Debug log
-      
-      let products = [];
-      let totalProducts = 0;
-      
-      // Handle the new API response structure
-      if (payload?.success && payload?.data && Array.isArray(payload.data)) {
-        products = payload.data;
-        totalProducts = payload.total || payload.data.length;
-      } else if (payload?.products && Array.isArray(payload.products)) {
-        products = payload.products;
-        totalProducts = payload.total || payload.products.length;
-      } else {
-        const data =
-          (Array.isArray(payload?.data) && payload.data) ||
-          (Array.isArray(payload) && payload) ||
-          (Array.isArray(payload?.data?.items) && payload.data.items) ||
-          [];
-        products = Array.isArray(data) ? data : [];
-        totalProducts = payload.total || products.length;
+      if (res.ok) {
+        const payload = await res.json();
+        
+        if (payload?.success && payload?.data && Array.isArray(payload.data)) {
+          console.log(`✅ Got ${payload.data.length} products from collection ${collectionId}`);
+          allProducts = [...allProducts, ...payload.data];
+          totalProducts += payload.total || payload.data.length;
+        }
       }
-
-      // Apply merchTag filtering if MERCH_TAG_FILTER is set
-      if (MERCH_TAG_FILTER && products.length > 0) {
-        console.log(`🔍 Server-side filtering by merchTag: "${MERCH_TAG_FILTER}"`);
-        console.log(`📊 Initial batch: ${products.length} products`);
-        
-        const filteredProducts = products.filter((product, index) => {
-          if (!product.merchTags || !Array.isArray(product.merchTags)) {
-            return false;
-          }
-          
-          if (product.merchTags.length === 0) {
-            return false;
-          }
-          
-          return product.merchTags.includes(MERCH_TAG_FILTER);
-        });
-
-        console.log(`📈 Server-side filtered results: ${filteredProducts.length} products from batch`);
-        
-        // Return first 50 filtered products for initial display
-        const initialProducts = filteredProducts.slice(0, 50);
-        
-        return {
-          products: initialProducts,
-          total: totalProducts, // Keep original total for API pagination
-          pagination: payload.pagination,
-          filtered: true,
-          filterTag: MERCH_TAG_FILTER,
-          initialBatchSize: products.length,
-          filteredFromBatch: filteredProducts.length,
-          allFilteredProducts: filteredProducts // Store all filtered products
-        };
-      }
-
-      // Return first 50 products if no filter is set
-      return {
-        products: products.slice(0, 50),
-        total: totalProducts,
-        pagination: payload.pagination,
-        filtered: false,
-        initialBatchSize: products.length
-      };
     } catch (error) {
-      console.error('Server-side fetch error:', error);
-      // try next candidate
+      console.error('❌ Collection API Error:', error.message);
     }
   }
 
-  return { products: [], total: 0, pagination: null, filtered: false };
+  console.log(`📦 Total products from collections: ${allProducts.length}`);
+
+  // Apply filtering if needed
+  if (MERCH_TAG_FILTER && allProducts.length > 0) {
+    const filteredProducts = allProducts.filter((product) => {
+      return product.merchTags && product.merchTags.includes(MERCH_TAG_FILTER);
+    });
+
+    return {
+      products: filteredProducts,
+      total: filteredProducts.length,
+      filtered: true,
+      filterTag: MERCH_TAG_FILTER
+    };
+  }
+
+  return {
+    products: allProducts,
+    total: totalProducts,
+    filtered: false
+  };
 }
 
 /* ---------------------------------------------
    Page (Server Component)
 ---------------------------------------------- */
 export default async function ShopPage() {
-  const initialData = await fetchProductsSSR();
+  const productData = await fetchAllProducts();
+
+  console.log('🏪 Shop Page Data:', {
+    productsCount: productData.products.length,
+    total: productData.total,
+    filtered: productData.filtered
+  });
 
   return (
     <Wrapper>
@@ -258,17 +330,13 @@ export default async function ShopPage() {
         }}
       >
         Shop - Browse All Products
-        {initialData.filtered && ` - ${initialData.filterTag} Collection`}
+        {productData.filtered && ` - ${productData.filterTag} Collection`}
       </h1>
 
       <div className="shop-page-spacing">
         <ShopArea 
-          initialProducts={initialData.products} 
-          totalProducts={initialData.total}
-          initialPagination={initialData.pagination}
-          isFiltered={initialData.filtered}
-          filterTag={initialData.filterTag}
-          allFilteredProducts={initialData.allFilteredProducts}
+          initialProducts={productData.products} 
+          totalProducts={productData.total}
         />
       </div>
 

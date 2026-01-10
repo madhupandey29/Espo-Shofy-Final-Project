@@ -7,7 +7,7 @@ import BlogItem from './blog-item';
 
 // ---- API config (env-first, fallback to localhost) ----
 const API_BASE = (process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000').replace(/\/+$/, '');
-const BLOG_PATH = process.env.NEXT_PUBLIC_API_BLOG_PATH || '/blogs';
+const BLOG_PATH = process.env.NEXT_PUBLIC_API_BLOG_PATH || '/blog';
 
 export default function BlogArea() {
   const [rows, setRows] = useState([]);

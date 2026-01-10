@@ -324,7 +324,7 @@ export default function DetailsSuitableKeywords({
     async function fetchBySlug() {
       if (!slug || !API_BASE) return;
       try {
-        const res = await fetch(`${API_BASE}/product/slug/${slug}`, {
+        const res = await fetch(`${API_BASE}/product/${slug}`, {
           headers: { 'x-api-key': API_KEY || '', 'Content-Type': 'application/json' },
           credentials: 'include',
         });

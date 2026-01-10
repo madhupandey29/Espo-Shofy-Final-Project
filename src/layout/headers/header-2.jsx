@@ -151,44 +151,37 @@ const HeaderTwo = ({ style_2 = false }) => {
 
   const [isOffCanvasOpen, setIsCanvasOpen] = useState(false);
 
-  // ===== GLOBAL SEARCH =====
-  const { query, setQuery, debounced, reset } = useGlobalSearch(150);
-
+  // ===== SIMPLIFIED SEARCH (Fixed typing issues) =====
+  const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedQuery, setDebouncedQuery] = useState('');
   const [searchOpen, setSearchOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [loadingMore, setLoadingMore] = useState(false);
   const [results, setResults] = useState([]);
   const [selIndex, setSelIndex] = useState(-1);
-  const [limit, setLimit] = useState(PAGE_SIZE);
 
-  // ✅ only open product page if user explicitly selects with arrow keys
-  const [explicitPick, setExplicitPick] = useState(false);
+  // Simple debounce effect
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedQuery(searchQuery);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   const searchWrapRef = useRef(null);
   const dropRef = useRef(null);
 
-  // reset pagination when query changes
-  useEffect(() => setLimit(PAGE_SIZE), [debounced]);
-
-  /**
-   * ✅ IMPORTANT FIX:
-   * Fetch suggestions ONLY when dropdown is open.
-   * So after redirect to /shop?q=... dropdown stays closed and no "Nokia-..." line appears.
-   */
+  // Fetch search results when debounced query changes
   useEffect(() => {
     const controller = new AbortController();
-    const q = (debounced || '').trim();
+    const q = debouncedQuery.trim();
 
     if (q.length < 2) {
       setResults([]);
       setSelIndex(-1);
-      setExplicitPick(false);
       setLoading(false);
-      setLoadingMore(false);
       return;
     }
 
-    // ✅ do not fetch / render suggestions unless dropdown is open
     if (!searchOpen) {
       setLoading(false);
       return () => controller.abort();
@@ -196,35 +189,15 @@ const HeaderTwo = ({ style_2 = false }) => {
 
     setLoading(true);
 
-    searchProducts(q, Math.min(limit, MAX_LIMIT), controller.signal)
+    searchProducts(q, PAGE_SIZE, controller.signal)
       .then((arr) => {
         setResults(arr);
-        setSelIndex(-1);        // no auto-select
-        setExplicitPick(false); // reset explicit selection
+        setSelIndex(-1);
       })
       .finally(() => setLoading(false));
 
     return () => controller.abort();
-  }, [debounced, limit, searchOpen]);
-
-  // infinite scroll inside dropdown
-  useEffect(() => {
-    const el = dropRef.current;
-    if (!el) return;
-
-    const onScroll = () => {
-      if (loading || loadingMore) return;
-      const nearBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 24;
-      if (nearBottom && limit < MAX_LIMIT) {
-        setLoadingMore(true);
-        setLimit((l) => Math.min(l + PAGE_SIZE, MAX_LIMIT));
-        setTimeout(() => setLoadingMore(false), 120);
-      }
-    };
-
-    el.addEventListener('scroll', onScroll, { passive: true });
-    return () => el.removeEventListener('scroll', onScroll);
-  }, [limit, loading, loadingMore]);
+  }, [debouncedQuery, searchOpen]);
 
   // close dropdown on outside click / Esc
   useEffect(() => {
@@ -249,74 +222,61 @@ const HeaderTwo = ({ style_2 = false }) => {
     };
   }, []);
 
-  const closeOnlyDropdown = () => {
+  const closeSearchDropdown = () => {
     setSearchOpen(false);
     setResults([]);
     setSelIndex(-1);
-    setLimit(PAGE_SIZE);
-    setExplicitPick(false);
   };
 
-  const go = (href, opts = {}) => {
-    const keepQuery = !!opts.keepQuery;
+  const clearSearch = () => {
+    setSearchQuery('');
+    setDebouncedQuery('');
+    closeSearchDropdown();
+  };
 
-    closeOnlyDropdown();
-    if (!keepQuery) reset();
-
+  const goToPage = (href) => {
+    closeSearchDropdown();
     try { window.scrollTo?.(0, 0); } catch (err) {}
     router.push(href);
   };
 
-  // ✅ Submit:
-  // default -> shop
-  // only -> product-details if explicitPick=true and selected item has slug
   const onSearchSubmit = (e) => {
     e.preventDefault();
-    const q = (query || '').trim();
+    const q = searchQuery.trim();
 
     if (!q) {
       setSearchOpen(true);
       return;
     }
 
-    if (explicitPick && selIndex >= 0 && results[selIndex]) {
+    // If user selected an item with arrow keys, go to that product
+    if (selIndex >= 0 && results[selIndex]) {
       const p = results[selIndex];
       if (p?.slug) {
-        go(`/fabric/${p.slug}`, { keepQuery: false }); // ✅ slug only
+        goToPage(`/fabric/${p.slug}`);
         return;
       }
     }
 
-    go(`/shop?q=${encodeURIComponent(q)}`, { keepQuery: true });
+    // Otherwise go to shop with search query
+    goToPage(`/shop?q=${encodeURIComponent(q)}`);
   };
 
   const onSearchKeyDown = (e) => {
-    if (!searchOpen) return;
+    if (!searchOpen || !results.length) return;
 
     if (e.key === 'ArrowDown') {
       e.preventDefault();
-      if (!results.length) return;
-      setExplicitPick(true);
       setSelIndex((i) => Math.min(results.length - 1, i < 0 ? 0 : i + 1));
     } else if (e.key === 'ArrowUp') {
       e.preventDefault();
-      if (!results.length) return;
-      setExplicitPick(true);
       setSelIndex((i) => Math.max(-1, i - 1));
     }
   };
 
-  // clear: remove query and show all products
-  const clearSearch = () => {
-    closeOnlyDropdown();
-    reset();
-    router.push('/shop');
-  };
-
-  // close dropdown when route changes (extra safety)
+  // close dropdown when route changes
   useEffect(() => {
-    closeOnlyDropdown();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    closeSearchDropdown();
   }, [pathname]);
 
   // ===== Session & user dropdown =====
@@ -472,13 +432,17 @@ const HeaderTwo = ({ style_2 = false }) => {
                       <div className="tp-header-search-2 d-none d-sm-block me-3 search-wrap" ref={searchWrapRef}>
                         <form onSubmit={onSearchSubmit} className="search-form">
                           <input
-                            value={query || ''}
+                            value={searchQuery}
                             onChange={(e) => {
-                              const v = e.target.value;
-                              setQuery(v);
-                              setExplicitPick(false);
-                              if (v && !searchOpen) setSearchOpen(true);
-                              if (!v) closeOnlyDropdown();
+                              const value = e.target.value;
+                              setSearchQuery(value);
+                              setSelIndex(-1); // Reset selection when typing
+                              if (value.trim() && !searchOpen) {
+                                setSearchOpen(true);
+                              }
+                              if (!value.trim()) {
+                                closeSearchDropdown();
+                              }
                             }}
                             onKeyDown={onSearchKeyDown}
                             type="text"
@@ -489,20 +453,24 @@ const HeaderTwo = ({ style_2 = false }) => {
                             inputMode="search"
                             maxLength={200}
                             onFocus={() => {
-                              if (nonEmpty(query)) setSearchOpen(true);
+                              if (searchQuery.trim()) setSearchOpen(true);
                             }}
                             className="search-input"
                           />
 
-                          {!!(query && query.trim()) && (
+                          {searchQuery.trim() && (
                             <button
                               type="button"
                               className="search-clear"
-                              onClick={clearSearch}
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                clearSearch();
+                              }}
                               aria-label="Clear search"
-                              title="Clear"
+                              title="Clear search"
                             >
-                              ×
+                              ✕
                             </button>
                           )}
 
@@ -510,17 +478,14 @@ const HeaderTwo = ({ style_2 = false }) => {
                             type="submit"
                             className="search-submit"
                             aria-label="Search"
-                            onClick={() => {
-                              // ensure dropdown doesn't force-open on submit
-                              // (submit will go to /shop by default)
-                            }}
+                            title="Search"
                           >
                             <Search />
                           </button>
                         </form>
 
                         {/* dropdown results */}
-                        {searchOpen && (query || '').trim().length >= 2 && (
+                        {searchOpen && searchQuery.trim().length >= 2 && (
                           <div
                             ref={dropRef}
                             className="search-dropdown"
@@ -529,7 +494,7 @@ const HeaderTwo = ({ style_2 = false }) => {
                           >
                             {loading && <div className="search-item muted">Searching…</div>}
                             {!loading && results.length === 0 && (
-                              <div className="search-item muted">No results</div>
+                              <div className="search-item muted">No results found</div>
                             )}
 
                             {results.map((p, i) => {
@@ -541,11 +506,10 @@ const HeaderTwo = ({ style_2 = false }) => {
                                   className={`search-item ${active ? 'active' : ''}`}
                                   onMouseEnter={() => setSelIndex(i)}
                                   onClick={() => {
-                                    // ✅ click opens product only if slug exists
                                     if (p?.slug) {
-                                      go(`/fabric/${p.slug}`, { keepQuery: false });
+                                      goToPage(`/fabric/${p.slug}`);
                                     } else {
-                                      go(`/shop?q=${encodeURIComponent(query)}`, { keepQuery: true });
+                                      goToPage(`/shop?q=${encodeURIComponent(searchQuery)}`);
                                     }
                                   }}
                                 >
@@ -554,8 +518,6 @@ const HeaderTwo = ({ style_2 = false }) => {
                                 </button>
                               );
                             })}
-
-                            {loadingMore && <div className="search-item muted">Loading more…</div>}
                           </div>
                         )}
                       </div>

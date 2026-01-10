@@ -1,13 +1,10 @@
 /* ---------------------------------------------------------------------- */
-/*  details-tab-nav.jsx – Description / FAQ only                           */
+/*  details-tab-nav.jsx – Description / FAQ                                */
 /* ---------------------------------------------------------------------- */
 'use client';
 
 import React, { useEffect, useState, useMemo } from 'react';
 import { useGetSingleProductQuery } from '@/redux/features/productApi';
-
-// ✅ FAQ API
-import { useGetAllFaqAQuery } from '@/redux/features/faqaApi';
 
 /* ───── helpers ───── */
 const nonEmpty = (v) => {
@@ -185,7 +182,7 @@ export default function DetailsTabNav({ product = {} }) {
     async function fetchBySlug() {
       if (!slug || !API_BASE) return;
       try {
-        const res = await fetch(`${API_BASE}/product/slug/${slug}`, {
+        const res = await fetch(`${API_BASE}/product/${slug}`, {
           headers: { 'x-api-key': API_KEY || '', 'Content-Type': 'application/json' },
           credentials: 'include',
         });
@@ -216,10 +213,7 @@ export default function DetailsTabNav({ product = {} }) {
       productdescription
     ) || '';
 
-  /* ---------------- FAQ data (product + global) ---------------- */
-  const { data: faqaResp } = useGetAllFaqAQuery();
-  const globalFaqsRaw = Array.isArray(faqaResp?.data) ? faqaResp.data : [];
-
+  /* ---------------- FAQ data (product only - no API calls) ---------------- */
   const productFaqs = useMemo(() => {
     const src = full && Object.keys(full).length ? full : product;
     const items = [];
@@ -243,24 +237,8 @@ export default function DetailsTabNav({ product = {} }) {
     return items;
   }, [product, full]);
 
-  const globalFaqs = useMemo(() => {
-    return globalFaqsRaw
-      .map((f) => {
-        const qStr = String(f?.question || '');
-        const aStr = String(f?.answer || '');
-        if (!nonEmpty(qStr) || !nonEmpty(aStr)) return null;
-        return {
-          key: f?._id || stripHtml(qStr).slice(0, 24),
-          question: qStr,
-          answer: aStr,
-          questionIsHtml: /<[a-z][\s\S]*>/i.test(qStr),
-          answerIsHtml: /<[a-z][\s\S]*>/i.test(aStr),
-        };
-      })
-      .filter(Boolean);
-  }, [globalFaqsRaw]);
-
-  const mergedFaqs = useMemo(() => [...productFaqs, ...globalFaqs], [productFaqs, globalFaqs]);
+  // Only use product FAQs (no API calls)
+  const mergedFaqs = useMemo(() => [...productFaqs], [productFaqs]);
 
   return (
     <div className="product-details-modern">

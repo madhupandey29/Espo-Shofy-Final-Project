@@ -1,5 +1,5 @@
 'use client';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import { useDispatch } from 'react-redux';
 import ProductItem from '../products/fashion/product-item';
 import ShopTopLeft from './shop-top-left';
@@ -15,27 +15,94 @@ const ShopContent = ({
   shop_right,
   hidden_sidebar,
 }) => {
-  console.log('ShopContent Debug:', { 
+  console.log('🛍️ ShopContent - Infinite Scroll Mode:', { 
     allProductsLength: all_products.length, 
     productsLength: products.length,
-    totalProducts: otherProps?.totalProducts 
+    totalProducts: otherProps?.totalProducts,
+    firstProduct: products[0]?.name || 'No products'
   });
 
   const {
     priceFilterValues,
     selectHandleFilter,
-    setCurrPage,
     selectedFilters,
     handleFilterChange,
-    loadMoreProducts,
-    hasMorePages,
-    isLoadingMore,
     totalProducts,
   } = otherProps || {};
 
   const { setPriceValue, priceValue } = priceFilterValues || {};
-  const [filteredRows, setFilteredRows] = useState(products);
   const dispatch = useDispatch();
+
+  // ────── INFINITE SCROLL STATE ──────
+  const [displayedProducts, setDisplayedProducts] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  
+  const PRODUCTS_PER_LOAD = 12; // Show 12 products per load (3 rows of 4 products)
+  const INITIAL_LOAD = 12; // Show 12 products initially
+
+  // ────── INITIALIZE DISPLAYED PRODUCTS ──────
+  useEffect(() => {
+    if (products.length > 0) {
+      const initialProducts = products.slice(0, INITIAL_LOAD);
+      setDisplayedProducts(initialProducts);
+      setHasMore(products.length > INITIAL_LOAD);
+      console.log(`📱 Initial load: ${initialProducts.length} products`);
+    } else {
+      setDisplayedProducts([]);
+      setHasMore(false);
+    }
+  }, [products]);
+
+  // ────── LOAD MORE PRODUCTS ──────
+  const loadMoreProducts = useCallback(() => {
+    if (isLoading || !hasMore) return;
+
+    setIsLoading(true);
+    console.log('📱 Loading more products...');
+
+    // Simulate loading delay for better UX
+    setTimeout(() => {
+      const currentLength = displayedProducts.length;
+      const nextProducts = products.slice(currentLength, currentLength + PRODUCTS_PER_LOAD);
+      
+      if (nextProducts.length > 0) {
+        setDisplayedProducts(prev => [...prev, ...nextProducts]);
+        console.log(`📱 Loaded ${nextProducts.length} more products. Total: ${currentLength + nextProducts.length}`);
+      }
+      
+      setHasMore(currentLength + nextProducts.length < products.length);
+      setIsLoading(false);
+    }, 300);
+  }, [displayedProducts.length, products, isLoading, hasMore]);
+
+  // ────── INFINITE SCROLL OBSERVER ──────
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const target = entries[0];
+        if (target.isIntersecting && hasMore && !isLoading) {
+          loadMoreProducts();
+        }
+      },
+      {
+        root: null,
+        rootMargin: '100px', // Start loading 100px before reaching the bottom
+        threshold: 0.1,
+      }
+    );
+
+    const sentinel = document.getElementById('infinite-scroll-sentinel');
+    if (sentinel) {
+      observer.observe(sentinel);
+    }
+
+    return () => {
+      if (sentinel) {
+        observer.unobserve(sentinel);
+      }
+    };
+  }, [loadMoreProducts, hasMore, isLoading]);
 
   // measure header + toolbar to center empty state
   const [centerOffset, setCenterOffset] = useState(140);
@@ -54,26 +121,6 @@ const ShopContent = ({
     return () => window.removeEventListener('resize', calc);
   }, []);
 
-  useEffect(() => {
-    // Deduplicate products by ID to prevent showing the same product multiple times
-    const uniqueProducts = products.reduce((acc, product) => {
-      const id = product._id || product.id;
-      if (id && !acc.find(p => (p._id || p.id) === id)) {
-        acc.push(product);
-      }
-      return acc;
-    }, []);
-    
-    console.log('ShopContent: Deduplicating products', {
-      originalCount: products.length,
-      uniqueCount: uniqueProducts.length,
-      duplicatesRemoved: products.length - uniqueProducts.length
-    });
-    
-    setFilteredRows(uniqueProducts);
-    setCurrPage?.(1);
-  }, [products, setCurrPage]);
-
   const maxPrice = useMemo(() => {
     return all_products.reduce(
       (m, p) => Math.max(m, +p.salesPrice || +p.price || 0),
@@ -89,15 +136,9 @@ const ShopContent = ({
       Array.isArray(v) ? v.length > 0 : !!v
     );
 
-  const anyActive = !!(priceActive || facetsActive);
-
   const resetAll = () => {
     setPriceValue?.([0, maxPrice]);
     handleFilterChange?.({});
-    setCurrPage?.(1);
-    
-    // Clear search if active - this will be handled by the search component itself
-    // We don't need to call handleSearchResults here as it might cause conflicts
   };
 
   // ✅ Build chips list
@@ -171,7 +212,7 @@ const ShopContent = ({
                   <div className="row align-items-start">
                     <div className="col-xl-7 mb-10">
                       <ShopTopLeft
-                        total={totalProducts || all_products.length} // Show total products, not filtered
+                        total={totalProducts || all_products.length}
                         chips={chips}
                         onRemoveChip={removeChip}
                         onClearAll={resetAll}
@@ -226,9 +267,8 @@ const ShopContent = ({
                 </div>
               </div>
 
-
               <div className="tp-shop-items-wrapper tp-shop-item-primary">
-                {filteredRows.length === 0 ? (
+                {products.length === 0 ? (
                   <div className="shop-empty" style={{ '--page-offset': `${centerOffset}px` }}>
                     <EmptyState
                       title="No products match your filters"
@@ -240,9 +280,9 @@ const ShopContent = ({
                   </div>
                 ) : (
                   <>
-                    {/* ✅ Grid only */}
+                    {/* ✅ Infinite Scroll Grid */}
                     <div className="products-grid">
-                      {filteredRows.map((item, i) => {
+                      {displayedProducts.map((item, i) => {
                         const uniqueKey = item._id || item.id || `product-${i}`;
                         return (
                           <ProductItem 
@@ -254,38 +294,27 @@ const ShopContent = ({
                       })}
                     </div>
 
-                    {/* Enhanced Load More Button */}
-                    {(products.length < (totalProducts || all_products.length)) && (
-                      <div className="load-more-wrapper">
-                        <div className="load-more-container">
-                          <div className="load-more-info">
-                            <span className="products-shown">
-                              Showing {filteredRows.length} of {totalProducts || all_products.length} products
-                            </span>
+                    {/* Infinite Scroll Sentinel */}
+                    {hasMore && (
+                      <div id="infinite-scroll-sentinel" className="infinite-scroll-sentinel">
+                        {isLoading && (
+                          <div className="infinite-scroll-loading">
+                            <div className="loading-spinner"></div>
+                            <span>Loading more products...</span>
                           </div>
-                          <button
-                            type="button"
-                            className={`load-more-btn enhanced ${isLoadingMore ? 'loading' : ''}`}
-                            onClick={(e) => {
-                              e.preventDefault();
-                              if (hasMorePages && loadMoreProducts && !isLoadingMore) {
-                                loadMoreProducts();
-                              }
-                            }}
-                            disabled={!hasMorePages || isLoadingMore}
-                          >
-                            <span className="load-more-text">
-                              {isLoadingMore ? 'Loading...' : 'Load More'}
-                            </span>
-                            {!isLoadingMore && (
-                              <span className="load-more-count">
-                                ({Math.min(50, (totalProducts || all_products.length) - filteredRows.length)})
-                              </span>
-                            )}
-                          </button>
-                        </div>
+                        )}
                       </div>
                     )}
+
+                    {/* Show progress */}
+                    <div className="products-progress">
+                      <div className="progress-text">
+                        Showing {displayedProducts.length} of {products.length} products
+                        {hasMore && (
+                          <span className="scroll-hint"> • Scroll down for more</span>
+                        )}
+                      </div>
+                    </div>
                   </>
                 )}
               </div>
@@ -316,140 +345,93 @@ const ShopContent = ({
         @media (min-width: 1200px){
           .products-grid{ grid-template-columns: repeat(4, minmax(0, 1fr)); }
         }
-        .load-more-wrapper{ 
-          display: flex; 
-          justify-content: center; 
-          margin-top: 40px;
-          padding: 20px 0;
-        }
         
-        .load-more-container {
+        /* Products Summary */
+        .products-progress {
           display: flex;
-          flex-direction: column;
-          align-items: center;
-          gap: 16px;
-          max-width: 400px;
-          width: 100%;
+          justify-content: center;
+          padding: 30px 20px;
+          margin-top: 20px;
+          border-top: 1px solid var(--tp-grey-2);
         }
         
-        .load-more-info {
+        .progress-text {
+          font-size: 16px;
+          font-weight: 600;
+          color: var(--tp-text-1);
           text-align: center;
         }
         
-        .products-shown {
-          font-size: 14px;
-          color: var(--tp-text-2);
+        .scroll-hint {
+          color: var(--tp-theme-primary);
           font-weight: 500;
-          letter-spacing: 0.3px;
         }
         
-        .load-more-btn.enhanced {
-          background: white;
-          color: var(--tp-theme-primary);
-          border: 2px solid var(--tp-theme-primary);
-          padding: 8px 20px;
-          border-radius: 6px;
-          font-size: 14px;
-          font-weight: 600;
-          cursor: pointer;
-          transition: all 0.3s ease;
-          display: inline-flex;
+        /* Infinite Scroll */
+        .infinite-scroll-sentinel {
+          height: 100px;
+          display: flex;
           align-items: center;
           justify-content: center;
-          gap: 6px;
-          min-width: auto;
-          white-space: nowrap;
-          box-shadow: 0 2px 6px rgba(44, 76, 151, 0.15);
-          position: relative;
-          overflow: hidden;
+          margin: 20px 0;
         }
         
-        .load-more-btn.enhanced:before {
-          content: '';
-          position: absolute;
-          top: 0;
-          left: -100%;
-          width: 100%;
-          height: 100%;
-          background: var(--tp-theme-primary);
-          transition: left 0.3s ease;
-          z-index: 0;
-        }
-        
-        .load-more-btn.enhanced:hover:before {
-          left: 0;
-        }
-        
-        .load-more-btn.enhanced:hover {
-          color: white;
-          border-color: var(--tp-theme-primary);
-          box-shadow: 0 3px 12px rgba(44, 76, 151, 0.25);
-          transform: translateY(-1px);
-        }
-        
-        .load-more-text,
-        .load-more-count {
-          position: relative;
-          z-index: 1;
-          transition: color 0.3s ease;
-        }
-        
-        .load-more-text {
+        .infinite-scroll-loading {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          color: var(--tp-text-2);
           font-size: 14px;
-          font-weight: 600;
-          letter-spacing: 0.3px;
         }
         
-        .load-more-count {
-          font-size: 12px;
-          font-weight: 500;
-          opacity: 0.8;
+        .loading-spinner {
+          width: 20px;
+          height: 20px;
+          border: 2px solid var(--tp-grey-3);
+          border-top: 2px solid var(--tp-theme-primary);
+          border-radius: 50%;
+          animation: spin 1s linear infinite;
         }
         
-        .load-more-btn.enhanced:disabled {
-          opacity: 0.6;
-          cursor: not-allowed;
-          transform: none;
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
         }
         
-        .load-more-btn.enhanced:disabled:hover {
-          transform: none;
-          box-shadow: 0 2px 6px rgba(44, 76, 151, 0.15);
-          color: var(--tp-theme-primary);
-        }
-        
-        .load-more-btn.enhanced:disabled:before {
-          left: -100%;
-        }
-        
-        .load-more-btn.enhanced.loading {
-          pointer-events: none;
-        }
-        
-        .load-more-btn.enhanced.loading .load-more-text {
-          animation: pulse 1.5s ease-in-out infinite;
-        }
-        
-        @keyframes pulse {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.6; }
-        }
-        
-        @media (max-width: 640px) {
-          .load-more-btn.enhanced {
-            padding: 7px 16px;
-            font-size: 13px;
-            gap: 4px;
+        @media (max-width: 768px) {
+          .products-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
           }
           
-          .load-more-text {
+          .progress-text {
+            font-size: 14px;
+          }
+          
+          .infinite-scroll-loading {
             font-size: 13px;
           }
           
-          .load-more-count {
-            font-size: 11px;
+          .products-progress {
+            padding: 25px 15px;
           }
         }
+        
+        @media (max-width: 480px) {
+          .products-grid {
+            gap: 8px;
+            grid-template-columns: repeat(2, minmax(140px, 1fr));
+          }
+          
+          .products-progress {
+            padding: 20px 15px;
+          }
+          
+          .progress-text {
+            font-size: 13px;
+          }
+        }
+        
         @media (max-width: 991.98px){
           .shop-sidebar-col{ flex:1 1 auto; max-width:100%; }
         }

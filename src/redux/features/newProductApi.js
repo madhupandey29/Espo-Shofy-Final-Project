@@ -6,10 +6,7 @@ export const newProductApi = apiSlice.injectEndpoints({
     getAllNewProducts: builder.query({
       query: (params = {}) => {
         const { limit = 50, page = 1, merchTag } = params;
-        // For merchTag filtering, we need to fetch more products per batch
-        // since we'll filter client-side and might get fewer results
-        const fetchLimit = merchTag ? 200 : limit; // Fetch more when filtering
-        let url = `/product/?limit=${fetchLimit}&page=${page}`;
+        let url = `/product/?limit=${limit}&page=${page}`;
         if (merchTag) {
           url += `&merchTag=${encodeURIComponent(merchTag)}`;
         }
@@ -36,58 +33,17 @@ export const newProductApi = apiSlice.injectEndpoints({
           total = products.length;
         }
 
-        // Apply client-side merchTag filtering if API doesn't support it
-        const { merchTag, limit = 50, page = 1 } = arg || {};
-        if (merchTag && products.length > 0) {
-          console.log(`🔍 Client-side filtering by merchTag: "${merchTag}"`);
-          console.log(`📊 Products before filtering: ${products.length}`);
-          
-          const filteredProducts = products.filter(product => {
-            if (!product.merchTags || !Array.isArray(product.merchTags)) {
-              return false;
-            }
-            if (product.merchTags.length === 0) {
-              return false;
-            }
-            return product.merchTags.includes(merchTag);
-          });
-          
-          console.log(`📈 Client-side filtered results: ${filteredProducts.length} products`);
-          
-          // For filtered results, we need to return only the requested batch size
-          const startIndex = 0; // We already fetched the right batch from API
-          const endIndex = Math.min(limit, filteredProducts.length);
-          const batchProducts = filteredProducts.slice(startIndex, endIndex);
-          
-          console.log(`📦 Returning batch: ${batchProducts.length} products (page ${page})`);
-          
-          return {
-            data: batchProducts,
-            total: total, // Keep original total for pagination calculation
-            success: res.success || true,
-            filtered: true,
-            filterTag: merchTag,
-            originalCount: products.length,
-            filteredCount: filteredProducts.length,
-            allFilteredProducts: filteredProducts, // Store all filtered products for pagination
-            pagination: {
-              page: page,
-              limit: batchProducts.length,
-              totalPages: Math.ceil(filteredProducts.length / limit), // Calculate pages based on filtered results
-              hasMore: filteredProducts.length > limit * page
-            }
-          };
-        }
+        const { limit = 50, page = 1 } = arg || {};
         
         return {
           data: products,
           total: total,
           success: res.success || true,
-          filtered: false,
           pagination: res.pagination || {
-            page: arg?.page || 1,
+            page: page,
             limit: products.length,
-            totalPages: Math.ceil(total / (arg?.limit || 50))
+            totalPages: Math.ceil(total / limit),
+            hasMore: (page * limit) < total
           }
         };
       },
@@ -355,21 +311,128 @@ export const newProductApi = apiSlice.injectEndpoints({
         return res?.data ? res : { data: res || [] };
       },
     }),
-    // Get SEO by Product ID
-    getSeoByProduct: builder.query({
-      query: (productId) => `/seo/product/${productId}`,
-    }),
     // Get products by collection ID for related products
     getProductsByCollection: builder.query({
-      query: (collectionId) => `/product/fieldname/collectionId/${collectionId}`,
-      transformResponse: (res) => {
+      query: (collectionId) => {
+        // Use the general endpoint
+        return `/product?limit=150`;
+      },
+      transformResponse: (res, meta, arg) => {
+        const collectionId = arg; // The collection ID passed to the query
+        
+        console.log('🔍 getProductsByCollection Debug:', {
+          collectionId,
+          isNokia: collectionId === '690a0e676132664ee',
+          isMajestica: collectionId === '695f9b0b956eb958b'
+        });
+        
         if (res?.success && res?.data && Array.isArray(res.data)) {
-          return res.data; // Return the array directly for compatibility
+          let products = res.data;
+          
+          console.log(`📊 Total products from API: ${products.length}`);
+          
+          // Filter products by collection ID if provided
+          if (collectionId && collectionId.trim() !== '') {
+            const originalCount = products.length;
+            
+            products = products.filter(product => {
+              // Check if product belongs to the specified collection
+              const matches = product.collectionId === collectionId || 
+                             product.collection === collectionId ||
+                             product.collection_id === collectionId;
+              
+              // Debug individual product matching
+              if (collectionId === '695f9b0b956eb958b' && matches) {
+                console.log('🔍 Majestica product match:', {
+                  name: product.name,
+                  collectionId: product.collectionId,
+                  collection: product.collection
+                });
+              }
+              
+              return matches;
+            });
+            
+            console.log(`✅ Filtered from ${originalCount} to ${products.length} products for collection ${collectionId}`);
+            
+            // Show collection distribution for debugging
+            const collectionStats = {};
+            res.data.forEach(product => {
+              const collection = product.collectionId || product.collection || product.collection_id || 'No Collection';
+              collectionStats[collection] = (collectionStats[collection] || 0) + 1;
+            });
+            console.log('📦 Available collections:', collectionStats);
+          }
+          
+          const result = {
+            data: products,
+            total: products.length,
+            success: res.success,
+            collectionId: collectionId
+          };
+          
+          console.log('🎯 Final result:', {
+            collectionId,
+            productCount: result.data.length,
+            expectedForNokia: collectionId === '690a0e676132664ee' ? 51 : 'N/A',
+            expectedForMajestica: collectionId === '695f9b0b956eb958b' ? 67 : 'N/A',
+            isCorrect: (collectionId === '690a0e676132664ee' && result.data.length === 51) ||
+                      (collectionId === '695f9b0b956eb958b' && result.data.length === 67)
+          });
+          
+          return result;
         }
         if (res?.products) {
-          return res.products;
+          let products = res.products;
+          
+          // Filter by collection if provided
+          if (collectionId && collectionId.trim() !== '') {
+            products = products.filter(product => {
+              return product.collectionId === collectionId || 
+                     product.collection === collectionId ||
+                     product.collection_id === collectionId;
+            });
+          }
+          
+          return {
+            data: products,
+            total: products.length,
+            success: true,
+            collectionId: collectionId
+          };
         }
-        return res?.data ?? res ?? [];
+        const data = res?.data ?? res ?? [];
+        let products = Array.isArray(data) ? data : [];
+        
+        // Filter by collection if provided
+        if (collectionId && collectionId.trim() !== '' && products.length > 0) {
+          products = products.filter(product => {
+            return product.collectionId === collectionId || 
+                   product.collection === collectionId ||
+                   product.collection_id === collectionId;
+          });
+        }
+        
+        return {
+          data: products,
+          total: products.length,
+          success: res?.success ?? true,
+          collectionId: collectionId
+        };
+      },
+      // Add proper cache key to separate different collections
+      serializeQueryArgs: ({ endpointName, queryArgs }) => {
+        const collectionId = queryArgs || 'all';
+        // Safely convert collectionId to string, handling Symbol values
+        const safeCollectionId = typeof collectionId === 'symbol' 
+          ? collectionId.toString() 
+          : String(collectionId);
+        return `${endpointName}-${safeCollectionId}`;
+      },
+      // Force refetch when collection changes to avoid cache issues
+      forceRefetch({ currentArg, previousArg }) {
+        // Always refetch when collection ID is different
+        return currentArg !== previousArg;
       },
     }),
     getSuitableProducts: builder.query({
@@ -818,6 +881,5 @@ export const {
   useGetPopularNewProductsQuery,
   useGetOffersQuery,
   useGetTopRatedQuery,
-  useGetSeoByProductQuery,
   useGetProductsByCollectionQuery,
 } = newProductApi; 

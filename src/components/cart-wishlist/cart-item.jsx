@@ -11,7 +11,6 @@ import { Minus, Plus } from '@/svg';
 import { selectUserId } from '@/utils/userSelectors';
 import { buildSearchPredicate } from '@/utils/searchMiddleware';
 import useGlobalSearch from '@/hooks/useGlobalSearch';
-import { useGetSeoByProductQuery } from '@/redux/features/seoApi';
 import {
   useUpdateCartItemMutation,
   useGetCartDataQuery,
@@ -201,8 +200,7 @@ const CartItem = ({ product }) => {
     return () => { ignore = true; };
   }, [PID, slug, nested, product, apiBase]);
 
-  const { data: seoResp } = useGetSeoByProductQuery(PID, { skip: !PID });
-  const seoDoc = Array.isArray(seoResp?.data) ? seoResp?.data?.[0] : seoResp?.data;
+  const seoDoc = null; // Removed SEO API call
 
   const name = useMemo(() => {
     const firstNice = [

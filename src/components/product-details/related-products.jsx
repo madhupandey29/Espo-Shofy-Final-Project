@@ -40,11 +40,27 @@ const normalizeRelationToProduct = (rel) => {
   return mapped;
 };
 
-const FALLBACK_IMG =
-  'https://res.cloudinary.com/demo/image/upload/v1690000000/placeholder-square.webp';
+const FALLBACK_IMG = '/assets/img/product/product-1.jpg'; // Use local fallback image
 
 const isRemote = (url) => !!url && /^https?:\/\//i.test(url);
 const isDataUrl = (url) => !!url && /^data:/i.test(url);
+
+// Helper function to get contrasting text color
+const getContrastColor = (hexColor) => {
+  // Remove # if present
+  const hex = hexColor.replace('#', '');
+  
+  // Convert to RGB
+  const r = parseInt(hex.substr(0, 2), 16);
+  const g = parseInt(hex.substr(2, 2), 16);
+  const b = parseInt(hex.substr(4, 2), 16);
+  
+  // Calculate luminance
+  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  
+  // Return black or white based on luminance
+  return luminance > 0.5 ? '#000000' : '#ffffff';
+};
 
 const processImageUrl = (url) => {
   if (!url) return FALLBACK_IMG;
@@ -61,6 +77,16 @@ const processImageUrl = (url) => {
 const RelatedProducts = ({ collectionId }) => {
   const shouldSkip = !collectionId || String(collectionId).trim() === '';
 
+  // Add debugging for Majestica issue
+  if (collectionId) {
+    console.log('🔍 RelatedProducts Debug:', {
+      collectionId,
+      isNokia: collectionId === '690a0e676132664ee',
+      isMajestica: collectionId === '695f9b0b956eb958b',
+      shouldSkip
+    });
+  }
+
   // 1) Try related-by-collection (if we have a collection)
   const {
     data: relData,
@@ -70,7 +96,19 @@ const RelatedProducts = ({ collectionId }) => {
     isSuccess: relSuccess,
   } = useGetProductsByCollectionQuery(shouldSkip ? '' : collectionId, { skip: shouldSkip });
 
-  const relList = (relData?.data ?? []).map(normalizeRelationToProduct).filter(Boolean);
+  // Add debugging for the query result
+  if (relData && collectionId) {
+    console.log('🔍 Query Result Debug:', {
+      collectionId,
+      dataLength: relData?.data?.length,
+      total: relData?.total,
+      success: relSuccess,
+      expectedForNokia: collectionId === '690a0e676132664ee' ? 51 : 'N/A',
+      expectedForMajestica: collectionId === '695f9b0b956eb958b' ? 67 : 'N/A'
+    });
+  }
+
+  const relList = (relData?.data ?? relData ?? []).map(normalizeRelationToProduct).filter(Boolean);
   const relDone = !relLoading && !relFetching;
   const relEmpty = relDone && relSuccess && relList.length === 0;
 
@@ -100,8 +138,22 @@ const RelatedProducts = ({ collectionId }) => {
         {list.map((p) => {
           const href = p?.slug ? `/fabric/${p.slug}` : '#';
 
-          // Use the field mapper to get the primary image
-          const imgSrc = processImageUrl(p?.primaryImage || getPrimaryImageUrl(p._original) || FALLBACK_IMG);
+          // Use the field mapper to get the primary image, with better fallback logic
+          let imgSrc = processImageUrl(p?.primaryImage || getPrimaryImageUrl(p._original));
+          
+          // If still no image, create a color-based placeholder
+          if (imgSrc === FALLBACK_IMG && p?.hex && p.hex.length > 0) {
+            // Create a simple colored square as placeholder using the product's hex color
+            const hexColor = p.hex[0] || '#cccccc';
+            imgSrc = `data:image/svg+xml;base64,${btoa(`
+              <svg width="200" height="200" xmlns="http://www.w3.org/2000/svg">
+                <rect width="200" height="200" fill="${hexColor}"/>
+                <text x="100" y="100" text-anchor="middle" dy=".3em" fill="${getContrastColor(hexColor)}" font-family="Arial, sans-serif" font-size="12" font-weight="bold">
+                  ${(p?.color && p.color[0]) || 'Color'}
+                </text>
+              </svg>
+            `)}`;
+          }
 
           return (
             <div key={p.id || p._id} className="col-6 col-sm-4 col-md-3 col-lg-2">
@@ -122,6 +174,12 @@ const RelatedProducts = ({ collectionId }) => {
                   <h4 className="title" title={p?.name}>
                     {p?.name || 'Untitled Product'}
                   </h4>
+                  {/* Show color info */}
+                  {p?.color && p.color.length > 0 && (
+                    <p className="color-info">
+                      {p.color.join(', ')}
+                    </p>
+                  )}
                 </div>
               </Link>
             </div>
@@ -185,17 +243,30 @@ const RelatedProducts = ({ collectionId }) => {
           padding: 10px 12px;
           border-top: 1px solid #f0f0f0;
           display: flex;
-          align-items: center;
+          flex-direction: column;
+          justify-content: center;
           min-height: 54px;
         }
         .title {
-          margin: 0;
+          margin: 0 0 4px 0;
           font-size: 15px;
           font-weight: 600;
           line-height: 1.25;
           letter-spacing: 0.2px;
           display: -webkit-box;
           -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+        .color-info {
+          margin: 0;
+          font-size: 12px;
+          color: #666;
+          font-weight: 500;
+          line-height: 1.2;
+          display: -webkit-box;
+          -webkit-line-clamp: 1;
           -webkit-box-orient: vertical;
           overflow: hidden;
           text-overflow: ellipsis;

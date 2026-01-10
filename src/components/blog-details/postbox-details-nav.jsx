@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { ArrowRightLong, ArrowRightLongPrev } from '@/svg';
 
 const API_BASE = (process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000').replace(/\/+$/, '');
-const BLOG_PATH = process.env.NEXT_PUBLIC_API_BLOG_PATH || '/blogs';
+const BLOG_PATH = process.env.NEXT_PUBLIC_API_BLOG_PATH || '/blog';
 
 const html = (s) => ({ __html: s || '' });
 
@@ -33,7 +33,7 @@ const PostboxDetailsNav = ({ currentId }) => {
     if (!Array.isArray(blogs) || blogs.length === 0) return { prev: null, next: null };
 
     const sorted = [...blogs].sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
-    const idx = sorted.findIndex((b) => b._id === currentId);
+    const idx = sorted.findIndex((b) => (b.id || b._id) === currentId);
     if (idx === -1) return { prev: null, next: null };
 
     const prev = idx > 0 ? sorted[idx - 1] : null;
@@ -52,7 +52,7 @@ const PostboxDetailsNav = ({ currentId }) => {
           <>
             <div className="tp-postbox-details-navigation-icon mr-15">
               <span>
-                <Link href={`/blog-details/${prev._id}`}>
+                <Link href={`/blog-details/${prev.slug || prev.id || prev._id}`}>
                   <ArrowRightLongPrev />
                 </Link>
               </span>
@@ -64,7 +64,7 @@ const PostboxDetailsNav = ({ currentId }) => {
                 style={{ lineHeight: 1.4 }}
               >
                 <Link
-                  href={`/blog-details/${prev._id}`}
+                  href={`/blog-details/${prev.slug || prev.id || prev._id}`}
                   dangerouslySetInnerHTML={{
                     __html:
                       prev.title?.length > 80
@@ -89,7 +89,7 @@ const PostboxDetailsNav = ({ currentId }) => {
                 style={{ lineHeight: 1.4 }}
               >
                 <Link
-                  href={`/blog-details/${next._id}`}
+                  href={`/blog-details/${next.slug || next.id || next._id}`}
                   dangerouslySetInnerHTML={{
                     __html:
                       next.title?.length > 80
@@ -101,7 +101,7 @@ const PostboxDetailsNav = ({ currentId }) => {
             </div>
             <div className="tp-postbox-details-navigation-icon ml-15">
               <span>
-                <Link href={`/blog-details/${next._id}`}>
+                <Link href={`/blog-details/${next.slug || next.id || next._id}`}>
                   <ArrowRightLong />
                 </Link>
               </span>

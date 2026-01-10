@@ -8,8 +8,6 @@ import DetailsTabNav from './details-tab-nav';
 import RelatedProducts from './related-products';
 import DetailsSuitableKeywords from './details-desc-suitable';
 
-import { useGetSeoByProductQuery } from '@/redux/features/seoApi';
-
 export default function ProductDetailsContent({ productItem }) {
   // ✅ IMPORTANT: normalize productItem (handles {data:[{...}]} / [{...}] / {...})
   const p = useMemo(() => {
@@ -61,7 +59,65 @@ export default function ProductDetailsContent({ productItem }) {
   const videoThumbnail = p?.videoThumbnail || null;
   
   const status = p?.status;
-  const collectionId = p?.collectionId || p?.collection?.id || null;
+  
+  // First, try the normal collection ID extraction
+  let rawCollectionId = p?.collectionId || p?.collection?.id || p?.collection?._id || p?.collection || null;
+  
+  // Add basic debugging to see if this code is even running
+  console.log('🔍 BASIC DEBUG - Product Details Component Running:', {
+    hasProduct: !!p,
+    productName: p?.name,
+    productId: p?._id || p?.id,
+    rawCollectionId: rawCollectionId
+  });
+  
+  // FALLBACK STRATEGY: If the product name suggests it should be a different collection,
+  // override the stored collection ID (this fixes data inconsistency issues)
+  let collectionId = rawCollectionId;
+  
+  if (p?.name) {
+    const productName = p.name.toLowerCase();
+    const isNokiaProduct = productName.includes('nokia');
+    const isMajesticaProduct = productName.includes('majestica');
+    
+    console.log('🔍 PRODUCT NAME ANALYSIS:', {
+      productName: p.name,
+      isNokiaProduct,
+      isMajesticaProduct,
+      rawCollectionId,
+      shouldFixNokia: isNokiaProduct && rawCollectionId !== '690a0e676132664ee',
+      shouldFixMajestica: isMajesticaProduct && rawCollectionId !== '695f9b0b956eb958b'
+    });
+    
+    // Override collection ID based on product name if there's a mismatch
+    if (isNokiaProduct && rawCollectionId !== '690a0e676132664ee') {
+      console.log('🔧 FIXING Nokia collection ID mismatch:', {
+        productName: p.name,
+        storedCollectionId: rawCollectionId,
+        correctedCollectionId: '690a0e676132664ee'
+      });
+      collectionId = '690a0e676132664ee';
+    } else if (isMajesticaProduct && rawCollectionId !== '695f9b0b956eb958b') {
+      console.log('🔧 FIXING Majestica collection ID mismatch:', {
+        productName: p.name,
+        storedCollectionId: rawCollectionId,
+        correctedCollectionId: '695f9b0b956eb958b'
+      });
+      collectionId = '695f9b0b956eb958b';
+    }
+    
+    // Debug the final result
+    console.log('🚨 FINAL COLLECTION ID RESULT:', {
+      productName: p.name,
+      storedCollectionId: rawCollectionId,
+      finalCollectionId: collectionId,
+      isNokiaProduct,
+      isMajesticaProduct,
+      wasFixed: rawCollectionId !== collectionId
+    });
+  } else {
+    console.log('⚠️ NO PRODUCT NAME FOUND - Cannot apply name-based collection fix');
+  }
   
   // Note: Group code functionality has been replaced with collection-based approach
   // const { groupCodeData, loading: groupCodeLoading, error: groupCodeError } = useGroupCodeData(collectionId);
@@ -76,9 +132,8 @@ export default function ProductDetailsContent({ productItem }) {
 
   const handleImageActive = (item) => setActiveImg(item?.img ?? (image1 || img || null));
 
-  // ✅ SEO hook
-  const { data: seoPayload } = useGetSeoByProductQuery(_id, { skip: !_id });
-  const seoData = seoPayload?.data ?? null;
+  // ✅ SEO data (removed API call)
+  const seoData = null;
 
   // ✅ if product missing after normalize
   if (!_id) {
@@ -174,7 +229,7 @@ export default function ProductDetailsContent({ productItem }) {
             </div>
           </div>
           <div className="row">
-            <RelatedProducts id={_id} collectionId={collectionId} />
+            <RelatedProducts key={collectionId} id={_id} collectionId={collectionId} />
           </div>
         </div>
       </section>

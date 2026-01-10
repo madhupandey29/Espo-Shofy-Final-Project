@@ -7,7 +7,6 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useDispatch, useSelector } from 'react-redux';
 
-import { useGetSeoByProductQuery } from '@/redux/features/seoApi';
 import { useGetDesignByIdQuery } from '@/redux/features/designApi';
 import { useGetMotifSizeByIdQuery } from '@/redux/features/motifSizeApi';
 
@@ -207,7 +206,7 @@ const DetailsWrapper = ({ productItem = {} }) => {
         if (live) setProductFull(null);
         return;
       }
-      const json = await fetchJson(`${API_BASE}/product/slug/${slugValue}`);
+      const json = await fetchJson(`${API_BASE}/product/${slugValue}`);
       const data = json?.data || null;
       if (live) setProductFull(data);
     })();
@@ -230,8 +229,7 @@ const DetailsWrapper = ({ productItem = {} }) => {
     shortDescription
   );
 
-  const { data: seoResp } = useGetSeoByProductQuery(productId, { skip: !productId });
-  const seoDoc = Array.isArray(seoResp?.data) ? seoResp?.data?.[0] : (seoResp?.data || seoResp);
+  const seoDoc = null; // Removed SEO API call
 
   const ratingValue = pick(productItem?.ratingValue, productFull?.ratingValue, seoDoc?.rating_value);
   const ratingCount = pick(productItem?.ratingCount, productFull?.ratingCount, seoDoc?.rating_count);

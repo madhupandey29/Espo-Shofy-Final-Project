@@ -20,7 +20,8 @@ const fmt = (iso) => {
 
 export default function BlogItem({ blog }) {
   // Works with both your API objects and the old demo object
-  const id   = blog?._id || blog?.id || '';
+  const id   = blog?.id || blog?._id || '';
+  const slug = blog?.slug || id; // Use slug if available, fallback to id
   const img  = blog?.blogimage1 || blog?.blogimage2 || blog?.img || '/images/placeholder-16x9.jpg';
   const date = fmt(blog?.createdAt) || blog?.date || '';
   const tags = Array.isArray(blog?.tags) ? blog.tags
@@ -40,7 +41,7 @@ export default function BlogItem({ blog }) {
           overflow: 'hidden',
         }}
       >
-        <Link href={`/blog-details/${id}`}>
+        <Link href={`/blog-details/${slug}`}>
           <Image
             src={img}
             alt="blog img"
@@ -75,7 +76,7 @@ export default function BlogItem({ blog }) {
         </div>
 
         <h3 className="tp-blog-title-2">
-          <Link href={`/blog-details/${id}`}>
+          <Link href={`/blog-details/${slug}`}>
             {/* Render backend HTML inside the title */}
             <span dangerouslySetInnerHTML={{ __html: titleHtml }} />
           </Link>

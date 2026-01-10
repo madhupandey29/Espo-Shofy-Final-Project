@@ -17,7 +17,6 @@ import useWishlistManager from '@/hooks/useWishlistManager';
 
 import useGlobalSearch from '@/hooks/useGlobalSearch';
 import { buildSearchPredicate } from '@/utils/searchMiddleware';
-import { useGetSeoByProductQuery } from '@/redux/features/seoApi';
 
 /* ---------- helpers (JS only) ---------- */
 const nonEmpty = (v) =>
@@ -192,9 +191,8 @@ const WishlistItem = ({ product }) => {
     };
   }, [_id, product, apiBase]);
 
-  /* SEO fallbacks */
-  const { data: seoResp } = useGetSeoByProductQuery(_id, { skip: !_id });
-  const seoDoc = Array.isArray(seoResp?.data) ? seoResp?.data?.[0] : seoResp?.data;
+  /* SEO fallbacks (removed API call) */
+  const seoDoc = null;
 
   // search
   const { debounced: globalQuery } = useGlobalSearch(150);

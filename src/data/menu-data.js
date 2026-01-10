@@ -114,7 +114,7 @@ export const mobile_menu = [
     link: '/shop',
   },
   {
-    id: 3,
+    id: 4,
     sub_menu: true,
     title: 'E-Commerce',
     link: '/cart',
