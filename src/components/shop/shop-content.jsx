@@ -28,6 +28,8 @@ const ShopContent = ({
     selectedFilters,
     handleFilterChange,
     totalProducts,
+    isSearchActive,
+    searchResults,
   } = otherProps || {};
 
   const { setPriceValue, priceValue } = priceFilterValues || {};
@@ -212,7 +214,7 @@ const ShopContent = ({
                   <div className="row align-items-start">
                     <div className="col-xl-7 mb-10">
                       <ShopTopLeft
-                        total={totalProducts || all_products.length}
+                        total={isSearchActive ? (searchResults?.data?.length || 0) : products.length}
                         chips={chips}
                         onRemoveChip={removeChip}
                         onClearAll={resetAll}
@@ -309,7 +311,7 @@ const ShopContent = ({
                     {/* Show progress */}
                     <div className="products-progress">
                       <div className="progress-text">
-                        Showing {displayedProducts.length} of {products.length} products
+                        Showing {displayedProducts.length} of {products.length} {products.length === 1 ? 'product' : 'products'}
                         {hasMore && (
                           <span className="scroll-hint"> • Scroll down for more</span>
                         )}
@@ -400,8 +402,8 @@ const ShopContent = ({
         
         @media (max-width: 768px) {
           .products-grid {
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 12px;
+            grid-template-columns: 1fr;
+            gap: 16px;
           }
           
           .progress-text {
@@ -419,8 +421,8 @@ const ShopContent = ({
         
         @media (max-width: 480px) {
           .products-grid {
-            gap: 8px;
-            grid-template-columns: repeat(2, minmax(140px, 1fr));
+            gap: 12px;
+            grid-template-columns: 1fr;
           }
           
           .products-progress {

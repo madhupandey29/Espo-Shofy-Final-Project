@@ -19,7 +19,7 @@ const ShopTopLeft = ({ total = 0, chips = [], onRemoveChip, onClearAll }) => {
     <div className="shopTopLeftWrap">
       <div className="shopTopLeftRow">
         <div className="shopCount">
-          <strong>{total}</strong> Products
+          <strong>{total}</strong> {total === 1 ? 'Product' : 'Products'}
         </div>
 
         {chips.length > 0 && (

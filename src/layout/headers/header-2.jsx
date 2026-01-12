@@ -7,7 +7,6 @@ import { usePathname, useRouter } from 'next/navigation';
 
 import useSticky from '@/hooks/use-sticky';
 import useCartInfo from '@/hooks/use-cart-info';
-import useGlobalSearch from '@/hooks/useGlobalSearch';
 
 import { fetch_cart_products } from '@/redux/features/cartSlice';
 import CartMiniSidebar from '@/components/common/cart-mini-sidebar';
@@ -23,8 +22,6 @@ import { FiMenu } from 'react-icons/fi';
    Helpers
 ========================= */
 const PAGE_SIZE = 20;
-const MAX_LIMIT = 200;
-const nonEmpty = (v) => v !== undefined && v !== null && String(v).trim() !== '';
 
 const selectUserIdFromStore = (state) =>
   state?.auth?.user?._id ||
@@ -56,42 +53,38 @@ function normalizeProduct(p) {
   return { id, slug, name, img, price, ...p };
 }
 
-/** ✅ Your search API */
+/** ✅ Your search API with client-side filtering */
 async function searchProducts(q, limit = PAGE_SIZE, signal) {
-  const primaryUrl = `https://espobackend.vercel.app/api/product/search/${encodeURIComponent(q)}`;
-
   try {
-    const res = await fetch(primaryUrl, { signal });
+    // Get all products since backend search is not working
+    const res = await fetch(`https://espobackend.vercel.app/api/product?limit=1000`, { signal });
     if (res.ok) {
       const data = await res.json();
       if (data?.success && Array.isArray(data?.data)) {
-        return data.data.slice(0, limit).map(normalizeProduct);
+        // Client-side search filtering
+        const searchTerm = q.toLowerCase();
+        const filteredProducts = data.data.filter(product => {
+          const searchableText = [
+            product.productTitle,
+            product.name,
+            product.colors,
+            product.color,
+            product.design,
+            product.content,
+            product.finish,
+            product.structure,
+            product.motif,
+            product.category?.name,
+            product.brand?.name
+          ].filter(Boolean).join(' ').toLowerCase();
+          
+          return searchableText.includes(searchTerm);
+        });
+        
+        return filteredProducts.slice(0, limit).map(normalizeProduct);
       }
     }
   } catch (err) {}
-
-  // Optional fallback (can remove if you want)
-  const b = (process.env.NEXT_PUBLIC_API_BASE_URL || '').replace(/\/+$/, '');
-  const fallbackQueries = [
-    `${b}/product/search?q=${encodeURIComponent(q)}&limit=${limit}`,
-    `${b}/product?q=${encodeURIComponent(q)}&limit=${limit}`,
-    `/api/search?q=${encodeURIComponent(q)}&limit=${limit}`,
-  ];
-
-  for (const url of fallbackQueries) {
-    try {
-      const res = await fetch(url, { signal });
-      if (!res.ok) continue;
-      const data = await res.json();
-      const arr =
-        Array.isArray(data) ? data
-          : Array.isArray(data?.data) ? data.data
-          : Array.isArray(data?.results) ? data.results
-          : Array.isArray(data?.items) ? data.items
-          : [];
-      return arr.slice(0, limit).map(normalizeProduct);
-    } catch (err) {}
-  }
 
   return [];
 }
@@ -155,6 +148,7 @@ const HeaderTwo = ({ style_2 = false }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
   const [searchOpen, setSearchOpen] = useState(false);
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false); // New state for mobile search
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState([]);
   const [selIndex, setSelIndex] = useState(-1);
@@ -232,6 +226,21 @@ const HeaderTwo = ({ style_2 = false }) => {
     setSearchQuery('');
     setDebouncedQuery('');
     closeSearchDropdown();
+    setMobileSearchOpen(false);
+    
+    // Update URL to remove search parameters
+    if (typeof window !== 'undefined') {
+      const currentPath = window.location.pathname;
+      if (currentPath.includes('/shop') || currentPath.includes('/search')) {
+        const url = new URL(window.location);
+        url.searchParams.delete('q');
+        url.searchParams.delete('searchText');
+        const newUrl = url.pathname + (url.search ? url.search : '');
+        
+        // Use router.replace to update URL without page reload
+        router.replace(newUrl, undefined, { shallow: true });
+      }
+    }
   };
 
   const goToPage = (href) => {
@@ -245,9 +254,12 @@ const HeaderTwo = ({ style_2 = false }) => {
     const q = searchQuery.trim();
 
     if (!q) {
-      setSearchOpen(true);
       return;
     }
+
+    // Don't close mobile search - keep it open so user can see how to clear
+    // setMobileSearchOpen(false); // Removed this line
+    closeSearchDropdown();
 
     // If user selected an item with arrow keys, go to that product
     if (selIndex >= 0 && results[selIndex]) {
@@ -259,10 +271,17 @@ const HeaderTwo = ({ style_2 = false }) => {
     }
 
     // Otherwise go to shop with search query
-    goToPage(`/shop?q=${encodeURIComponent(q)}`);
+    const searchUrl = `/shop?q=${encodeURIComponent(q)}`;
+    goToPage(searchUrl);
   };
 
   const onSearchKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      onSearchSubmit(e);
+      return;
+    }
+    
     if (!searchOpen || !results.length) return;
 
     if (e.key === 'ArrowDown') {
@@ -428,8 +447,8 @@ const HeaderTwo = ({ style_2 = false }) => {
                   <div className="col-6 col-sm-8 col-md-8 col-lg-9 col-xl-5">
                     <div className="tp-header-bottom-right d-flex align-items-center justify-content-end">
 
-                      {/* ======= SEARCH ======= */}
-                      <div className="tp-header-search-2 d-none d-sm-block me-3 search-wrap" ref={searchWrapRef}>
+                      {/* ======= DESKTOP SEARCH ======= */}
+                      <div className="tp-header-search-2 d-none d-md-block me-3 search-wrap" ref={searchWrapRef}>
                         <form onSubmit={onSearchSubmit} className="search-form">
                           <input
                             value={searchQuery}
@@ -437,14 +456,23 @@ const HeaderTwo = ({ style_2 = false }) => {
                               const value = e.target.value;
                               setSearchQuery(value);
                               setSelIndex(-1); // Reset selection when typing
-                              if (value.trim() && !searchOpen) {
-                                setSearchOpen(true);
-                              }
+                              // Don't auto-open dropdown, only on Enter or search button click
                               if (!value.trim()) {
                                 closeSearchDropdown();
                               }
                             }}
-                            onKeyDown={onSearchKeyDown}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                e.preventDefault();
+                                const q = searchQuery.trim();
+                                if (q.length >= 2) {
+                                  setSearchOpen(true);
+                                }
+                                onSearchSubmit(e);
+                                return;
+                              }
+                              onSearchKeyDown(e);
+                            }}
                             type="text"
                             placeholder="Search for Products..."
                             aria-label="Search products"
@@ -452,9 +480,6 @@ const HeaderTwo = ({ style_2 = false }) => {
                             spellCheck={false}
                             inputMode="search"
                             maxLength={200}
-                            onFocus={() => {
-                              if (searchQuery.trim()) setSearchOpen(true);
-                            }}
                             className="search-input"
                           />
 
@@ -479,6 +504,15 @@ const HeaderTwo = ({ style_2 = false }) => {
                             className="search-submit"
                             aria-label="Search"
                             title="Search"
+                            onClick={(e) => {
+                              const q = searchQuery.trim();
+                              if (q.length >= 2 && !searchOpen) {
+                                e.preventDefault();
+                                setSearchOpen(true);
+                                return;
+                              }
+                              // Let form submission handle the rest
+                            }}
                           >
                             <Search />
                           </button>
@@ -522,8 +556,110 @@ const HeaderTwo = ({ style_2 = false }) => {
                         )}
                       </div>
 
+                      {/* ======= MOBILE SEARCH BAR (EXPANDABLE) ======= */}
+                      <div className={`tp-header-search-mobile d-md-none ${mobileSearchOpen ? 'expanded' : ''}`} ref={searchWrapRef}>
+                        {mobileSearchOpen && (
+                          <form onSubmit={onSearchSubmit} className="mobile-search-form">
+                            <input
+                              value={searchQuery}
+                              onChange={(e) => {
+                                const value = e.target.value;
+                                setSearchQuery(value);
+                                setSelIndex(-1);
+                                // Open dropdown when typing (like desktop)
+                                if (value.trim().length >= 2) {
+                                  setSearchOpen(true);
+                                } else {
+                                  closeSearchDropdown();
+                                }
+                              }}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  e.preventDefault();
+                                  onSearchSubmit(e);
+                                  return;
+                                }
+                                onSearchKeyDown(e);
+                              }}
+                              type="text"
+                              placeholder="Search products..."
+                              aria-label="Search products"
+                              autoComplete="off"
+                              spellCheck={false}
+                              inputMode="search"
+                              maxLength={200}
+                              className="mobile-search-input"
+                              autoFocus
+                            />
+
+                            <button
+                              type="button"
+                              className="mobile-search-close"
+                              onClick={() => {
+                                // Clear search and update URL
+                                clearSearch();
+                                setMobileSearchOpen(false);
+                                closeSearchDropdown();
+                              }}
+                              aria-label="Close search"
+                            >
+                              ✕
+                            </button>
+                          </form>
+                        )}
+
+                        {/* Mobile search dropdown */}
+                        {mobileSearchOpen && searchOpen && searchQuery.trim().length >= 2 && (
+                          <div className="mobile-search-dropdown">
+                            {loading && <div className="search-item muted">Searching…</div>}
+                            {!loading && results.length === 0 && (
+                              <div className="search-item muted">No results found</div>
+                            )}
+
+                            {results.map((p, i) => {
+                              const active = i === selIndex;
+                              return (
+                                <button
+                                  key={`${p.id}-${i}`}
+                                  type="button"
+                                  className={`search-item ${active ? 'active' : ''}`}
+                                  onClick={() => {
+                                    if (p?.slug) {
+                                      goToPage(`/fabric/${p.slug}`);
+                                    } else {
+                                      goToPage(`/shop?q=${encodeURIComponent(searchQuery)}`);
+                                    }
+                                    // Keep mobile search open so user can clear it
+                                  }}
+                                >
+                                  <span className="search-name">{p.name}</span>
+                                  {p.price != null && <span className="search-price">₹{String(p.price)}</span>}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+
                       {/* Actions */}
                       <div className="tp-header-action d-flex align-items-center">
+                        
+                        {/* ======= MOBILE SEARCH ICON ======= */}
+                        <div className="tp-header-action-item d-md-none me-2">
+                          <button
+                            onClick={() => {
+                              setMobileSearchOpen(!mobileSearchOpen);
+                              if (!mobileSearchOpen) {
+                                closeSearchDropdown();
+                              }
+                            }}
+                            className="tp-header-action-btn"
+                            aria-label="Toggle search"
+                            type="button"
+                          >
+                            <Search />
+                          </button>
+                        </div>
                         {/* User / Auth */}
                         <div className="tp-header-action-item me-2 position-relative" style={{ overflow: 'visible' }}>
                           {hasSession ? (
@@ -580,14 +716,11 @@ const HeaderTwo = ({ style_2 = false }) => {
                           ) : (
                             <Link
                               href={`/login?redirect=${encodeURIComponent(currentUrl)}`}
-                              className="tp-auth-cta"
+                              className="tp-header-action-btn"
                               aria-label="Login or Sign Up"
                               prefetch
                             >
-                              <span className="tp-auth-cta-text">
-                                <FaUser className="tp-auth-cta-icon" />
-                                <span>Login&nbsp;/&nbsp;SignUp</span>
-                              </span>
+                              <FaUser />
                             </Link>
                           )}
                         </div>
@@ -640,6 +773,7 @@ const HeaderTwo = ({ style_2 = false }) => {
         }
         @media (max-width: 1199px){ .search-form{ width: 440px; } }
         @media (max-width: 991px){ .search-form{ width: 360px; max-width: 56vw; } }
+        @media (max-width: 767px){ .search-form{ width: 320px; max-width: 60vw; } }
 
         .search-input{
           width: 100%;
@@ -727,6 +861,77 @@ const HeaderTwo = ({ style_2 = false }) => {
         .search-name{ font-weight: 600; }
         .search-price{ font-weight: 600; color: #0b1620; }
 
+        /* Mobile Search Styles */
+        .tp-header-search-mobile {
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          background: #fff;
+          z-index: 9999;
+          transform: translateY(-100%);
+          transition: transform 0.3s ease;
+          box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .tp-header-search-mobile.expanded {
+          transform: translateY(0);
+        }
+
+        .mobile-search-form {
+          display: flex;
+          align-items: center;
+          padding: 15px 20px;
+          gap: 15px;
+          position: relative;
+        }
+
+        .mobile-search-input {
+          flex: 1;
+          height: 50px;
+          border: 2px solid #e5e7eb;
+          border-radius: 25px;
+          padding: 0 70px 0 20px;
+          font-size: 16px;
+          color: #111827;
+          background: #fff;
+          outline: none;
+        }
+
+        .mobile-search-input:focus {
+          border-color: var(--tp-theme-primary);
+        }
+
+        .mobile-search-close {
+          width: 50px;
+          height: 50px;
+          border: none;
+          background: #f3f4f6;
+          color: #6b7280;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          font-size: 24px;
+          flex-shrink: 0;
+        }
+
+        .mobile-search-dropdown {
+          position: absolute;
+          top: 100%;
+          left: 20px;
+          right: 20px;
+          max-height: 300px;
+          overflow: auto;
+          background: #fff;
+          border: 1px solid #e5e7eb;
+          border-radius: 12px;
+          box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+          padding: 6px;
+          z-index: 10000;
+        }
+
         /* Dropdown (account) */
         .user-menu-dropdown{
           position:absolute;
@@ -761,25 +966,6 @@ const HeaderTwo = ({ style_2 = false }) => {
         .user-item.danger:hover{ background:#fee2e2; }
         .user-divider{ height:1px; background:#e5e7eb; margin:2px 6px; border-radius:1px; }
         @keyframes menuPop{ from{ transform:translateY(-4px); opacity:0; } to{ transform:translateY(0); opacity:1; } }
-
-        /* Auth CTA */
-        .tp-auth-cta{
-          display:inline-flex;
-          align-items:center;
-          gap:10px;
-          padding:10px 16px;
-          min-height:40px;
-          background:#eef2f7;
-          color:#111827;
-          border:1px solid #cfd6df;
-          border-radius:12px;
-          text-decoration:none;
-          font-weight:600;
-          line-height:1;
-          white-space:nowrap;
-        }
-        .tp-auth-cta:hover{ background:#e7ecf3; }
-        .tp-auth-cta-text{ display:inline-flex; align-items:center; gap:8px; white-space:nowrap; }
       `}</style>
     </>
   );

@@ -81,13 +81,40 @@ export default function ShopArea({
       }
 
       try {
-        const response = await fetch(`https://espobackend.vercel.app/api/product/search/${encodeURIComponent(query.trim())}`);
+        // Get all products first
+        const response = await fetch(`https://espobackend.vercel.app/api/product?limit=1000`);
         
         if (response.ok) {
           const data = await response.json();
           
           if (data.success && Array.isArray(data.data)) {
-            setSearchResults(data);
+            // Client-side search filtering since backend search is not working
+            const searchTerm = query.trim().toLowerCase();
+            const filteredProducts = data.data.filter(product => {
+              const searchableText = [
+                product.productTitle,
+                product.name,
+                product.colors,
+                product.color,
+                product.design,
+                product.content,
+                product.finish,
+                product.structure,
+                product.motif,
+                product.category?.name,
+                product.brand?.name
+              ].filter(Boolean).join(' ').toLowerCase();
+              
+              return searchableText.includes(searchTerm);
+            });
+            
+            const searchResults = {
+              success: true,
+              data: filteredProducts,
+              total: filteredProducts.length
+            };
+            
+            setSearchResults(searchResults);
             setIsSearchActive(true);
           } else {
             setSearchResults({ data: [], total: 0, success: false });
@@ -105,12 +132,7 @@ export default function ShopArea({
       }
     };
 
-    if (searchQuery && searchQuery.trim().length >= 2) {
-      performSearch(searchQuery);
-    } else {
-      setSearchResults(null);
-      setIsSearchActive(false);
-    }
+    performSearch(searchQuery);
   }, [searchQuery]);
 
   const otherProps = {
@@ -118,7 +140,7 @@ export default function ShopArea({
     selectHandleFilter: handleSelect,
     selectedFilters, 
     handleFilterChange,
-    totalProducts: isSearchActive ? (searchResults?.total || 0) : totalProducts,
+    totalProducts: isSearchActive ? (searchResults?.data?.length || 0) : totalProducts,
     isSearchActive,
     searchResults,
     handleSearchResults,
