@@ -153,11 +153,11 @@ const HeaderTwo = ({ style_2 = false }) => {
   const [results, setResults] = useState([]);
   const [selIndex, setSelIndex] = useState(-1);
 
-  // Simple debounce effect
+  // Simple debounce effect - increased delay to reduce backend load
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedQuery(searchQuery);
-    }, 300);
+    }, 800); // Increased from 300ms to 800ms for better UX and less backend load
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
@@ -169,7 +169,8 @@ const HeaderTwo = ({ style_2 = false }) => {
     const controller = new AbortController();
     const q = debouncedQuery.trim();
 
-    if (q.length < 2) {
+    // Require minimum 3 characters to reduce backend load
+    if (q.length < 3) {
       setResults([]);
       setSelIndex(-1);
       setLoading(false);
@@ -456,8 +457,10 @@ const HeaderTwo = ({ style_2 = false }) => {
                               const value = e.target.value;
                               setSearchQuery(value);
                               setSelIndex(-1); // Reset selection when typing
-                              // Don't auto-open dropdown, only on Enter or search button click
-                              if (!value.trim()) {
+                              // Show dropdown for helpful messages, but don't search until 3+ chars
+                              if (value.trim().length >= 1) {
+                                setSearchOpen(true);
+                              } else {
                                 closeSearchDropdown();
                               }
                             }}
@@ -465,7 +468,7 @@ const HeaderTwo = ({ style_2 = false }) => {
                               if (e.key === 'Enter') {
                                 e.preventDefault();
                                 const q = searchQuery.trim();
-                                if (q.length >= 2) {
+                                if (q.length >= 3) {
                                   setSearchOpen(true);
                                 }
                                 onSearchSubmit(e);
@@ -474,7 +477,7 @@ const HeaderTwo = ({ style_2 = false }) => {
                               onSearchKeyDown(e);
                             }}
                             type="text"
-                            placeholder="Search for Products..."
+                            placeholder="Search for Products... (min 3 chars)"
                             aria-label="Search products"
                             autoComplete="off"
                             spellCheck={false}
@@ -506,7 +509,7 @@ const HeaderTwo = ({ style_2 = false }) => {
                             title="Search"
                             onClick={(e) => {
                               const q = searchQuery.trim();
-                              if (q.length >= 2 && !searchOpen) {
+                              if (q.length >= 3 && !searchOpen) {
                                 e.preventDefault();
                                 setSearchOpen(true);
                                 return;
@@ -519,7 +522,7 @@ const HeaderTwo = ({ style_2 = false }) => {
                         </form>
 
                         {/* dropdown results */}
-                        {searchOpen && searchQuery.trim().length >= 2 && (
+                        {searchOpen && searchQuery.trim().length >= 1 && (
                           <div
                             ref={dropRef}
                             className="search-dropdown"
@@ -527,7 +530,10 @@ const HeaderTwo = ({ style_2 = false }) => {
                             aria-label="Search results"
                           >
                             {loading && <div className="search-item muted">Searching…</div>}
-                            {!loading && results.length === 0 && (
+                            {!loading && searchQuery.trim().length > 0 && searchQuery.trim().length < 3 && (
+                              <div className="search-item muted">Type at least 3 characters to search</div>
+                            )}
+                            {!loading && searchQuery.trim().length >= 3 && results.length === 0 && (
                               <div className="search-item muted">No results found</div>
                             )}
 
@@ -566,8 +572,8 @@ const HeaderTwo = ({ style_2 = false }) => {
                                 const value = e.target.value;
                                 setSearchQuery(value);
                                 setSelIndex(-1);
-                                // Open dropdown when typing (like desktop)
-                                if (value.trim().length >= 2) {
+                                // Show dropdown for helpful messages, but don't search until 3+ chars
+                                if (value.trim().length >= 1) {
                                   setSearchOpen(true);
                                 } else {
                                   closeSearchDropdown();
@@ -582,7 +588,7 @@ const HeaderTwo = ({ style_2 = false }) => {
                                 onSearchKeyDown(e);
                               }}
                               type="text"
-                              placeholder="Search products..."
+                              placeholder="Search products... (min 3 chars)"
                               aria-label="Search products"
                               autoComplete="off"
                               spellCheck={false}
@@ -609,10 +615,13 @@ const HeaderTwo = ({ style_2 = false }) => {
                         )}
 
                         {/* Mobile search dropdown */}
-                        {mobileSearchOpen && searchOpen && searchQuery.trim().length >= 2 && (
+                        {mobileSearchOpen && searchOpen && searchQuery.trim().length >= 1 && (
                           <div className="mobile-search-dropdown">
                             {loading && <div className="search-item muted">Searching…</div>}
-                            {!loading && results.length === 0 && (
+                            {!loading && searchQuery.trim().length > 0 && searchQuery.trim().length < 3 && (
+                              <div className="search-item muted">Type at least 3 characters to search</div>
+                            )}
+                            {!loading && searchQuery.trim().length >= 3 && results.length === 0 && (
                               <div className="search-item muted">No results found</div>
                             )}
 

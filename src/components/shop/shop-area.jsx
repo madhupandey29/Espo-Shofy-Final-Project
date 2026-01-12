@@ -74,7 +74,7 @@ export default function ShopArea({
   // Perform search when searchQuery from URL changes
   useEffect(() => {
     const performSearch = async (query) => {
-      if (!query || !query.trim() || query.trim().length < 2) {
+      if (!query || !query.trim() || query.trim().length < 3) {
         setSearchResults(null);
         setIsSearchActive(false);
         return;
