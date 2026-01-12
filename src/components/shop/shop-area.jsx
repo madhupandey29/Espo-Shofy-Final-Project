@@ -12,8 +12,9 @@ const PROPERTY_MAP = Object.freeze({
   color: 'color',
   content: 'content',
   design: 'design',
-  structure: 'substructure',
-  finish: 'subfinish',
+  structure: 'structure',
+  finish: 'finish',
+  motif: 'motif',
   collectionId: 'collectionId',
   vendor: 'vendor',
   suitablefor: 'subsuitable',
@@ -157,9 +158,19 @@ export default function ShopArea({
           const prop = PROPERTY_MAP[key];
           if (!prop || !pr[prop]) return false;
           const field = pr[prop];
+          
+          // Handle array fields
           if (Array.isArray(field)) {
             return field.some(x => vals.includes(x._id ?? x));
           }
+          
+          // Handle comma-separated string fields (like finish)
+          if (typeof field === 'string' && field.includes(',')) {
+            const fieldValues = field.split(',').map(v => v.trim());
+            return vals.some(val => fieldValues.includes(val));
+          }
+          
+          // Handle regular fields
           return vals.includes(field._id ?? field);
         })
       );
@@ -175,9 +186,15 @@ export default function ShopArea({
     const slugify = s => s?.toLowerCase().replace(/&/g, '').split(' ').join('-');
     if (category) items = items.filter(p => slugify(p.category?.name) === category);
     if (filterColor) items = items.filter(p => p.color?.some(c => slugify(c.name) === filterColor));
-    if (filterStructure) items = items.filter(p => slugify(p.substructure?.name) === filterStructure);
+    if (filterStructure) items = items.filter(p => slugify(p.structure) === filterStructure);
     if (filterContent) items = items.filter(p => slugify(p.content?.name) === filterContent);
-    if (filterFinish) items = items.filter(p => slugify(p.subfinish?.name) === filterFinish);
+    if (filterFinish) items = items.filter(p => {
+      if (p.finish && p.finish.includes(',')) {
+        const finishValues = p.finish.split(',').map(v => v.trim());
+        return finishValues.some(f => slugify(f) === filterFinish);
+      }
+      return slugify(p.finish) === filterFinish;
+    });
 
     if (minPrice && maxPrice) {
       items = items.filter(p => +p.salesPrice >= +minPrice && +p.salesPrice <= +maxPrice);
