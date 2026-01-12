@@ -2,6 +2,7 @@ import Wrapper       from '@/layout/wrapper';
 import HeaderTwo     from '@/layout/headers/header-2';
 import Footer        from '@/layout/footers/footer';
 import ProductClient from './ProductDetailsClient';
+import { generateMetadata as generateSEOMetadata } from '@/utils/seo';
 
 export const revalidate = 600;
 
@@ -18,41 +19,8 @@ const stripHtml = (html = '') =>
     .replace(/\s+/g, ' ')
     .trim();
 
-// ✅ SITE URL from env (live domain)
-const SITE_URL = stripTrailingSlash(process.env.NEXT_PUBLIC_SITE_URL || '');
-
-// ✅ API base from env (keep your env like: https://test.amrita-fashions.com/shopy)
+// ✅ API base from env
 const API_BASE = stripTrailingSlash(process.env.NEXT_PUBLIC_API_BASE_URL || '');
-
-// ✅ build page url like /fabric/{slug}
-const pageUrl = (path = '/') => {
-  if (!SITE_URL) return path;
-  return `${SITE_URL}${path.startsWith('/') ? '' : '/'}${path}`;
-};
-
-// ✅ make absolute for OG images (if API returns relative paths)
-const toAbsUrl = (u = '') => {
-  const s = String(u || '').trim();
-  if (!s) return undefined;
-  if (/^https?:\/\//i.test(s)) return s;
-  return pageUrl(s);
-};
-
-// Next.js only allows a fixed list of OG types in the metadata API.
-// Your API returns "product" -> must map it to "website" to avoid runtime error.
-const sanitizeOgType = (t) => {
-  const v = String(t || '').toLowerCase();
-
-  if (v === 'product') return 'website';
-
-  const allowed = new Set([
-    'website', 'article', 'book', 'profile',
-    'music.song', 'music.album', 'music.playlist', 'music.radio_station',
-    'video.movie', 'video.episode', 'video.tv_show', 'video.other',
-  ]);
-
-  return allowed.has(v) ? v : 'website';
-};
 
 /* -----------------------------
   Product fetcher (YOUR API)
@@ -87,9 +55,6 @@ export async function generateMetadata({ params }) {
 
   const product = await getProductBySlug(slug);
 
-  // ✅ canonical + og:url always from env + /fabric/{slug}
-  const canonical = pageUrl(`/fabric/${slug}`);
-
   const fallbackTitle = String(slug || '')
     .replace(/[-_]/g, ' ')
     .replace(/\b\w/g, c => c.toUpperCase());
@@ -98,39 +63,28 @@ export async function generateMetadata({ params }) {
 
   const description = stripHtml(
     pick(product?.shortProductDescription, product?.description, '')
-  );
+  ) || "View detailed information about our premium fabric products.";
 
-  const twitterCard = pick(product?.twitterCard, 'summary_large_image');
-  const ogType = sanitizeOgType(product?.ogType);
+  // Extract keywords from product data
+  const productKeywords = product?.keywords || [];
+  const keywordsString = Array.isArray(productKeywords) 
+    ? productKeywords.join(', ') 
+    : productKeywords || "fabric, textile, premium quality, materials";
 
   // ✅ OG image should be "image1CloudUrl" field (your requirement)
-  // (fallback to main img only if image1CloudUrl is empty, so OG is not blank)
-  const ogImageUrl = toAbsUrl(pick(product?.image1CloudUrl, product?.image1, product?.img, product?.image, ''));
+  const ogImageUrl = pick(product?.image1CloudUrl, product?.image1, product?.img, product?.image, '');
 
-  return {
-    title,
+  // Dynamic robots tag - index if product exists, noindex if not found
+  const robotsTag = product ? "index, follow" : "noindex, nofollow";
+
+  return generateSEOMetadata({
+    title: `${title} - Shofy`,
     description,
-
-    // ✅ canonical url
-    alternates: { canonical },
-
-    // ✅ OG url + OG image
-    openGraph: {
-      type: ogType,
-      url: canonical,
-      images: ogImageUrl ? [{ url: ogImageUrl, alt: title }] : undefined,
-      title,
-      description,
-    },
-
-    // optional but good: twitter image uses same
-    twitter: {
-      card: twitterCard,
-      title,
-      description,
-      images: ogImageUrl ? [ogImageUrl] : undefined,
-    },
-  };
+    keywords: keywordsString,
+    path: `/fabric/${slug}`,
+    ogImage: ogImageUrl,
+    robots: robotsTag
+  });
 }
 
 /* -----------------------------
@@ -139,9 +93,31 @@ export async function generateMetadata({ params }) {
 export default async function Page({ params }) {
   const { slug } = params;
 
+  // Get product data for H1 tag
+  const product = await getProductBySlug(slug);
+  const fallbackTitle = String(slug || '')
+    .replace(/[-_]/g, ' ')
+    .replace(/\b\w/g, c => c.toUpperCase());
+  const productTitle = pick(product?.productTitle, product?.name, fallbackTitle);
+
   return (
     <Wrapper>
       <HeaderTwo style_2 />
+      
+      {/* Hidden H1 for SEO */}
+      <h1 
+        style={{
+          position: "absolute",
+          left: "-9999px",
+          top: "auto",
+          width: "1px",
+          height: "1px",
+          overflow: "hidden",
+        }}
+      >
+        {productTitle} - Premium Fabric Details
+      </h1>
+      
       <ProductClient slug={slug} />
       <Footer primary_style />
     </Wrapper>
