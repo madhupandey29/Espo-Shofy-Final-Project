@@ -50,8 +50,10 @@
   --tp-ff-jost:   'Poppins','Jost',system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif; /* headings/display */
   --tp-ff-roboto: 'Inter','Hind','Jost',system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif; /* body/UI */
 
-  /* Layout helpers */
-  --header-offset: var(--tp-header-height, 88px);
+  /* Layout helpers - Enhanced for better sticky positioning */
+  --tp-header-height: 88px;
+  --header-offset: var(--tp-header-height);
+  --sticky-top-offset: calc(var(--header-offset) + 10px);
   --page-xpad: 16px;
 }
 
@@ -253,30 +255,37 @@ h1,h2,h3,h4,h5,h6{
 }
 
 /* ===========================
-   Simple Sticky Sidebar (Filter panel) - CSS Only Solution
+   Simplified Sticky Sidebar (Filter panel) - Direct Approach
    =========================== */
-.sticky-filter{
+.sticky-filter {
   position: sticky;
-  top: var(--header-offset, 88px);
-  max-height: calc(100vh - var(--header-offset, 88px) - 40px);
+  top: calc(var(--tp-header-height, 88px) + 20px);
+  max-height: calc(100vh - var(--tp-header-height, 88px) - 40px);
   overflow-y: auto;
   overflow-x: hidden;
-  overscroll-behavior: contain;
-  padding-right: 8px;
+  z-index: 10;
+  background: var(--tp-common-white);
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  padding: 0;
+  margin-bottom: 20px;
   align-self: flex-start;
 }
 
+/* Enhanced scrollbar styling */
 .sticky-filter::-webkit-scrollbar { 
   width: 6px; 
 }
 
 .sticky-filter::-webkit-scrollbar-track { 
-  background: transparent; 
+  background: rgba(0,0,0,0.05);
+  border-radius: 3px;
 }
 
 .sticky-filter::-webkit-scrollbar-thumb { 
   background: #d5d5d5; 
   border-radius: 3px; 
+  transition: background 0.2s ease;
 }
 
 .sticky-filter:hover::-webkit-scrollbar-thumb { 
@@ -285,14 +294,27 @@ h1,h2,h3,h4,h5,h6{
 
 .sticky-filter { 
   scrollbar-width: thin; 
-  scrollbar-color: #d5d5d5 transparent; 
+  scrollbar-color: #d5d5d5 rgba(0,0,0,0.05); 
 }
 
-/* Ensure proper layout */
+/* Ensure the shop area has proper height for sticky to work */
+.tp-shop-area {
+  min-height: 100vh;
+  position: relative;
+}
+
+/* Ensure the sidebar container has proper positioning */
+.shop-sidebar-col {
+  position: relative;
+  height: fit-content;
+}
+
+/* Ensure proper layout with flexbox */
 .shop-content-wrapper {
   display: flex;
   align-items: flex-start;
   gap: 24px;
+  min-height: calc(100vh - 120px);
 }
 
 .shop-sidebar-col {
@@ -308,17 +330,15 @@ h1,h2,h3,h4,h5,h6{
 /* Enhanced sidebar spacing for wider layout */
 @media (min-width: 1200px) {
   .tp-shop-area .container {
-    max-width: 1400px; /* Allow more space for wider sidebar */
+    max-width: 1400px;
+  }
+  
+  .sticky-filter {
+    max-height: calc(100vh - var(--tp-header-height, 88px) - 60px);
   }
 }
 
-/* Ensure products grid adapts to available space */
-.products-grid {
-  width: 100%;
-  min-width: 0; /* Allow grid to shrink */
-}
-
-/* Better responsive behavior for the wider sidebar */
+/* Better responsive behavior */
 @media (max-width: 1199.98px) {
   .shop-sidebar-col {
     flex: 0 0 300px !important;
@@ -330,24 +350,35 @@ h1,h2,h3,h4,h5,h6{
   }
 }
 
+/* Ensure the sidebar is visible on desktop and hidden on mobile */
+.shop-sidebar-col {
+  display: block;
+}
+
 @media (max-width: 991.98px) {
   .shop-sidebar-col {
-    flex: 1 1 auto !important;
-    max-width: 100% !important;
-    margin-right: 0 !important;
+    display: none !important;
   }
   
-  .sticky-filter {
-    position: static !important;
-    max-height: none !important;
+  .shop-content-wrapper {
+    flex-direction: column;
+    min-height: auto;
+  }
+  
+  .shop-main-col {
+    min-height: auto;
+  }
+  
+  /* Show mobile filter button */
+  .shopFilterBtn {
+    display: block !important;
   }
 }
 
-@media (max-width: 991.98px){
-  .sticky-filter{
-    position: static;
-    max-height: none;
-    overflow: visible;
+@media (min-width: 992px) {
+  /* Hide mobile filter button on desktop */
+  .shopFilterBtn {
+    display: none !important;
   }
 }
 

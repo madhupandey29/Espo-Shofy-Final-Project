@@ -441,7 +441,7 @@ const CartItem = ({ product }) => {
     const query = (q || '').trim();
     if (query.length < 2) return true;
     const fields = [() => name || '', () => safeSlug || '', () => String(product?.design ?? ''), () => String(product?.color ?? '')];
-    const pred = buildSearchPredicate(query, fields, { mode: 'AND', normalize: true });
+    const pred = buildPredicate(query, fields, { mode: 'AND', normalize: true });
     return pred(product);
   }, [q, product, name, safeSlug]);
 

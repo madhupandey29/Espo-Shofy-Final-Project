@@ -4,45 +4,20 @@ import ContactBreadcrumb from "@/components/breadcrumb/contact-breadcrumb";
 import ContactArea from "@/components/contact/contact-area";
 import ContactMap from "@/components/contact/contact-map";
 import Footer from "@/layout/footers/footer";
-
-/* -----------------------------
-  helpers
------------------------------ */
-const stripTrailingSlash = (s = "") => String(s || "").replace(/\/+$/, "");
-
-const SITE_URL = stripTrailingSlash(process.env.NEXT_PUBLIC_SITE_URL || "");
-
-// ✅ build URL from env
-const pageUrl = (path = "/") => {
-  if (!SITE_URL) return path;
-  return `${SITE_URL}${path.startsWith("/") ? "" : "/"}${path}`;
-};
+import { generateMetadata as generateSEOMetadata } from "@/utils/seo";
 
 /* -----------------------------
   Metadata (Static SEO)
 ----------------------------- */
 export async function generateMetadata() {
-  // ✅ canonical always from env
-  const canonical = pageUrl("/contact");
-
-  // Static SEO metadata for contact page
-  return {
+  return generateSEOMetadata({
     title: "Shofy - Contact Page",
     description: "Get in touch with Shofy. Contact us for inquiries about our premium fabrics and textiles.",
     keywords: "contact, get in touch, shofy, fabrics, textiles, inquiries, support",
-    alternates: { canonical },
-    openGraph: {
-      title: "Shofy - Contact Page",
-      description: "Get in touch with Shofy. Contact us for inquiries about our premium fabrics and textiles.",
-      type: "website",
-      url: canonical,
-    },
-    twitter: {
-      card: "summary",
-      title: "Shofy - Contact Page",
-      description: "Get in touch with Shofy. Contact us for inquiries about our premium fabrics and textiles.",
-    },
-  };
+    path: "/contact",
+    ogImage: "/assets/img/logo/logo.svg",
+    robots: "index, follow"
+  });
 }
 
 export default function ContactPage() {

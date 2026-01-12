@@ -3,6 +3,7 @@ import Wrapper from "@/layout/wrapper";
 import HeaderTwo from "@/layout/headers/header-2";
 import Footer from "@/layout/footers/footer";
 import ShopArea from "@/components/shop/shop-area";
+import { generateMetadata as generateSEOMetadata } from "@/utils/seo";
 
 /* ---------------------------------------------
    Incremental Static Regeneration (ISR)
@@ -10,43 +11,17 @@ import ShopArea from "@/components/shop/shop-area";
 export const revalidate = 120;
 
 /* ---------------------------------------------
-   Helpers (plain JS, no TS types)
----------------------------------------------- */
-const stripTrailingSlash = (s = "") => String(s || "").replace(/\/+$/, "");
-
-const SITE_URL = stripTrailingSlash(process.env.NEXT_PUBLIC_SITE_URL || "");
-
-// ✅ build URL from env
-const pageUrl = (path = "/") => {
-  if (!SITE_URL) return path;
-  return `${SITE_URL}${path.startsWith("/") ? "" : "/"}${path}`;
-};
-
-/* ---------------------------------------------
    Metadata (Static SEO)
 ---------------------------------------------- */
 export async function generateMetadata() {
-  // ✅ canonical ALWAYS from env + /shop
-  const canonical = pageUrl("/shop");
-
-  // Static SEO metadata for shop page
-  return {
+  return generateSEOMetadata({
     title: "Shofy - Shop Page",
     description: "Browse our complete collection of premium fabrics and textiles. Find the perfect materials for your projects.",
     keywords: "shop, fabrics, textiles, materials, premium quality, browse products",
-    alternates: { canonical },
-    openGraph: {
-      title: "Shofy - Shop Page",
-      description: "Browse our complete collection of premium fabrics and textiles. Find the perfect materials for your projects.",
-      type: "website",
-      url: canonical,
-    },
-    twitter: {
-      card: "summary",
-      title: "Shofy - Shop Page",
-      description: "Browse our complete collection of premium fabrics and textiles. Find the perfect materials for your projects.",
-    },
-  };
+    path: "/shop",
+    ogImage: "/assets/img/logo/logo.svg",
+    robots: "index, follow"
+  });
 }
 
 /**
@@ -55,6 +30,9 @@ export async function generateMetadata() {
 async function fetchAllProducts() {
   const RAW_BASE =
     process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:7000/landing";
+  
+  // Helper function to strip trailing slash
+  const stripTrailingSlash = (s = "") => String(s || "").replace(/\/+$/, "");
   const API_BASE2 = stripTrailingSlash(RAW_BASE);
 
   // Get merchTag filter from environment variable

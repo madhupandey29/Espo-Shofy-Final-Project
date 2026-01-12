@@ -64,7 +64,8 @@ export default function AboutSection({
                 <Image
                   src={imageSrc}
                   alt={imageAlt}
-                  fill
+                  width={500}
+                  height={420}
                   sizes="(max-width: 992px) 100vw, 50vw"
                   className="tp-about__img"
                   priority={false}
@@ -281,6 +282,8 @@ export default function AboutSection({
         }
 
         .tp-about__img {
+          width: 100%;
+          height: 100%;
           object-fit: cover;
           transform: scale(1.01);
           transition: transform 0.5s ease;

@@ -19,7 +19,10 @@ const ShopContent = ({
     allProductsLength: all_products.length, 
     productsLength: products.length,
     totalProducts: otherProps?.totalProducts,
-    firstProduct: products[0]?.name || 'No products'
+    firstProduct: products[0]?.name || 'No products',
+    shop_right,
+    hidden_sidebar,
+    shouldShowSidebar: !shop_right && !hidden_sidebar
   });
 
   const {
@@ -27,7 +30,6 @@ const ShopContent = ({
     selectHandleFilter,
     selectedFilters,
     handleFilterChange,
-    totalProducts,
     isSearchActive,
     searchResults,
   } = otherProps || {};
@@ -106,21 +108,30 @@ const ShopContent = ({
     };
   }, [loadMoreProducts, hasMore, isLoading]);
 
-  // measure header + toolbar to center empty state
+  // Simple header height calculation for CSS custom properties
   const [centerOffset, setCenterOffset] = useState(140);
+
   useEffect(() => {
-    const calc = () => {
+    const updateHeaderHeight = () => {
       const header =
         document.querySelector('.tp-header-area') ||
         document.querySelector('.tp-header-style-primary');
       const toolbar = document.querySelector('.shop-toolbar-sticky');
-      const h = header ? header.getBoundingClientRect().height : 0;
+      const h = header ? header.getBoundingClientRect().height : 88;
       const t = toolbar ? toolbar.getBoundingClientRect().height : 0;
+      
       setCenterOffset(h + t);
+      
+      // Update CSS custom property for sticky positioning
+      document.documentElement.style.setProperty('--tp-header-height', `${h}px`);
     };
-    calc();
-    window.addEventListener('resize', calc);
-    return () => window.removeEventListener('resize', calc);
+
+    updateHeaderHeight();
+    window.addEventListener('resize', updateHeaderHeight);
+    
+    return () => {
+      window.removeEventListener('resize', updateHeaderHeight);
+    };
   }, []);
 
   const maxPrice = useMemo(() => {
@@ -132,11 +143,6 @@ const ShopContent = ({
 
   const pv = Array.isArray(priceValue) ? priceValue : [0, maxPrice];
   const priceActive = pv[0] > 0 || pv[1] < maxPrice;
-
-  const facetsActive =
-    selectedFilters && Object.values(selectedFilters).some((v) =>
-      Array.isArray(v) ? v.length > 0 : !!v
-    );
 
   const resetAll = () => {
     setPriceValue?.([0, maxPrice]);
@@ -192,11 +198,11 @@ const ShopContent = ({
   return (
     <section className="tp-shop-area pb-120">
       <div className="container">
-        <div className="row align-items-start">
+        <div className="row align-items-start shop-content-wrapper">
           {/* sidebar */}
           {!shop_right && !hidden_sidebar && (
-            <aside className="col-auto d-none d-lg-block shop-sidebar-col">
-              <div className="sticky-filter">
+            <aside className="col-auto shop-sidebar-col">
+              <div className="sticky-filter" id="shop-filters-sidebar">
                 <EnhancedShopSidebarFilters
                   selected={selectedFilters}
                   onFilterChange={handleFilterChange}

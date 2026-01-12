@@ -60,10 +60,10 @@ export default function FashionBanner() {
             <div className="badge-line" />
           </div>
 
-          <h1 className="main-title">
+          <h2 className="main-title">
             <span className="title-line">India&apos;s Trusted</span>
             <span className="title-line accent-line">Fabric Manufacturer</span>
-          </h1>
+          </h2>
 
           <p className="subtitle">{SUBTITLE}</p>
 
