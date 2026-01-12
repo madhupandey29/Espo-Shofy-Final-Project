@@ -93,31 +93,9 @@ export async function generateMetadata({ params }) {
 export default async function Page({ params }) {
   const { slug } = params;
 
-  // Get product data for H1 tag
-  const product = await getProductBySlug(slug);
-  const fallbackTitle = String(slug || '')
-    .replace(/[-_]/g, ' ')
-    .replace(/\b\w/g, c => c.toUpperCase());
-  const productTitle = pick(product?.productTitle, product?.name, fallbackTitle);
-
   return (
     <Wrapper>
       <HeaderTwo style_2 />
-      
-      {/* Hidden H1 for SEO */}
-      <h1 
-        style={{
-          position: "absolute",
-          left: "-9999px",
-          top: "auto",
-          width: "1px",
-          height: "1px",
-          overflow: "hidden",
-        }}
-      >
-        {productTitle} - Premium Fabric Details
-      </h1>
-      
       <ProductClient slug={slug} />
       <Footer primary_style />
     </Wrapper>

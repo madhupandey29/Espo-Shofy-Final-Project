@@ -34,7 +34,7 @@ const TopRatedProducts = () => {
     for (const field of cloudinaryFields) {
       if (field && typeof field === 'string' && field.trim() && 
           field !== 'null' && field !== 'undefined' && field !== '') {
-        const cleanUrl = field.trim();
+        const cleanUrl = field.trim().replace(/#$/, ''); // Remove trailing hash character
         if (cleanUrl.startsWith('http')) {
           console.log('Found Cloudinary URL:', cleanUrl);
           return cleanUrl;

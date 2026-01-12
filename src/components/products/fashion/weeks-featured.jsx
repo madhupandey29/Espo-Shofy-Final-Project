@@ -65,7 +65,7 @@ function getImageUrl(item) {
   for (const field of cloudinaryFields) {
     if (field && typeof field === 'string' && field.trim() && 
         field !== 'null' && field !== 'undefined' && field !== '') {
-      const cleanUrl = field.trim();
+      const cleanUrl = field.trim().replace(/#$/, ''); // Remove trailing hash character
       if (cleanUrl.startsWith('http')) {
         return cleanUrl;
       }

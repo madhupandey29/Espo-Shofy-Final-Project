@@ -7,11 +7,11 @@ import ErrorMsg from '@/components/common/error-msg';
 import { useGetSingleNewProductByIdQuery } from '@/redux/features/newProductApi';
 
 function mapBackendProductToFrontend(p) {
-  // Handle Cloudinary image URLs - use correct API field names
-  const mainImg = p.image1CloudUrl || p.img || p.image || '';
-  const img1 = p.image1CloudUrl || p.image1 || '';
-  const img2 = p.image2CloudUrl || p.image2 || '';
-  const img3 = p.image3CloudUrl || p.image3 || '';
+  // Handle Cloudinary image URLs - use correct API field names and remove trailing hash
+  const mainImg = (p.image1CloudUrl && typeof p.image1CloudUrl === 'string' ? p.image1CloudUrl.replace(/#$/, '') : p.image1CloudUrl) || p.img || p.image || '';
+  const img1 = (p.image1CloudUrl && typeof p.image1CloudUrl === 'string' ? p.image1CloudUrl.replace(/#$/, '') : p.image1CloudUrl) || p.image1 || '';
+  const img2 = (p.image2CloudUrl && typeof p.image2CloudUrl === 'string' ? p.image2CloudUrl.replace(/#$/, '') : p.image2CloudUrl) || p.image2 || '';
+  const img3 = (p.image3CloudUrl && typeof p.image3CloudUrl === 'string' ? p.image3CloudUrl.replace(/#$/, '') : p.image3CloudUrl) || p.image3 || '';
   const videoUrl = p.videoURL || p.videourl || p.video || '';
   const poster = p.videoThumbnail || '';
 

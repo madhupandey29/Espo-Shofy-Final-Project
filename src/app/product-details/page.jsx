@@ -1,7 +1,6 @@
 import Wrapper from "@/layout/wrapper";
 import HeaderTwo from "@/layout/headers/header-2";
 import ProductDetailsClient from "./ProductDetailsClient";
-import ProductSEOH1 from "./ProductSEOH1";
 import Footer from "@/layout/footers/footer";
 import { generateMetadata as generateSEOMetadata } from "@/utils/seo";
 
@@ -32,8 +31,8 @@ export async function generateMetadata({ searchParams }) {
   // Fetch product data for metadata
   const product = await getProductData(productId);
   
-  // Extract first image URL
-  const firstImage = product?.image1CloudUrl || 
+  // Extract first image URL and remove trailing hash
+  const firstImage = (product?.image1CloudUrl && typeof product.image1CloudUrl === 'string' ? product.image1CloudUrl.replace(/#$/, '') : product?.image1CloudUrl) || 
                     product?.img || 
                     product?.image || 
                     product?.image1 || 
@@ -70,10 +69,6 @@ export default function ProductDetailsPage({ searchParams }) {
   return (
     <Wrapper>
       <HeaderTwo style_2={true} />
-      
-      {/* Dynamic Hidden H1 for SEO */}
-      <ProductSEOH1 productId={productId} />
-      
       <ProductDetailsClient productId={productId} />
       <Footer primary_style={true} />
     </Wrapper>

@@ -37,9 +37,9 @@ function normalizeProduct(p) {
   const name = p.name || p.title || p.productname || p.productName || 'Untitled';
 
   const img =
-    p.image1CloudUrl ||
-    p.image2CloudUrl ||
-    p.image3CloudUrl ||
+    (p.image1CloudUrl && typeof p.image1CloudUrl === 'string' ? p.image1CloudUrl.replace(/#$/, '') : p.image1CloudUrl) ||
+    (p.image2CloudUrl && typeof p.image2CloudUrl === 'string' ? p.image2CloudUrl.replace(/#$/, '') : p.image2CloudUrl) ||
+    (p.image3CloudUrl && typeof p.image3CloudUrl === 'string' ? p.image3CloudUrl.replace(/#$/, '') : p.image3CloudUrl) ||
     p.image ||
     p.img ||
     p.thumbnail ||

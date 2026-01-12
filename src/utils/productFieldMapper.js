@@ -164,46 +164,46 @@ export const getProductImages = (product) => {
   // New API format - detailed image objects
   if (product?.image1CloudUrl) {
     images.image1 = {
-      url: product.image1CloudUrl,
+      url: cleanImageUrl(product.image1CloudUrl),
       alt: product.altTextImage1 || product.altimg1 || '',
-      thumb: product.image1ThumbUrl,
+      thumb: cleanImageUrl(product.image1ThumbUrl),
       width: product.image1Width,
       height: product.image1Height
     };
   } else if (product?.image1) {
     // Old API format - simple URL
     images.image1 = {
-      url: product.image1,
+      url: cleanImageUrl(product.image1),
       alt: product.altimg1 || '',
     };
   }
   
   if (product?.image2CloudUrl) {
     images.image2 = {
-      url: product.image2CloudUrl,
+      url: cleanImageUrl(product.image2CloudUrl),
       alt: product.altTextImage2 || product.altimg2 || '',
-      thumb: product.image2ThumbUrl,
+      thumb: cleanImageUrl(product.image2ThumbUrl),
       width: product.image2Width,
       height: product.image2Height
     };
   } else if (product?.image2) {
     images.image2 = {
-      url: product.image2,
+      url: cleanImageUrl(product.image2),
       alt: product.altimg2 || '',
     };
   }
   
   if (product?.image3CloudUrl) {
     images.image3 = {
-      url: product.image3CloudUrl,
+      url: cleanImageUrl(product.image3CloudUrl),
       alt: product.altTextImage3 || product.altimg3 || '',
-      thumb: product.image3ThumbUrl,
+      thumb: cleanImageUrl(product.image3ThumbUrl),
       width: product.image3Width,
       height: product.image3Height
     };
   } else if (product?.image3) {
     images.image3 = {
-      url: product.image3,
+      url: cleanImageUrl(product.image3),
       alt: product.altimg3 || '',
     };
   }
@@ -212,11 +212,20 @@ export const getProductImages = (product) => {
 };
 
 /**
- * Get primary product image URL
+ * Clean URL by removing trailing hash characters
+ */
+export const cleanImageUrl = (url) => {
+  if (!url || typeof url !== 'string') return url;
+  return url.trim().replace(/#$/, '');
+};
+
+/**
+ * Get primary product image URL with hash cleaning
  */
 export const getPrimaryImageUrl = (product) => {
   const images = getProductImages(product);
-  return images.image1?.url || images.image2?.url || images.image3?.url || '';
+  const url = images.image1?.url || images.image2?.url || images.image3?.url || '';
+  return cleanImageUrl(url);
 };
 
 /**

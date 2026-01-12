@@ -181,9 +181,9 @@ const DetailsThumbWrapper = ({
     
     const media = [];
 
-    // Collection image - using the new API structure
+    // Collection image - using the new API structure and remove trailing hash
     const collectionImageField = [
-      groupCodeData.collectionImage1CloudUrl,
+      (groupCodeData.collectionImage1CloudUrl && typeof groupCodeData.collectionImage1CloudUrl === 'string' ? groupCodeData.collectionImage1CloudUrl.replace(/#$/, '') : groupCodeData.collectionImage1CloudUrl),
       groupCodeData.collectionImage1,
       groupCodeData.img, // fallback for old structure
       groupCodeData.image,
