@@ -51,7 +51,7 @@ const CompareArea = () => {
                                 height={176}
                               />
                               <h4 className="tp-compare-product-title">
-                                <Link href={`/fabric/${item.slug || item._id}`}>
+                                <Link href={`/fabric/${item.slug ? String(item.slug).replace(/#$/, '') : item._id}`}>
                                   {item.title}
                                 </Link>
                               </h4>

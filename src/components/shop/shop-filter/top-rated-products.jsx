@@ -91,6 +91,8 @@ const TopRatedProducts = () => {
       const p = item;
       const productId = p?._id || p?.id;
       const slug = p?.slug || p?.productslug || productId;
+      // Clean the slug by removing trailing hash character
+      const cleanSlug = slug ? String(slug).replace(/#$/, '') : slug;
       const title = p?.name || p?.title || p?.productTitle || 'Product';
       const rating = p?.ratingValue || p?.rating || 0;
       const ratingCount = p?.ratingCount || 0;
@@ -100,7 +102,7 @@ const TopRatedProducts = () => {
       return (
         <div key={productId} className="tp-shop-widget-product-item d-flex align-items-center">
           <div className="tp-shop-widget-product-thumb">
-            <Link href={`/fabric/${slug}`}>
+            <Link href={`/fabric/${cleanSlug}`}>
               <Image 
                 src={imageUrl} 
                 alt={title} 
@@ -124,7 +126,7 @@ const TopRatedProducts = () => {
               </div>
             </div>
             <h4 className="tp-shop-widget-product-title">
-              <Link href={`/fabric/${slug}`}>{title?.substring(0,20) || ''}...</Link>
+              <Link href={`/fabric/${cleanSlug}`}>{title?.substring(0,20) || ''}...</Link>
             </h4>
             <div className="tp-shop-widget-product-price-wrapper">
               <span className="tp-shop-widget-product-price">₹{price?.toFixed(2) || '0.00'}</span>

@@ -27,8 +27,13 @@ const API_BASE = stripTrailingSlash(process.env.NEXT_PUBLIC_API_BASE_URL || '');
 ----------------------------- */
 async function getProductBySlug(slug) {
   try {
+    // Clean the slug by removing trailing hash character
+    const cleanSlug = slug ? slug.replace(/#$/, '') : slug;
+    console.log('getProductBySlug - original slug:', slug);
+    console.log('getProductBySlug - cleaned slug:', cleanSlug);
+    
     // ✅ Updated to use the new API endpoint structure
-    const res = await fetch(`${API_BASE}/product/fieldname/productslug/${slug}`, {
+    const res = await fetch(`${API_BASE}/product/fieldname/productslug/${cleanSlug}`, {
       next: { revalidate },
     });
     if (!res.ok) return null;

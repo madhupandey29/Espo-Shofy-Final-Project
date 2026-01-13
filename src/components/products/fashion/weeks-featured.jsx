@@ -313,7 +313,9 @@ const WeeksFeatured = () => {
           
           // Use aiTempOutput as slug if available, then fabricCode, then generated slug, then pid
           const slug = p?.slug || p?.productslug || p?.seoSlug || p?.aiTempOutput || p?.fabricCode || generateSlug(title) || pid;
-          const detailsHref = `/fabric/${encodeURIComponent(slug)}`;
+          // Clean the slug by removing trailing hash character
+          const cleanSlug = slug ? String(slug).replace(/#$/, '') : slug;
+          const detailsHref = `/fabric/${encodeURIComponent(cleanSlug)}`;
           
           // Debug logging for weeks-featured
           console.log(`Featured Product ${idx}:`, { 

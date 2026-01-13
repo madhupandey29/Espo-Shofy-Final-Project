@@ -16,7 +16,6 @@ import { FiShare2, FiPhoneCall } from 'react-icons/fi';
 import { FaWhatsapp, FaFacebookF, FaInstagram, FaLinkedinIn, FaYoutube } from 'react-icons/fa';
 import { FaXTwitter } from 'react-icons/fa6';
 import Footer from '@/layout/footers/footer';
-import styles from './FloatingButtons.module.scss';
 
 // ✅ RTK Query hook
 import { useGetOfficeInformationQuery } from "@/redux/features/officeInformationApi";
@@ -95,18 +94,18 @@ export default function HomePageTwoClient() {
       <FashionTestimonial />
       <BlogArea />
      
-      {/* ✅ WhatsApp button (API number) */}
+      {/* ✅ WhatsApp button (API number) - LEFT SIDE */}
       <a
         href={whatsappHref}
         target="_blank"
         rel="noopener noreferrer"
-        className={styles['whatsapp-float-btn']}
+        className="whatsapp-float-btn"
         aria-label="Chat on WhatsApp"
       >
         <FaWhatsapp size={26} />
       </a>
 
-      {/* ✅ Call button (API number) */}
+      {/* ✅ Call button (API number) - RIGHT SIDE */}
       <a href={callHref} aria-label="Call us" className="call-float-btn">
         <FiPhoneCall size={24} />
       </a>
@@ -138,13 +137,37 @@ export default function HomePageTwoClient() {
       <Footer />
 
       <style jsx>{`
+        /* ===== Floating Action Buttons - LEFT & RIGHT ALIGNED ===== */
+        .whatsapp-float-btn{
+          position: fixed;
+          left: 18px;
+          bottom: 18px;
+          z-index: 1300;
+          width: 56px;
+          height: 56px;
+          border-radius: 50%;
+          display: grid;
+          place-items: center;
+          background: #25D366;
+          color: #fff;
+          text-decoration: none;
+          box-shadow: 0 10px 22px rgba(37,211,102,.34);
+          transition: transform .18s ease, box-shadow .18s ease, background .18s ease;
+        }
+        .whatsapp-float-btn:hover{ 
+          transform: translateY(-2px); 
+          background: #128C7E; 
+          color: #fff;
+          box-shadow: 0 12px 28px rgba(37,211,102,.4);
+        }
+
         .call-float-btn{
           position: fixed;
           right: 18px;
           bottom: 18px;
           z-index: 1300;
-          width: 50px;
-          height: 50px;
+          width: 56px;
+          height: 56px;
           border-radius: 50%;
           display: grid;
           place-items: center;
@@ -154,8 +177,14 @@ export default function HomePageTwoClient() {
           box-shadow: 0 10px 22px rgba(14,165,233,.34);
           transition: transform .18s ease, box-shadow .18s ease, background .18s ease;
         }
-        .call-float-btn:hover{ transform: translateY(-2px); background:#0284c7; }
+        .call-float-btn:hover{ 
+          transform: translateY(-2px); 
+          background: #0284c7; 
+          color: #fff;
+          box-shadow: 0 12px 28px rgba(14,165,233,.4);
+        }
 
+        /* ===== Social Share Buttons ===== */
         .social-root{
           position: fixed;
           right: 24px;
@@ -249,7 +278,21 @@ export default function HomePageTwoClient() {
         .social-items.show li:nth-child(4){ transform: translate(-150px,  45px)  scale(1); }
         .social-items.show li:nth-child(5){ transform: translate(-110px,  90px)  scale(1); }
 
+        /* ===== Mobile Responsive Adjustments ===== */
         @media (max-width: 768px){
+          .whatsapp-float-btn{
+            width: 52px;
+            height: 52px;
+            left: 16px;
+            bottom: 16px;
+          }
+          .call-float-btn{
+            width: 52px;
+            height: 52px;
+            right: 16px;
+            bottom: 16px;
+          }
+          
           .social-root{ right: 16px; width: 230px; height: 230px; }
           .social-toggle{ width: 44px; height: 44px; }
           .social-items li{ --size: 40px; }
@@ -261,6 +304,19 @@ export default function HomePageTwoClient() {
         }
 
         @media (max-width: 480px){
+          .whatsapp-float-btn{
+            width: 48px;
+            height: 48px;
+            left: 14px;
+            bottom: 14px;
+          }
+          .call-float-btn{
+            width: 48px;
+            height: 48px;
+            right: 14px;
+            bottom: 14px;
+          }
+          
           .social-root{ right: 12px; width: 210px; height: 210px; }
           .social-toggle{ width: 42px; height: 42px; }
           .social-items li{ --size: 36px; }

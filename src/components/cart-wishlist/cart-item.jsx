@@ -231,7 +231,9 @@ const CartItem = ({ product }) => {
   }, [product, nested, hydrated, seoDoc, title]);
 
   const safeSlug = nested?.slug || slug || hydrated?.slug || PID || '';
-  const href = `/fabric/${safeSlug}`;
+  // Clean the slug by removing trailing hash character
+  const cleanSlug = safeSlug ? String(safeSlug).replace(/#$/, '') : safeSlug;
+  const href = `/fabric/${cleanSlug}`;
 
   // image
   const fallbackCdn = (process.env.NEXT_PUBLIC_CDN_BASE || 'https://test.amrita-fashions.com/shopy').replace(/\/+$/, '');

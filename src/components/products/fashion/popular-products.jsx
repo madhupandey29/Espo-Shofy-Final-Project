@@ -304,7 +304,9 @@ export default function PopularProducts() {
           const pname = p?.name ?? 'Product';
           // Use aiTempOutput as slug if available, then fabricCode, then generated slug, then pid
           const slug = p?.slug || p?.productslug || p?.seoSlug || p?.aiTempOutput || p?.fabricCode || generateSlug(pname) || pid;
-          const detailsHref = slug ? `/fabric/${slug}` : '#';
+          // Clean the slug by removing trailing hash character
+          const cleanSlug = slug ? String(slug).replace(/#$/, '') : slug;
+          const detailsHref = cleanSlug ? `/fabric/${cleanSlug}` : '#';
           const eager = idx < 3;
 
           const tags = p?.productTag || seoDoc?.productTag || [];

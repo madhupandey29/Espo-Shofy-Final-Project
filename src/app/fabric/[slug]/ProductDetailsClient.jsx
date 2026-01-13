@@ -119,14 +119,17 @@ function mapBackendProductToFrontend(p) {
 }
 
 export default function ProductDetailsClient({ slug }) {
-  console.log('ProductDetailsClient - slug parameter:', slug);
+  // Clean the slug by removing trailing hash character
+  const cleanSlug = slug ? slug.replace(/#$/, '') : slug;
+  console.log('ProductDetailsClient - original slug:', slug);
+  console.log('ProductDetailsClient - cleaned slug:', cleanSlug);
 
   // First try to get by slug
   const {
     data: slugData,
     isLoading: slugLoading,
     isError: slugError,
-  } = useGetSingleNewProductQuery(slug, { skip: !slug });
+  } = useGetSingleNewProductQuery(cleanSlug, { skip: !cleanSlug });
 
   console.log('Slug query result:', { slugData, slugLoading, slugError });
 
@@ -135,8 +138,8 @@ export default function ProductDetailsClient({ slug }) {
     data: idData,
     isLoading: idLoading,
     isError: idError,
-  } = useGetSingleNewProductByIdQuery(slug, { 
-    skip: !slug || (!slugError && !slugData) || (slugData?.data) 
+  } = useGetSingleNewProductByIdQuery(cleanSlug, { 
+    skip: !cleanSlug || (!slugError && !slugData) || (slugData?.data) 
   });
 
   console.log('ID query result:', { idData, idLoading, idError });

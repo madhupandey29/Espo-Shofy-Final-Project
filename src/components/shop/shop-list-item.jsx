@@ -116,6 +116,8 @@ const ShopListItem = ({ product }) => {
   const imageUrl     = getImageUrl(img || image);
   const isCloudinary = isCloudinaryUrl(imageUrl);
   const slug         = product?.slug || '';
+  // Clean the slug by removing trailing hash character
+  const cleanSlug = slug ? String(slug).replace(/#$/, '') : slug;
 
   const titleText =
     pick(product?.name, product?.product?.name, product?.productname, title, product?.productTitle) || "—";
@@ -218,7 +220,7 @@ const ShopListItem = ({ product }) => {
   return (
     <div className="tp-product-list-item d-md-flex">
       <div className="tp-product-list-thumb p-relative fix">
-        <Link href={`/fabric/${slug}`}>
+        <Link href={`/fabric/${cleanSlug}`}>
           {imageUrl && (
             <Image
               src={imageUrl}
@@ -287,7 +289,7 @@ const ShopListItem = ({ product }) => {
           <div className="tp-product-tag-2" />
 
           <h3 className="tp-product-title-2">
-            <Link href={`/fabric/${slug}`}>{titleText}</Link>
+            <Link href={`/fabric/${cleanSlug}`}>{titleText}</Link>
           </h3>
 
           <div className="tp-product-rating-icon tp-product-rating-icon-2" aria-hidden="true" />

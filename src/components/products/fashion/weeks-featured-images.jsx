@@ -75,8 +75,9 @@ const WeeksFeaturedImages = () => {
       {products.data.slice(0, 3).map((item) => {
         const price = item.price || item.salesPrice;
         const slug = item.slug || item._id;
+        const cleanSlug = slug ? String(slug).replace(/#$/, '') : slug;
         return (
-          <Link href={`/fabric/${slug}`} target="_blank" rel="noopener noreferrer" key={item._id} style={{ textDecoration: 'none', display: 'block' }}>
+          <Link href={`/fabric/${cleanSlug}`} target="_blank" rel="noopener noreferrer" key={item._id} style={{ textDecoration: 'none', display: 'block' }}>
             <div style={rowStyle}>
               <Image
                 src={getImageUrl(item)}

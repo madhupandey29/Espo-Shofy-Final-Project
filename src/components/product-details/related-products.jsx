@@ -136,7 +136,8 @@ const RelatedProducts = ({ collectionId }) => {
     <div className="tp-related-grid">
       <div className="row g-3 g-md-4">
         {list.map((p) => {
-          const href = p?.slug ? `/fabric/${p.slug}` : '#';
+          const cleanSlug = p?.slug ? String(p.slug).replace(/#$/, '') : p?.slug;
+          const href = cleanSlug ? `/fabric/${cleanSlug}` : '#';
 
           // Use the field mapper to get the primary image, with better fallback logic
           let imgSrc = processImageUrl(p?.primaryImage || getPrimaryImageUrl(p._original));

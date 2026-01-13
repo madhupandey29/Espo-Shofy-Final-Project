@@ -161,6 +161,8 @@ const WishlistItem = ({ product }) => {
       if (hasLabels) return;
 
       const slug = product?.slug || product?.product?.slug;
+      // Clean the slug by removing trailing hash character
+      const cleanSlug = slug ? String(slug).replace(/#$/, '') : slug;
 
       const endpoints = [
         `${apiBase}/products/${_id}`,
@@ -413,6 +415,8 @@ const WishlistItem = ({ product }) => {
   }, [product, hydrated, seoDoc, _id]);
 
   const slug = product?.slug || product?.product?.slug || hydrated?.slug || _id;
+  // Clean the slug by removing trailing hash character
+  const cleanSlug = slug ? String(slug).replace(/#$/, '') : slug;
 
   const src =
     hydrated || product || product?.product || {};
@@ -464,7 +468,7 @@ const WishlistItem = ({ product }) => {
         aria-hidden={hidden ? 'true' : 'false'}
       >
         <div className="card-image-container">
-          <Link href={`/fabric/${slug}`} target="_blank" rel="noopener noreferrer" className="image-link">
+          <Link href={`/fabric/${cleanSlug}`} target="_blank" rel="noopener noreferrer" className="image-link">
             {!!imageUrl && (
               <img
                 src={imageUrl}
@@ -485,7 +489,7 @@ const WishlistItem = ({ product }) => {
         </div>
 
         <div className="card-content">
-          <Link href={`/fabric/${slug}`} target="_blank" rel="noopener noreferrer" className="product-name">
+          <Link href={`/fabric/${cleanSlug}`} target="_blank" rel="noopener noreferrer" className="product-name">
             {getDisplayTitle || 'Product'}
           </Link>
 

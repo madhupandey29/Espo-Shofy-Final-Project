@@ -9,7 +9,8 @@ const FALLBACK_IMG =
   'https://res.cloudinary.com/demo/image/upload/v1690000000/placeholder-square.webp';
 
 const ProductCardMini = ({ product }) => {
-  const href = product?.slug ? `/fabric/${product.slug}` : '#';
+  const cleanSlug = product?.slug ? String(product.slug).replace(/#$/, '') : product?.slug;
+  const href = cleanSlug ? `/fabric/${cleanSlug}` : '#';
   const imgSrc =
     product?.img ||
     product?.image ||
