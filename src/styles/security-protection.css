@@ -236,33 +236,4 @@ body[data-env="production"] * {
   }
 }
 
-/* Development Mode Indicator */
-body[data-env="development"]::before {
-  content: "🔧 Development Mode - Inspection Enabled";
-  position: fixed;
-  top: 10px;
-  right: 10px;
-  background: #28a745;
-  color: white;
-  padding: 5px 10px;
-  border-radius: 5px;
-  font-size: 12px;
-  z-index: 999999;
-  font-family: monospace;
-}
-
-/* Production Mode Indicator */
-body[data-env="production"]::after {
-  content: "🔒 Protected Site";
-  position: fixed;
-  bottom: 10px;
-  right: 10px;
-  background: #dc3545;
-  color: white;
-  padding: 5px 10px;
-  border-radius: 5px;
-  font-size: 12px;
-  z-index: 999999;
-  font-family: monospace;
-  opacity: 0.7;
-}
+/* Visual indicators removed per user request */

@@ -4,14 +4,8 @@ import { useEffect } from 'react';
 
 export default function AntiInspection() {
   useEffect(() => {
-    // 🚀 ONLY ACTIVATE IN PRODUCTION - Allow full inspection in development
-    if (process.env.NODE_ENV !== 'production') {
-      console.log('🔧 Development Mode: Anti-inspection protection is DISABLED');
-      console.log('💡 You can freely use developer tools for debugging');
-      return;
-    }
-
-    console.log('🔒 Production Mode: Anti-inspection protection is ACTIVE');
+    // 🔒 ALWAYS ACTIVE - Block inspection at all times
+    console.log('🔒 Anti-inspection protection is ACTIVE');
 
     // Disable right-click context menu
     const disableRightClick = (e) => {
