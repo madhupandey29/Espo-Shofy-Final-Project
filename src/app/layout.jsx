@@ -69,73 +69,6 @@ async function getCompanyInformation() {
 }
 
 /* -------------------------------------------------- */
-/* Metadata Generation - Using Default SEO API        */
-/* -------------------------------------------------- */
-export async function generateMetadata() {
-  const defaultSeoSettings = await getDefaultSeoSettings();
-
-  // Site name from environment
-  const siteName = process.env.NEXT_PUBLIC_SITE_NAME || 'eCatalogue';
-
-  // Build metadata object using default SEO settings
-  const metadata = {
-    // Apple Web App configuration
-    appleWebApp: {
-      capable: true,
-      statusBarStyle: 'default',
-      title: defaultSeoSettings?.name || siteName,
-    },
-
-    // Format detection settings
-    formatDetection: {
-      telephone: false,
-      email: false,
-      address: false,
-    },
-
-    // OpenGraph configuration
-    openGraph: {
-      type: 'website',
-      siteName: defaultSeoSettings?.name || siteName,
-      locale: 'en_US',
-    },
-  };
-
-  // Add verification tokens from default SEO settings
-  if (defaultSeoSettings?.googleVerification || defaultSeoSettings?.bingVerification) {
-    metadata.verification = {};
-    
-    if (defaultSeoSettings.googleVerification) {
-      metadata.verification.google = defaultSeoSettings.googleVerification;
-    }
-    
-    if (defaultSeoSettings.bingVerification) {
-      metadata.verification.other = {
-        'msvalidate.01': defaultSeoSettings.bingVerification,
-      };
-    }
-  }
-
-  // Add Twitter configuration from default SEO settings
-  if (defaultSeoSettings?.twitterHandle) {
-    metadata.twitter = {
-      card: 'summary_large_image',
-      site: defaultSeoSettings.twitterHandle.startsWith('@') 
-        ? defaultSeoSettings.twitterHandle 
-        : `@${defaultSeoSettings.twitterHandle}`,
-      title: defaultSeoSettings?.name || siteName,
-    };
-  }
-
-  // Add robots policy from default SEO settings
-  if (defaultSeoSettings?.robotsPolicy) {
-    metadata.robots = defaultSeoSettings.robotsPolicy;
-  }
-
-  return metadata;
-}
-
-/* -------------------------------------------------- */
 /* Root Layout Component - Using Default SEO API      */
 /* -------------------------------------------------- */
 export default async function RootLayout({ children }) {
@@ -143,7 +76,37 @@ export default async function RootLayout({ children }) {
   const defaultSeoSettings = await getDefaultSeoSettings();
   const companyInfo = await getCompanyInformation();
 
-  console.log('🔍 Default SEO Settings:', defaultSeoSettings);
+  // Debug: Log the SEO settings to see if they're being fetched
+  if (defaultSeoSettings) {
+    console.log('🔍 Layout - Default SEO Settings loaded:', {
+      name: defaultSeoSettings.name,
+      siteKey: defaultSeoSettings.siteKey,
+      siteStatus: defaultSeoSettings.siteStatus,
+      description: defaultSeoSettings.description,
+      gaMeasurementId: defaultSeoSettings.gaMeasurementId,
+      gtmId: defaultSeoSettings.gtmId,
+      clarityId: defaultSeoSettings.clarityId,
+      googleVerification: defaultSeoSettings.googleVerification,
+      bingVerification: defaultSeoSettings.bingVerification,
+      twitterHandle: defaultSeoSettings.twitterHandle,
+      robotsPolicy: defaultSeoSettings.robotsPolicy,
+      baseUrl: defaultSeoSettings.baseUrl,
+      websiteFaqId: defaultSeoSettings.websiteFaqId,
+      websiteFaqName: defaultSeoSettings.websiteFaqName
+    });
+
+    // Log which analytics will be rendered
+    console.log('📊 Analytics Status:', {
+      willRenderGA: !!defaultSeoSettings.gaMeasurementId,
+      willRenderGTM: !!defaultSeoSettings.gtmId,
+      willRenderClarity: !!defaultSeoSettings.clarityId,
+      gaId: defaultSeoSettings.gaMeasurementId,
+      gtmId: defaultSeoSettings.gtmId,
+      clarityId: defaultSeoSettings.clarityId
+    });
+  } else {
+    console.log('❌ Layout - No default SEO settings found');
+  }
 
   // Generate Local Business JSON-LD ONLY if company info exists
   const localBusinessJsonLd = companyInfo && {
@@ -214,62 +177,52 @@ export default async function RootLayout({ children }) {
   return (
     <html lang="en">
       <head>
-        {/* All SEO Meta Tags from Default SEO API */}
-        {defaultSeoSettings?.siteStatus && (
-          <meta name="site-status" content={defaultSeoSettings.siteStatus} />
-        )}
+        {/* ============================================ */}
+        {/* ANALYTICS SCRIPTS FROM DEFAULT SEO API      */}
+        {/* ============================================ */}
 
-        {defaultSeoSettings?.siteKey && (
-          <meta name="site-key" content={defaultSeoSettings.siteKey} />
-        )}
-
-        {defaultSeoSettings?.name && (
-          <meta name="site-name" content={defaultSeoSettings.name} />
-        )}
-
-        {defaultSeoSettings?.description && (
-          <meta name="description" content={defaultSeoSettings.description} />
-        )}
-
-        {defaultSeoSettings?.websiteFaqId && (
-          <meta name="website-faq-id" content={defaultSeoSettings.websiteFaqId} />
-        )}
-
-        {defaultSeoSettings?.websiteFaqName && (
-          <meta name="website-faq-name" content={defaultSeoSettings.websiteFaqName} />
-        )}
-
-        {/* Base URL from default SEO settings */}
-        {defaultSeoSettings?.baseUrl && (
-          <link rel="canonical" href={defaultSeoSettings.baseUrl} />
-        )}
-
-        {/* Google Analytics from default SEO settings */}
+        {/* Google Analytics from eCatalogue API */}
         {defaultSeoSettings?.gaMeasurementId && (
-          <GoogleAnalytics gaId={defaultSeoSettings.gaMeasurementId} />
+          <>
+            {/* GA Debug Comment */}
+            {/* GA ID: {defaultSeoSettings.gaMeasurementId} */}
+            <GoogleAnalytics gaId={defaultSeoSettings.gaMeasurementId} />
+          </>
         )}
         
-        {/* Microsoft Clarity from default SEO settings */}
+        {/* Microsoft Clarity from eCatalogue API */}
         {defaultSeoSettings?.clarityId && (
-          <MicrosoftClarity clarityId={defaultSeoSettings.clarityId} />
+          <>
+            {/* Clarity Debug Comment */}
+            {/* Clarity ID: {defaultSeoSettings.clarityId} */}
+            <MicrosoftClarity clarityId={defaultSeoSettings.clarityId} />
+          </>
         )}
 
-        {/* Google Tag Manager from default SEO settings */}
+        {/* Google Tag Manager from eCatalogue API */}
         {defaultSeoSettings?.gtmId && (
-          <Script
-            id="gtm-script"
-            strategy="afterInteractive"
-            dangerouslySetInnerHTML={{
-              __html: `
-                (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-                new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-                j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-                'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-                })(window,document,'script','dataLayer','${defaultSeoSettings.gtmId}');
-              `,
-            }}
-          />
+          <>
+            {/* GTM Debug Comment */}
+            {/* GTM ID: {defaultSeoSettings.gtmId} */}
+            <Script
+              id="gtm-script"
+              strategy="afterInteractive"
+              dangerouslySetInnerHTML={{
+                __html: `
+                  (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+                  new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+                  j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+                  'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+                  })(window,document,'script','dataLayer','${defaultSeoSettings.gtmId}');
+                `,
+              }}
+            />
+          </>
         )}
+
+        {/* ============================================ */}
+        {/* JSON-LD STRUCTURED DATA                     */}
+        {/* ============================================ */}
 
         {/* Local Business JSON-LD - ONLY if company info exists */}
         {localBusinessJsonLd && (

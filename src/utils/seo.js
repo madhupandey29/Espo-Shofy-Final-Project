@@ -105,11 +105,16 @@ export const generateMetadata = async ({
   const canonical = getCanonicalUrl(path);
   const absoluteOgImage = ogImage ? getAbsoluteImageUrl(ogImage) : null;
   
+  // Site name from default SEO settings or environment
+  const siteName = defaultSeoSettings?.name || process.env.NEXT_PUBLIC_SITE_NAME || 'eCatalogue';
+  
   const ogData = {
     title,
     description,
     url: canonical,
     type: "website",
+    siteName,
+    locale: 'en_US',
     ...openGraph
   };
 
@@ -137,7 +142,7 @@ export const generateMetadata = async ({
     twitterData.images = [absoluteOgImage];
   }
 
-  // Build verification object from default SEO settings
+  // Build verification object from default SEO settings - CRITICAL FOR SEO
   const verification = {};
   if (defaultSeoSettings?.googleVerification) {
     verification.google = defaultSeoSettings.googleVerification;
@@ -164,12 +169,63 @@ export const generateMetadata = async ({
     robots: finalRobots,
     alternates: { canonical },
     openGraph: ogData,
-    twitter: twitterData
+    twitter: twitterData,
+    
+    // Apple Web App configuration from default SEO settings
+    appleWebApp: {
+      capable: true,
+      statusBarStyle: 'default',
+      title: siteName,
+    },
+
+    // Format detection settings
+    formatDetection: {
+      telephone: false,
+      email: false,
+      address: false,
+    },
+
+    // Additional meta tags from default SEO settings
+    other: {
+      ...(defaultSeoSettings?.siteStatus && {
+        'site-status': defaultSeoSettings.siteStatus,
+      }),
+      ...(defaultSeoSettings?.siteKey && {
+        'site-key': defaultSeoSettings.siteKey,
+      }),
+      ...(defaultSeoSettings?.name && {
+        'site-name': defaultSeoSettings.name,
+      }),
+      ...(defaultSeoSettings?.websiteFaqId && {
+        'website-faq-id': defaultSeoSettings.websiteFaqId,
+      }),
+      ...(defaultSeoSettings?.websiteFaqName && {
+        'website-faq-name': defaultSeoSettings.websiteFaqName,
+      }),
+      // Add Bing verification directly in other meta tags as fallback
+      ...(defaultSeoSettings?.bingVerification && {
+        'msvalidate.01': defaultSeoSettings.bingVerification,
+      }),
+    }
   };
 
-  // Add verification if we have any
+  // Add verification if we have any - CRITICAL FOR SEARCH CONSOLE
   if (Object.keys(verification).length > 0) {
     metadata.verification = verification;
+  }
+
+  // Debug log to see what metadata is being generated
+  if (process.env.NODE_ENV === 'development') {
+    console.log('🔍 SEO Utils - Generated Metadata:', {
+      title,
+      hasVerification: !!metadata.verification,
+      googleVerification: defaultSeoSettings?.googleVerification,
+      bingVerification: defaultSeoSettings?.bingVerification,
+      verificationObject: metadata.verification,
+      robots: finalRobots,
+      siteName,
+      hasOtherMeta: Object.keys(metadata.other || {}).length > 0
+    });
   }
 
   return metadata;
