@@ -786,11 +786,11 @@ export default function PopularProducts() {
           .tp-popular-product-img-wrapper {
             aspect-ratio: 1/1;
             /* keeps image area not too tall */
-            min-height: 230px;
+            min-height: 280px; /* Increased from 230px for bigger mobile images */
           }
 
           .tp-popular-product-img {
-            padding: 16px;
+            padding: 12px; /* Reduced padding for bigger images */
           }
 
           .tp-popular-product-info {
@@ -849,8 +849,8 @@ export default function PopularProducts() {
           .tp-section-description { font-size: 12.8px; }
 
           .tp-popular-product-card { max-width: 360px; }
-          .tp-popular-product-img-wrapper { min-height: 215px; }
-          .tp-popular-product-img { padding: 14px; }
+          .tp-popular-product-img-wrapper { min-height: 260px; } /* Increased for larger mobile */
+          .tp-popular-product-img { padding: 10px; } /* Reduced padding */
 
           .tp-popular-badge { top: 12px; left: 12px; }
           .tp-popular-badge-text { font-size: 10px; padding: 5px 10px; }

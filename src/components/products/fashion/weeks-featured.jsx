@@ -894,7 +894,7 @@ const WeeksFeatured = () => {
       border-radius: 12px;
     }
     .card-image {
-      padding: 12px;
+      padding: 8px; /* Reduced from 12px for bigger mobile images */
     }
 
     /* bottom spacing reduced */

@@ -346,7 +346,7 @@ const ShopContent = ({
         .products-grid{
           display:grid;
           grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
-          gap:18px;
+          gap:24px; /* Increased gap for larger mobile images */
           width:100%;
           margin-top: 18px;
         }
@@ -409,7 +409,7 @@ const ShopContent = ({
         @media (max-width: 768px) {
           .products-grid {
             grid-template-columns: 1fr;
-            gap: 16px;
+            gap: 20px; /* Normal gap - original size */
           }
           
           .progress-text {
@@ -427,7 +427,7 @@ const ShopContent = ({
         
         @media (max-width: 480px) {
           .products-grid {
-            gap: 12px;
+            gap: 18px; /* Normal gap - original size */
             grid-template-columns: 1fr;
           }
           

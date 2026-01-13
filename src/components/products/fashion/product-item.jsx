@@ -573,7 +573,7 @@ const ProductItem = ({ product, index = 0 }) => {
         :global(.products-grid) {
           display: grid;
           grid-template-columns: 1fr; /* Mobile: 1 column */
-          gap: 24px;
+          gap: 20px; /* Normal gap - original size */
           margin: 0;
           padding: 0;
           width: 100%;
@@ -581,7 +581,7 @@ const ProductItem = ({ product, index = 0 }) => {
         @media (min-width: 640px) {
           :global(.products-grid) {
             grid-template-columns: repeat(2, 1fr); /* Small tablet: 2 columns */
-            gap: 20px;
+            gap: 22px;
           }
         }
         @media (min-width: 768px) {
@@ -656,21 +656,26 @@ const ProductItem = ({ product, index = 0 }) => {
           align-items: center;
           justify-content: center;
 
-          height: 280px; /* mobile - bigger image */
+          height: 280px; /* mobile - original container size */
+        }
+        @media (min-width: 480px) {
+          .product-image-container {
+            height: 280px; /* larger mobile - same size */
+          }
         }
         @media (min-width: 640px) {
           .product-image-container {
-            height: 260px; /* small tablet */
+            height: 280px; /* small tablet */
           }
         }
         @media (min-width: 768px) {
           .product-image-container {
-            height: 280px; /* tablet/desktop */
+            height: 300px; /* tablet/desktop */
           }
         }
         @media (min-width: 1200px) {
           .product-image-container {
-            height: 300px; /* large desktop */
+            height: 320px; /* large desktop */
           }
         }
 
@@ -680,16 +685,26 @@ const ProductItem = ({ product, index = 0 }) => {
           height: 100%;
         }
 
-        /* Enhanced image styling with bigger images */
+        /* Enhanced image styling with MAXIMUM size images */
         .image-wrapper {
           position: relative;
           width: 100%;
           height: 100%;
-          padding: 8px; /* mobile - less padding for bigger image */
+          padding: 0px; /* mobile - NO padding for MAXIMUM image size */
+        }
+        @media (min-width: 480px) {
+          .image-wrapper {
+            padding: 0px; /* larger mobile - no padding */
+          }
         }
         @media (min-width: 768px) {
           .image-wrapper {
-            padding: 12px; /* desktop - less padding for bigger image */
+            padding: 4px; /* desktop - minimal padding */
+          }
+        }
+        @media (min-width: 1200px) {
+          .image-wrapper {
+            padding: 6px; /* large desktop - minimal padding */
           }
         }
 
@@ -699,11 +714,11 @@ const ProductItem = ({ product, index = 0 }) => {
           object-position: center;
           display: block;
           background: #fff;
-          border-radius: 12px;
+          border-radius: 8px; /* Smaller border radius for bigger appearance */
           transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
           box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
 
-          /* Remove object-fit contain - use cover for bigger appearance */
+          /* Use cover for maximum image fill */
           object-fit: cover !important;
         }
 
@@ -718,7 +733,7 @@ const ProductItem = ({ product, index = 0 }) => {
           background: linear-gradient(to bottom, rgba(0, 0, 0, 0) 60%, rgba(0, 0, 0, 0.04) 100%);
           z-index: 1;
           pointer-events: none;
-          border-radius: 12px;
+          border-radius: 8px; /* Match image border radius */
         }
 
         .options-ribbon {
