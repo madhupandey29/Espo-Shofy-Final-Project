@@ -1,12 +1,15 @@
-# *
+# Allow all crawlers by default
 User-agent: *
 Allow: /
 
-# *
-User-agent: *
+# ✅ Allow Next.js assets (fix Semrush "blocked internal resources")
+Allow: /_next/static/
+Allow: /_next/image
+Allow: /_next/*
+
+# ❌ Block sensitive areas
 Disallow: /api/*
 Disallow: /admin/*
-Disallow: /_next/*
 Disallow: /checkout
 Disallow: /test-*
 Disallow: /debug-*

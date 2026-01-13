@@ -1,8 +1,11 @@
 import './globals.scss';
 import '../styles/carousel-mobile-fix.css';
+import '../styles/security-protection.css';
 import Providers from '@/components/provider';
 import GoogleAnalytics from '@/components/analytics/GoogleAnalytics';
 import MicrosoftClarity from '@/components/analytics/MicrosoftClarity';
+import AntiInspection from '@/components/security/AntiInspection';
+import AdvancedProtection from '@/components/security/AdvancedProtection';
 import Script from 'next/script';
 
 import '/public/assets/css/font-awesome-pro.css';
@@ -297,6 +300,33 @@ export default async function RootLayout({ children }) {
       </head>
 
       <body>
+        {/* Environment Detection Script - Sets data-env attribute for CSS rules */}
+        <Script
+          id="environment-detection"
+          strategy="beforeInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `
+              // Set environment attribute on body for CSS targeting
+              (function() {
+                const isProduction = '${process.env.NODE_ENV}' === 'production';
+                document.documentElement.setAttribute('data-env', isProduction ? 'production' : 'development');
+                document.body.setAttribute('data-env', isProduction ? 'production' : 'development');
+                
+                // Console log for debugging
+                console.log('🌍 Environment Detection:', {
+                  nodeEnv: '${process.env.NODE_ENV}',
+                  isProduction: isProduction,
+                  dataEnvSet: isProduction ? 'production' : 'development'
+                });
+              })();
+            `,
+          }}
+        />
+
+        {/* Security Protection Components */}
+        <AntiInspection />
+        <AdvancedProtection />
+
         {/* Google Tag Manager (noscript) from default SEO settings */}
         {defaultSeoSettings?.gtmId && (
           <noscript>
