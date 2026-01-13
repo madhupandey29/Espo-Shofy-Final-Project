@@ -8,12 +8,12 @@ import Script from 'next/script';
 import '/public/assets/css/font-awesome-pro.css';
 
 /* -------------------------------------------------- */
-/* API Data Fetchers                                   */
+/* API Data Fetcher - Only Default SEO Settings       */
 /* -------------------------------------------------- */
-async function getSiteSettings() {
+async function getDefaultSeoSettings() {
   try {
     const res = await fetch(
-      `${process.env.NEXT_PUBLIC_API_BASE_URL}/sitesettings`,
+      `${process.env.NEXT_PUBLIC_API_BASE_URL}/sitesettings/fieldname/name/eCatalogue`,
       { 
         next: { revalidate: 3600 } // Cache for 1 hour
       }
@@ -22,27 +22,11 @@ async function getSiteSettings() {
     if (!res.ok) return null;
     const json = await res.json();
     
-    if (!json?.success || !json.data) return null;
+    if (!json?.success || !json.data || json.data.length === 0) return null;
     
-    // Get filter value from environment variable - REQUIRED
-    const siteFilter = process.env.NEXT_PUBLIC_SITE_FILTER;
-    
-    if (!siteFilter) {
-      console.error('NEXT_PUBLIC_SITE_FILTER is required but not set');
-      return null;
-    }
-    
-    // Find exact match only - NO FALLBACK
-    const targetSite = json.data.find(site => site.siteKey === siteFilter);
-    
-    if (!targetSite) {
-      console.error(`No site found with siteKey: ${siteFilter}`);
-      return null;
-    }
-    
-    return targetSite;
+    return json.data[0];
   } catch (error) {
-    console.error('Error fetching site settings:', error);
+    console.error('Error fetching default SEO settings:', error);
     return null;
   }
 }
@@ -85,26 +69,21 @@ async function getCompanyInformation() {
 }
 
 /* -------------------------------------------------- */
-/* Metadata Generation (META TAGS)                    */
+/* Metadata Generation - Using Default SEO API        */
 /* -------------------------------------------------- */
 export async function generateMetadata() {
-  const siteSettings = await getSiteSettings();
-  const companyInfo = await getCompanyInformation();
+  const defaultSeoSettings = await getDefaultSeoSettings();
 
-  // Site name from environment - REQUIRED
-  const siteName = process.env.NEXT_PUBLIC_SITE_NAME;
-  
-  if (!siteName) {
-    console.error('NEXT_PUBLIC_SITE_NAME is required but not set');
-  }
+  // Site name from environment
+  const siteName = process.env.NEXT_PUBLIC_SITE_NAME || 'eCatalogue';
 
-  // Build metadata object with only available data
+  // Build metadata object using default SEO settings
   const metadata = {
     // Apple Web App configuration
     appleWebApp: {
       capable: true,
       statusBarStyle: 'default',
-      title: siteName || 'Default Site',
+      title: defaultSeoSettings?.name || siteName,
     },
 
     // Format detection settings
@@ -117,57 +96,54 @@ export async function generateMetadata() {
     // OpenGraph configuration
     openGraph: {
       type: 'website',
-      siteName: siteName || 'Default Site',
+      siteName: defaultSeoSettings?.name || siteName,
       locale: 'en_US',
     },
   };
 
-  // Add verification tokens ONLY if site settings exist and have values
-  if (siteSettings) {
-    if (siteSettings.googleVerification || siteSettings.bingVerification) {
-      metadata.verification = {};
-      
-      if (siteSettings.googleVerification) {
-        metadata.verification.google = siteSettings.googleVerification;
-      }
-      
-      if (siteSettings.bingVerification) {
-        metadata.verification.other = {
-          'msvalidate.01': siteSettings.bingVerification,
-        };
-      }
+  // Add verification tokens from default SEO settings
+  if (defaultSeoSettings?.googleVerification || defaultSeoSettings?.bingVerification) {
+    metadata.verification = {};
+    
+    if (defaultSeoSettings.googleVerification) {
+      metadata.verification.google = defaultSeoSettings.googleVerification;
     }
-
-    // Add Twitter configuration ONLY if available
-    if (siteSettings.twitterHandle) {
-      metadata.twitter = {
-        card: 'summary_large_image',
-        site: siteSettings.twitterHandle.startsWith('@') 
-          ? siteSettings.twitterHandle 
-          : `@${siteSettings.twitterHandle}`,
-        title: siteName || 'eCatalogue',
+    
+    if (defaultSeoSettings.bingVerification) {
+      metadata.verification.other = {
+        'msvalidate.01': defaultSeoSettings.bingVerification,
       };
     }
+  }
 
-    // Add robots policy ONLY if available
-    if (siteSettings.robotsPolicy) {
-      metadata.robots = siteSettings.robotsPolicy;
-    }
+  // Add Twitter configuration from default SEO settings
+  if (defaultSeoSettings?.twitterHandle) {
+    metadata.twitter = {
+      card: 'summary_large_image',
+      site: defaultSeoSettings.twitterHandle.startsWith('@') 
+        ? defaultSeoSettings.twitterHandle 
+        : `@${defaultSeoSettings.twitterHandle}`,
+      title: defaultSeoSettings?.name || siteName,
+    };
+  }
+
+  // Add robots policy from default SEO settings
+  if (defaultSeoSettings?.robotsPolicy) {
+    metadata.robots = defaultSeoSettings.robotsPolicy;
   }
 
   return metadata;
 }
 
 /* -------------------------------------------------- */
-/* Root Layout Component                               */
+/* Root Layout Component - Using Default SEO API      */
 /* -------------------------------------------------- */
 export default async function RootLayout({ children }) {
-  // Fetch API data with strict filtering - NO FALLBACKS
-  const siteSettings = await getSiteSettings();
+  // Fetch only default SEO settings and company info
+  const defaultSeoSettings = await getDefaultSeoSettings();
   const companyInfo = await getCompanyInformation();
 
-  // Site name from environment - REQUIRED
-  const siteName = process.env.NEXT_PUBLIC_SITE_NAME;
+  console.log('🔍 Default SEO Settings:', defaultSeoSettings);
 
   // Generate Local Business JSON-LD ONLY if company info exists
   const localBusinessJsonLd = companyInfo && {
@@ -238,28 +214,48 @@ export default async function RootLayout({ children }) {
   return (
     <html lang="en">
       <head>
-        {/* Site Status Meta Tag - ONLY if site settings exist */}
-        {siteSettings?.siteStatus && (
-          <meta name="site-status" content={siteSettings.siteStatus} />
+        {/* All SEO Meta Tags from Default SEO API */}
+        {defaultSeoSettings?.siteStatus && (
+          <meta name="site-status" content={defaultSeoSettings.siteStatus} />
         )}
 
-        {/* Base URL - ONLY if site settings exist */}
-        {siteSettings?.baseUrl && (
-          <link rel="canonical" href={siteSettings.baseUrl} />
+        {defaultSeoSettings?.siteKey && (
+          <meta name="site-key" content={defaultSeoSettings.siteKey} />
         )}
 
-        {/* Google Analytics - ONLY if site settings exist and have GA ID */}
-        {siteSettings?.gaMeasurementId && (
-          <GoogleAnalytics gaId={siteSettings.gaMeasurementId} />
+        {defaultSeoSettings?.name && (
+          <meta name="site-name" content={defaultSeoSettings.name} />
+        )}
+
+        {defaultSeoSettings?.description && (
+          <meta name="description" content={defaultSeoSettings.description} />
+        )}
+
+        {defaultSeoSettings?.websiteFaqId && (
+          <meta name="website-faq-id" content={defaultSeoSettings.websiteFaqId} />
+        )}
+
+        {defaultSeoSettings?.websiteFaqName && (
+          <meta name="website-faq-name" content={defaultSeoSettings.websiteFaqName} />
+        )}
+
+        {/* Base URL from default SEO settings */}
+        {defaultSeoSettings?.baseUrl && (
+          <link rel="canonical" href={defaultSeoSettings.baseUrl} />
+        )}
+
+        {/* Google Analytics from default SEO settings */}
+        {defaultSeoSettings?.gaMeasurementId && (
+          <GoogleAnalytics gaId={defaultSeoSettings.gaMeasurementId} />
         )}
         
-        {/* Microsoft Clarity - ONLY if site settings exist and have Clarity ID */}
-        {siteSettings?.clarityId && (
-          <MicrosoftClarity clarityId={siteSettings.clarityId} />
+        {/* Microsoft Clarity from default SEO settings */}
+        {defaultSeoSettings?.clarityId && (
+          <MicrosoftClarity clarityId={defaultSeoSettings.clarityId} />
         )}
 
-        {/* Google Tag Manager - ONLY if site settings exist and have GTM ID */}
-        {siteSettings?.gtmId && (
+        {/* Google Tag Manager from default SEO settings */}
+        {defaultSeoSettings?.gtmId && (
           <Script
             id="gtm-script"
             strategy="afterInteractive"
@@ -269,7 +265,7 @@ export default async function RootLayout({ children }) {
                 new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
                 j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
                 'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-                })(window,document,'script','dataLayer','${siteSettings.gtmId}');
+                })(window,document,'script','dataLayer','${defaultSeoSettings.gtmId}');
               `,
             }}
           />
@@ -348,11 +344,11 @@ export default async function RootLayout({ children }) {
       </head>
 
       <body>
-        {/* Google Tag Manager (noscript) - ONLY if site settings exist and have GTM ID */}
-        {siteSettings?.gtmId && (
+        {/* Google Tag Manager (noscript) from default SEO settings */}
+        {defaultSeoSettings?.gtmId && (
           <noscript>
             <iframe
-              src={`https://www.googletagmanager.com/ns.html?id=${siteSettings.gtmId}`}
+              src={`https://www.googletagmanager.com/ns.html?id=${defaultSeoSettings.gtmId}`}
               height="0"
               width="0"
               style={{ display: 'none', visibility: 'hidden' }}

@@ -17,6 +17,30 @@ if (process.env.NODE_ENV === 'development') {
 }
 
 /**
+ * Fetch default SEO settings from API
+ */
+async function getDefaultSeoSettings() {
+  try {
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_API_BASE_URL}/sitesettings/fieldname/name/eCatalogue`,
+      { 
+        next: { revalidate: 3600 } // Cache for 1 hour
+      }
+    );
+    
+    if (!res.ok) return null;
+    const json = await res.json();
+    
+    if (!json?.success || !json.data || json.data.length === 0) return null;
+    
+    return json.data[0];
+  } catch (error) {
+    console.error('Error fetching default SEO settings:', error);
+    return null;
+  }
+}
+
+/**
  * Generate canonical URL from environment variable and path
  * @param {string} path - The path to append to the site URL (default: "/")
  * @returns {string} - Complete canonical URL
@@ -53,7 +77,7 @@ export const getAbsoluteImageUrl = (imagePath) => {
 };
 
 /**
- * Generate metadata object with canonical URL
+ * Generate metadata object with canonical URL and default SEO settings
  * @param {Object} options - Metadata options
  * @param {string} options.title - Page title
  * @param {string} options.description - Page description
@@ -65,7 +89,7 @@ export const getAbsoluteImageUrl = (imagePath) => {
  * @param {Object} options.twitter - Twitter card overrides
  * @returns {Object} - Next.js metadata object
  */
-export const generateMetadata = ({
+export const generateMetadata = async ({
   title,
   description,
   path = "/",
@@ -75,6 +99,9 @@ export const generateMetadata = ({
   openGraph = {},
   twitter = {}
 }) => {
+  // Fetch default SEO settings
+  const defaultSeoSettings = await getDefaultSeoSettings();
+  
   const canonical = getCanonicalUrl(path);
   const absoluteOgImage = ogImage ? getAbsoluteImageUrl(ogImage) : null;
   
@@ -109,14 +136,41 @@ export const generateMetadata = ({
   if (absoluteOgImage) {
     twitterData.images = [absoluteOgImage];
   }
+
+  // Build verification object from default SEO settings
+  const verification = {};
+  if (defaultSeoSettings?.googleVerification) {
+    verification.google = defaultSeoSettings.googleVerification;
+  }
+  if (defaultSeoSettings?.bingVerification) {
+    verification.other = {
+      'msvalidate.01': defaultSeoSettings.bingVerification,
+    };
+  }
+
+  // Build Twitter handle from default SEO settings
+  const twitterHandle = defaultSeoSettings?.twitterHandle;
+  if (twitterHandle) {
+    twitterData.site = twitterHandle.startsWith('@') ? twitterHandle : `@${twitterHandle}`;
+  }
+
+  // Use robots policy from default SEO settings if not provided
+  const finalRobots = robots || defaultSeoSettings?.robotsPolicy || "index, follow";
   
-  return {
+  const metadata = {
     title,
     description,
     keywords,
-    robots,
+    robots: finalRobots,
     alternates: { canonical },
     openGraph: ogData,
     twitter: twitterData
   };
+
+  // Add verification if we have any
+  if (Object.keys(verification).length > 0) {
+    metadata.verification = verification;
+  }
+
+  return metadata;
 };

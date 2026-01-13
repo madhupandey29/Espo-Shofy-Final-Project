@@ -6,7 +6,6 @@ import { useGetFieldValuesQuery } from '@/redux/api/apiSlice';
 /* Enhanced filter configuration with accordion support */
 const FIELD_FILTERS = [
   { key: 'category', label: 'CATEGORIES', searchable: false, limit: 8, defaultOpen: true },
-  { key: 'brand', label: 'BRAND', searchable: true, limit: 8, defaultOpen: false },
   { key: 'color', label: 'COLOR', searchable: true, limit: 12, defaultOpen: true }, // Increased limit for colors
   { key: 'content', label: 'CONTENT', searchable: true, limit: 8, defaultOpen: false },
   { key: 'design', label: 'DESIGN', searchable: true, limit: 8, defaultOpen: false },
@@ -263,24 +262,24 @@ export default function EnhancedShopSidebarFilters({ onFilterChange, selected = 
       <style jsx global>{`
         .myntraSidebar {
           width: 100%;
-          background: ${UI.bg};
-          border: 1px solid ${UI.border};
+          background: #ffffff;
+          border: 1px solid #e2e8f0;
           border-radius: 12px;
           font-family: var(--tp-ff-roboto);
-          box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+          box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+          overflow: hidden;
         }
 
         .mHeader {
-          padding: 16px 18px 12px;
-          border-bottom: 1px solid ${UI.border};
+          padding: 18px 20px;
+          border-bottom: 1px solid #f1f5f9;
           display: flex;
           justify-content: space-between;
           align-items: center;
-          background: ${UI.lightBg};
+          background: #fafbfc;
           position: sticky;
           top: 0;
           z-index: 5;
-          border-radius: 12px 12px 0 0;
         }
 
         .mHeaderLeft {
@@ -291,63 +290,60 @@ export default function EnhancedShopSidebarFilters({ onFilterChange, selected = 
 
         .mHeaderTitle {
           font-size: 15px;
-          font-weight: 800;
-          letter-spacing: 0.8px;
-          color: ${UI.text};
+          font-weight: 700;
+          letter-spacing: 0.5px;
+          color: #1e293b;
         }
 
         .mBadge {
-          background: ${UI.pink};
+          background: #2c4c97;
           color: white;
           font-size: 11px;
-          font-weight: 800;
-          padding: 3px 9px;
-          border-radius: 14px;
+          font-weight: 600;
+          padding: 3px 8px;
+          border-radius: 12px;
           line-height: 16px;
-          min-width: 24px;
+          min-width: 22px;
           text-align: center;
         }
 
         .mClearAll {
           border: none;
-          background: transparent;
-          color: ${UI.pink};
+          background: #2c4c97;
+          color: white;
           font-size: 12px;
-          font-weight: 800;
+          font-weight: 600;
           cursor: pointer;
-          letter-spacing: 0.4px;
-          padding: 6px 8px;
-          border-radius: 6px;
+          letter-spacing: 0.3px;
+          padding: 6px 12px;
+          border-radius: 8px;
           transition: background-color 0.2s ease;
         }
 
         .mClearAll:hover {
-          background: rgba(255, 105, 180, 0.1);
+          background: #1e3a8a;
         }
 
         .mSection {
-          border-bottom: 1px solid ${UI.border};
-          transition: all 0.2s ease;
+          border-bottom: 1px solid #f1f5f9;
         }
 
         .mSection:last-child {
           border-bottom: none;
-          border-radius: 0 0 12px 12px;
         }
 
         .mSectionHead {
           display: flex;
           align-items: center;
           justify-content: space-between;
-          padding: 14px 18px;
+          padding: 16px 20px;
           cursor: pointer;
           user-select: none;
           transition: background-color 0.2s ease;
-          position: relative;
         }
 
         .mSectionHead:hover {
-          background: ${UI.lightBg};
+          background: #f8fafc;
         }
 
         .mSectionHeadLeft {
@@ -359,17 +355,17 @@ export default function EnhancedShopSidebarFilters({ onFilterChange, selected = 
 
         .mSectionTitle {
           font-size: 13px;
-          font-weight: 700;
-          letter-spacing: 0.5px;
-          color: ${UI.text};
+          font-weight: 600;
+          letter-spacing: 0.4px;
+          color: #374151;
           text-transform: uppercase;
         }
 
         .mSectionBadge {
-          background: ${UI.pink};
+          background: #10b981;
           color: white;
           font-size: 10px;
-          font-weight: 700;
+          font-weight: 600;
           padding: 2px 6px;
           border-radius: 10px;
           line-height: 14px;
@@ -385,36 +381,38 @@ export default function EnhancedShopSidebarFilters({ onFilterChange, selected = 
 
         .mSearchBtn {
           border: none;
-          background: transparent;
+          background: #f1f5f9;
           padding: 6px;
           cursor: pointer;
           display: inline-flex;
           align-items: center;
           justify-content: center;
-          border-radius: 50%;
-          color: ${UI.muted};
+          border-radius: 8px;
+          color: #64748b;
           transition: all 0.2s ease;
         }
 
         .mSearchBtn:hover {
-          background: rgba(0,0,0,0.05);
-          color: ${UI.text};
+          background: #2c4c97;
+          color: white;
         }
 
         .mAccordionToggle {
           border: none;
-          background: transparent;
+          background: #f1f5f9;
           padding: 4px;
           cursor: pointer;
           display: inline-flex;
           align-items: center;
           justify-content: center;
-          color: ${UI.muted};
+          color: #64748b;
           transition: all 0.2s ease;
+          border-radius: 6px;
         }
 
         .mAccordionToggle:hover {
-          color: ${UI.text};
+          background: #2c4c97;
+          color: white;
         }
 
         .mSectionContent {
@@ -433,60 +431,60 @@ export default function EnhancedShopSidebarFilters({ onFilterChange, selected = 
         }
 
         .mSectionInner {
-          padding: 0 18px 16px;
+          padding: 0 20px 16px;
           max-height: 350px;
           overflow-y: auto;
           overflow-x: hidden;
         }
 
-        /* Custom scrollbar for filter sections */
+        /* Clean scrollbar */
         .mSectionInner::-webkit-scrollbar {
           width: 6px;
         }
 
         .mSectionInner::-webkit-scrollbar-track {
-          background: transparent;
+          background: #f8fafc;
+          border-radius: 3px;
         }
 
         .mSectionInner::-webkit-scrollbar-thumb {
-          background: #d5d5d5;
+          background: #cbd5e1;
           border-radius: 3px;
         }
 
         .mSectionInner::-webkit-scrollbar-thumb:hover {
-          background: #c0c0c0;
-        }
-
-        .mSectionInner {
-          scrollbar-width: thin;
-          scrollbar-color: #d5d5d5 transparent;
+          background: #94a3b8;
         }
 
         .mSearchRow {
-          margin: 0 0 14px;
+          margin: 0 0 16px;
         }
 
         .mSearchInput {
           width: 100%;
-          border: 1px solid ${UI.border};
+          border: 1px solid #e2e8f0;
           border-radius: 8px;
           padding: 10px 12px;
           font-size: 13px;
           outline: none;
-          color: ${UI.text};
-          background: ${UI.bg};
-          transition: all 0.2s ease;
+          color: #374151;
+          background: #ffffff;
+          transition: border-color 0.2s ease;
         }
         
         .mSearchInput:focus{
-          border-color: var(--tp-theme-primary);
-          box-shadow: 0 0 0 3px rgba(44, 76, 151, 0.12);
+          border-color: #2c4c97;
+          box-shadow: 0 0 0 3px rgba(44, 76, 151, 0.1);
+        }
+
+        .mSearchInput::placeholder {
+          color: #9ca3af;
         }
 
         .mList {
           display: flex;
           flex-direction: column;
-          gap: 12px;
+          gap: 10px;
         }
 
         .mItem {
@@ -495,15 +493,17 @@ export default function EnhancedShopSidebarFilters({ onFilterChange, selected = 
           gap: 12px;
           cursor: pointer;
           user-select: none;
-          color: ${UI.text};
+          color: #374151;
           font-size: 14px;
           line-height: 20px;
-          padding: 2px 0;
+          padding: 6px 8px;
           transition: all 0.2s ease;
+          border-radius: 6px;
         }
 
         .mItem:hover {
-          color: ${UI.pink};
+          color: #2c4c97;
+          background: #f8fafc;
         }
 
         .mItem input {
@@ -515,8 +515,8 @@ export default function EnhancedShopSidebarFilters({ onFilterChange, selected = 
         .mCheck {
           width: 18px;
           height: 18px;
-          border: 2px solid #bfc0c6;
-          border-radius: 3px;
+          border: 2px solid #d1d5db;
+          border-radius: 4px;
           display: inline-flex;
           align-items: center;
           justify-content: center;
@@ -526,8 +526,8 @@ export default function EnhancedShopSidebarFilters({ onFilterChange, selected = 
         }
 
         .mItem input:checked + .mCheck {
-          border-color: ${UI.pink};
-          background: ${UI.pink};
+          border-color: #2c4c97;
+          background: #2c4c97;
         }
 
         .mItem input:checked + .mCheck:after {
@@ -535,16 +535,20 @@ export default function EnhancedShopSidebarFilters({ onFilterChange, selected = 
           color: white;
           font-size: 12px;
           line-height: 12px;
-          font-weight: 800;
-          transform: translateY(-1px);
+          font-weight: 700;
         }
 
         .mDot {
           width: 16px;
           height: 16px;
           border-radius: 50%;
-          border: 2px solid #d4d5d9;
+          border: 2px solid #e5e7eb;
           flex: 0 0 16px;
+          transition: transform 0.2s ease;
+        }
+
+        .mItem:hover .mDot {
+          transform: scale(1.1);
         }
 
         .mText {
@@ -557,48 +561,65 @@ export default function EnhancedShopSidebarFilters({ onFilterChange, selected = 
         }
 
         .mCount {
-          color: ${UI.muted};
+          color: #6b7280;
           font-size: 12px;
           flex: 0 0 auto;
-          font-weight: 600;
+          font-weight: 500;
+          background: #f3f4f6;
+          padding: 2px 6px;
+          border-radius: 6px;
         }
 
         .mMore {
           margin-top: 12px;
-          color: ${UI.pink};
+          color: #2c4c97;
           font-size: 13px;
-          font-weight: 700;
+          font-weight: 600;
           cursor: pointer;
           display: inline-block;
-          padding: 4px 0;
+          padding: 6px 12px;
+          border-radius: 6px;
+          background: #f8fafc;
+          border: 1px solid #e2e8f0;
           transition: all 0.2s ease;
         }
 
         .mMore:hover {
-          text-decoration: underline;
+          background: #2c4c97;
+          color: white;
+          border-color: #2c4c97;
         }
 
         .mState {
-          color: ${UI.muted};
+          color: #6b7280;
           font-size: 13px;
-          padding: 8px 0;
+          padding: 12px 0;
           text-align: center;
           font-style: italic;
         }
 
-        /* Responsive improvements for wider sidebar */
+        /* Responsive */
         @media (min-width: 1200px) {
           .mList {
-            gap: 10px;
+            gap: 8px;
           }
           
           .mItem {
             font-size: 13px;
             line-height: 18px;
+            padding: 4px 6px;
           }
           
           .mSectionInner {
-            padding: 0 16px 14px;
+            padding: 0 18px 14px;
+          }
+
+          .mHeader {
+            padding: 16px 18px;
+          }
+
+          .mSectionHead {
+            padding: 14px 18px;
           }
         }
       `}</style>
