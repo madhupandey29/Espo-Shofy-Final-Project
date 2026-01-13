@@ -3,18 +3,21 @@ import Image from "next/image";
 // internal
 import founder_img from "@assets/img/blog/founder1.jpg";
 import signature from "@assets/img/blog/signature/signature.png";
-import { useGetAuthorsQuery } from "@/redux/features/authorApi";
+import { useGetAuthorsQuery } from "@/redux/api/apiSlice";
 
 const BlogDetailsAuthor = ({ authorId = null, authorName = null }) => {
-  const { data: authors, isLoading, error } = useGetAuthorsQuery();
+  const { data: apiResponse, isLoading, error } = useGetAuthorsQuery();
+  
+  // Extract authors from API response
+  const authors = apiResponse?.success && apiResponse?.data ? apiResponse.data : [];
   
   // Get author by ID, name, or first available
   let author = null;
   if (authors?.length) {
     if (authorId) {
-      author = authors.find(a => a._id === authorId);
+      author = authors.find(a => a.id === authorId || a._id === authorId);
     } else if (authorName) {
-      author = authors.find(a => a.name.toLowerCase() === authorName.toLowerCase());
+      author = authors.find(a => a.name && a.name.toLowerCase() === authorName.toLowerCase());
     }
     // Fallback to first author if no match found
     if (!author) {
@@ -139,7 +142,7 @@ const BlogDetailsAuthor = ({ authorId = null, authorName = null }) => {
       </div>
     );
   }
-  // Dynamic content from API
+  // Dynamic content from API - NO FALLBACKS, show raw API data
   return (
     <div
       className="tp-postbox-details-author text-center"
@@ -175,7 +178,7 @@ const BlogDetailsAuthor = ({ authorId = null, authorName = null }) => {
         />
       </div>
 
-      {/* Author Details */}
+      {/* Author Details - RAW API DATA */}
       <div className="tp-postbox-details-author-content">
         <h4
           className="tp-postbox-details-author-title"
@@ -185,7 +188,7 @@ const BlogDetailsAuthor = ({ authorId = null, authorName = null }) => {
             marginBottom: "6px",
           }}
         >
-          {author.name}
+          {author.name || 'No name from API'}
         </h4>
         <p
           style={{
@@ -195,7 +198,7 @@ const BlogDetailsAuthor = ({ authorId = null, authorName = null }) => {
             lineHeight: "1.5",
           }}
         >
-          {author.designation}
+          {author.designation || 'No designation from API'}
         </p>
 
         <p
@@ -207,7 +210,7 @@ const BlogDetailsAuthor = ({ authorId = null, authorName = null }) => {
             lineHeight: "1.7",
           }}
         >
-          {author.description}
+          {author.description || 'No description from API'}
         </p>
 
         {/* Signature - Keep static for now */}

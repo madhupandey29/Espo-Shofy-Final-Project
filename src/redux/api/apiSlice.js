@@ -91,6 +91,39 @@ export const apiSlice = createApi({
       keepUnusedDataFor: 0,
     }),
 
+    // New endpoint for getting field values filtered by eCatalogue products only
+    getECatalogueFieldValues: builder.query({
+      query: (fieldName) => ({
+        url: `product/fieldname/${fieldName}/filter/ecatalogue`,
+        method: "GET",
+      }),
+      providesTags: (_result, _err, fieldName) => [
+        { type: "ECatalogueFieldValues", id: fieldName }
+      ],
+      // Force fresh data on every request during development
+      keepUnusedDataFor: 0,
+    }),
+
+    // Author API endpoint
+    getAuthors: builder.query({
+      query: () => ({
+        url: "author",
+        method: "GET",
+      }),
+      providesTags: ["Authors"],
+      keepUnusedDataFor: 300, // Cache for 5 minutes
+    }),
+
+    getAuthorById: builder.query({
+      query: (id) => ({
+        url: `author/${id}`,
+        method: "GET",
+      }),
+      providesTags: (_result, _err, id) => [
+        { type: "Author", id }
+      ],
+    }),
+
     getProductsByFieldValue: builder.query({
       query: ({ fieldName, value }) => ({
         url: `product/fieldname/${fieldName}/${encodeURIComponent(value)}`,
@@ -149,9 +182,12 @@ export const apiSlice = createApi({
     "ContactDraft",
     "Author",
     "FieldValues",
+    "ECatalogueFieldValues",
     "ProductsByField",
     "ProductBySlug",
+    "Authors",
+    "Author",
   ],
 });
 
-export const { useGetFilterOptionsQuery, useGetFieldValuesQuery, useGetProductsByFieldValueQuery, useGetProductBySlugQuery } = apiSlice;
+export const { useGetFilterOptionsQuery, useGetFieldValuesQuery, useGetECatalogueFieldValuesQuery, useGetProductsByFieldValueQuery, useGetProductBySlugQuery, useGetAuthorsQuery, useGetAuthorByIdQuery } = apiSlice;

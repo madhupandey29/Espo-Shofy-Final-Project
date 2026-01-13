@@ -1,5 +1,3 @@
-'use client';
-
 import React, { useMemo, useState } from 'react';
 import { useGetFieldValuesQuery } from '@/redux/api/apiSlice';
 
@@ -172,7 +170,7 @@ function ChevronIcon({ isOpen }) {
   );
 }
 
-export default function EnhancedShopSidebarFilters({ onFilterChange, selected = {}, onResetAll }) {
+export default function EnhancedShopSidebarFilters({ onFilterChange, selected = {}, onResetAll, eCatalogueProducts = [] }) {
   const [openSearch, setOpenSearch] = useState({});
   const [query, setQuery] = useState({});
   const [showAll, setShowAll] = useState({});
@@ -185,6 +183,47 @@ export default function EnhancedShopSidebarFilters({ onFilterChange, selected = 
     });
     return initial;
   });
+
+  // 🎯 Extract field values from eCatalogue products
+  const eCatalogueFieldValues = useMemo(() => {
+    if (!Array.isArray(eCatalogueProducts) || eCatalogueProducts.length === 0) {
+      return {};
+    }
+
+    const fieldValues = {};
+    
+    FIELD_FILTERS.forEach(filter => {
+      const fieldKey = filter.key;
+      const values = new Map(); // Use Map to count occurrences
+      
+      eCatalogueProducts.forEach(product => {
+        let fieldValue = product[fieldKey];
+        
+        // Handle array values (like tags)
+        if (Array.isArray(fieldValue)) {
+          fieldValue.forEach(val => {
+            if (val && String(val).trim()) {
+              const normalizedVal = String(val).trim();
+              values.set(normalizedVal, (values.get(normalizedVal) || 0) + 1);
+            }
+          });
+        } else if (fieldValue && String(fieldValue).trim()) {
+          const normalizedVal = String(fieldValue).trim();
+          values.set(normalizedVal, (values.get(normalizedVal) || 0) + 1);
+        }
+      });
+      
+      // Convert Map to array of objects with count
+      fieldValues[fieldKey] = Array.from(values.entries()).map(([value, count]) => ({
+        value,
+        count
+      })).sort((a, b) => b.count - a.count); // Sort by count descending
+    });
+    
+    return fieldValues;
+  }, [eCatalogueProducts]);
+
+  console.log('🎯 eCatalogue Field Values:', eCatalogueFieldValues);
 
   const totalActive = Object.values(selected).reduce(
     (sum, v) => sum + (Array.isArray(v) ? v.length : 0),
@@ -254,6 +293,7 @@ export default function EnhancedShopSidebarFilters({ onFilterChange, selected = 
               setQuery={(v) => setQuery((p) => ({ ...p, [f.key]: v }))}
               setShowAll={(v) => setShowAll((p) => ({ ...p, [f.key]: v }))}
               onToggleValue={(val) => toggleValue(f.key, val)}
+              eCatalogueFieldValues={eCatalogueFieldValues} // 🎯 Pass eCatalogue data
             />
           );
         })}
@@ -640,19 +680,34 @@ function FilterSection({
   setQuery,
   setShowAll,
   onToggleValue,
+  eCatalogueFieldValues, // 🎯 New prop for eCatalogue field values
 }) {
+  // 🎯 Use eCatalogue field values if available, otherwise fall back to API
+  const shouldUseECatalogueData = eCatalogueFieldValues && eCatalogueFieldValues[filter.key];
+  
   const { data, isLoading, error } = useGetFieldValuesQuery(filter.key, {
-    skip: !filter.key,
+    skip: shouldUseECatalogueData, // Skip API call if we have eCatalogue data
   });
 
   const options = useMemo(() => {
-    const raw = data?.values || [];
-    const norm = normalizeOptions(raw);
+    let rawValues;
+    
+    if (shouldUseECatalogueData) {
+      // 🎯 Use eCatalogue filtered data
+      rawValues = eCatalogueFieldValues[filter.key];
+      console.log(`🎯 Using eCatalogue data for ${filter.key}:`, rawValues?.length, 'values');
+    } else {
+      // Fall back to API data
+      rawValues = data?.values || [];
+      console.log(`📡 Using API data for ${filter.key}:`, rawValues?.length, 'values');
+    }
+    
+    const norm = normalizeOptions(rawValues);
     
     if (!query?.trim()) return norm;
     const q = query.trim().toLowerCase();
     return norm.filter((o) => o.value.toLowerCase().includes(q));
-  }, [data, query]);
+  }, [data, query, shouldUseECatalogueData, eCatalogueFieldValues, filter.key]);
 
   const limited = useMemo(() => {
     const lim = filter.limit ?? 8;
@@ -708,10 +763,13 @@ function FilterSection({
             </div>
           )}
 
-          {isLoading && <div className="mState">Loading...</div>}
-          {error && <div className="mState">Failed to load</div>}
+          {!shouldUseECatalogueData && isLoading && <div className="mState">Loading...</div>}
+          {!shouldUseECatalogueData && error && <div className="mState">Failed to load</div>}
+          {shouldUseECatalogueData && (!eCatalogueFieldValues[filter.key] || eCatalogueFieldValues[filter.key].length === 0) && (
+            <div className="mState">No eCatalogue options available</div>
+          )}
 
-          {!isLoading && !error && (
+          {((shouldUseECatalogueData && eCatalogueFieldValues[filter.key]?.length > 0) || (!shouldUseECatalogueData && !isLoading && !error)) && (
             <>
               <div className="mList">
                 {limited.map((opt) => {

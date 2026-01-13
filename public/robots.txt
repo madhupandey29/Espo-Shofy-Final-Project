@@ -7,16 +7,25 @@ Allow: /_next/static/
 Allow: /_next/image
 Allow: /_next/*
 
-# ❌ Block sensitive areas
+# ❌ Block sensitive areas and user-specific pages
 Disallow: /api/*
 Disallow: /admin/*
 Disallow: /checkout
+Disallow: /cart
+Disallow: /wishlist
+Disallow: /login
+Disallow: /register
+Disallow: /forgot
+Disallow: /profile
+Disallow: /search
+Disallow: /compare
+Disallow: /coupon
 Disallow: /test-*
 Disallow: /debug-*
 Disallow: /scripts/*
 
 # Host
-Host: https://espo-shofy-final-project.vercel.app
+Host: https://amrita-fashions.com
 
 # Sitemaps
-Sitemap: https://espo-shofy-final-project.vercel.app/sitemap.xml
+Sitemap: https://amrita-fashions.com/sitemap.xml

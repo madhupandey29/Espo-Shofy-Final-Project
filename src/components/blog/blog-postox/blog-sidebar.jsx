@@ -2,12 +2,15 @@
 import React from 'react';
 import Image from 'next/image';
 import signature from '@assets/img/blog/signature/signature.png';
-import { useGetAuthorsQuery } from '@/redux/features/authorApi';
+import { useGetAuthorsQuery } from '@/redux/api/apiSlice';
 
 const BlogSidebar = () => {
-  const { data: authors, isLoading, error } = useGetAuthorsQuery();
+  const { data: apiResponse, isLoading, error } = useGetAuthorsQuery();
   
-  // Get the first author or fallback to static content
+  // Extract authors from API response
+  const authors = apiResponse?.success && apiResponse?.data ? apiResponse.data : [];
+  
+  // Get the first author
   const author = authors?.[0];
 
   return (
@@ -21,8 +24,8 @@ const BlogSidebar = () => {
              <div className="tp-sidebar-about-thumb mb-25">
   <a href="#" className="tp-profile-avatar tp-profile-avatar--oval">
     <Image
-      src={author?.authorimage} // fallback (change path if needed)
-      alt={author?.name || "Rajesh Goyal"}
+      src={author?.authorimage || "/assets/img/blog/founder1.jpg"} // fallback image
+      alt={author?.name || "Author"}
       fill
       sizes="200px"
       className="tp-profile-avatar__img"
@@ -35,34 +38,17 @@ const BlogSidebar = () => {
                   <div style={{ textAlign: "center", color: "#666" }}>
                     Loading author information...
                   </div>
-                ) : error || !author ? (
-                  // Fallback to static content
-                  <>
-                    <h3 className="tp-sidebar-about-title">
-                      <a href="#">Rajesh Goyal</a>
-                    </h3>
-                    <span className="tp-sidebar-about-designation">
-                      Founder & Managing Director, Amrita Global Enterprises
-                    </span>
-                    <p>
-                      Leading <strong>Amrita Global Enterprises</strong>, Rajesh
-                      Goyal has built a legacy of trust and innovation in premium
-                      textile manufacturing. With a passion for quality fabrics and
-                      sustainable design, he continues to redefine modern fabric
-                      sourcing for global apparel brands.
-                    </p>
-                  </>
                 ) : (
-                  // Dynamic content from API
+                  // Show RAW API data - NO FALLBACKS
                   <>
                     <h3 className="tp-sidebar-about-title">
-                      <a href="#">{author.name}</a>
+                      <a href="#">{author?.name || 'No name from API'}</a>
                     </h3>
                     <span className="tp-sidebar-about-designation">
-                      {author.designation}
+                      {author?.designation || 'No designation from API'}
                     </span>
                     <p>
-                      {author.description}
+                      {author?.description || 'No description from API'}
                     </p>
                   </>
                 )}

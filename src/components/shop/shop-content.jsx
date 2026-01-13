@@ -25,6 +25,33 @@ const ShopContent = ({
     shouldShowSidebar: !shop_right && !hidden_sidebar
   });
 
+  // ────── ECATALOGUE PRODUCTS FILTERING ──────
+  const eCatalogueProducts = useMemo(() => {
+    return all_products.filter(product => {
+      // Check if product contains "eCatalogue" in various fields
+      const searchFields = [
+        product.name,
+        product.title,
+        product.description,
+        product.category,
+        product.brand,
+        product.tags?.join(' '),
+        product.merchTags?.join(' '),
+        JSON.stringify(product)
+      ].filter(Boolean);
+      
+      return searchFields.some(field => 
+        String(field).toLowerCase().includes('ecatalogue')
+      );
+    });
+  }, [all_products]);
+
+  console.log('🎯 eCatalogue Products:', {
+    totalProducts: all_products.length,
+    eCatalogueProducts: eCatalogueProducts.length,
+    percentage: ((eCatalogueProducts.length / all_products.length) * 100).toFixed(1) + '%'
+  });
+
   const {
     priceFilterValues,
     selectHandleFilter,
@@ -207,6 +234,7 @@ const ShopContent = ({
                   selected={selectedFilters}
                   onFilterChange={handleFilterChange}
                   onResetAll={resetAll}
+                  eCatalogueProducts={eCatalogueProducts} // 🎯 Pass eCatalogue products
                 />
               </div>
             </aside>

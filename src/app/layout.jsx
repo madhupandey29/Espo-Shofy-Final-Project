@@ -181,6 +181,44 @@ export default async function RootLayout({ children }) {
     <html lang="en">
       <head>
         {/* ============================================ */}
+        {/* PERFORMANCE OPTIMIZATIONS                   */}
+        {/* ============================================ */}
+        
+        {/* Preconnect to backend API for faster API calls */}
+        <link rel="preconnect" href={process.env.NEXT_PUBLIC_API_BASE_URL?.replace('/api', '') || 'https://espobackend.vercel.app'} />
+        <link rel="dns-prefetch" href={process.env.NEXT_PUBLIC_API_BASE_URL?.replace('/api', '') || 'https://espobackend.vercel.app'} />
+        
+        {/* Preconnect to Google services for analytics */}
+        <link rel="preconnect" href="https://www.googletagmanager.com" />
+        <link rel="preconnect" href="https://www.google-analytics.com" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
+        
+        {/* Preconnect to image CDNs */}
+        <link rel="preconnect" href="https://res.cloudinary.com" />
+        <link rel="preconnect" href="https://i.ibb.co" />
+        
+        {/* DNS prefetch for other external resources */}
+        <link rel="dns-prefetch" href="https://vitals.vercel-insights.com" />
+        <link rel="dns-prefetch" href="https://vercel.live" />
+
+        {/* Preload critical API endpoints for homepage */}
+        <link 
+          rel="preload" 
+          href={`${process.env.NEXT_PUBLIC_API_BASE_URL || 'https://espobackend.vercel.app/api'}/product/?limit=50&merchTag=${process.env.NEXT_PUBLIC_MERCH_TAG_FILTER || 'ecatalogue'}`}
+          as="fetch" 
+          crossOrigin="anonymous"
+        />
+        
+        {/* Preload site settings API */}
+        <link 
+          rel="preload" 
+          href={`${process.env.NEXT_PUBLIC_API_BASE_URL || 'https://espobackend.vercel.app/api'}/sitesettings/fieldname/name/${process.env.NEXT_PUBLIC_SITE_NAME || 'eCatalogue'}`}
+          as="fetch" 
+          crossOrigin="anonymous"
+        />
+
+        {/* ============================================ */}
         {/* ANALYTICS SCRIPTS FROM DEFAULT SEO API      */}
         {/* ============================================ */}
 

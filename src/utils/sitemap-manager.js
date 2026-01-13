@@ -11,6 +11,7 @@ export class SitemapManager {
 
   /**
    * Get all static routes from the app directory
+   * Excludes pages that shouldn't be indexed: cart, wishlist, login, checkout, profile, etc.
    */
   getStaticRoutes() {
     const staticRoutes = [
@@ -22,17 +23,10 @@ export class SitemapManager {
       { path: '/blog', priority: 0.8, changeFreq: 'weekly' },
       { path: '/blog-grid', priority: 0.7, changeFreq: 'weekly' },
       { path: '/blog-list', priority: 0.7, changeFreq: 'weekly' },
-      { path: '/cart', priority: 0.6, changeFreq: 'daily' },
-      { path: '/wishlist', priority: 0.6, changeFreq: 'daily' },
-      { path: '/compare', priority: 0.6, changeFreq: 'daily' },
-      { path: '/checkout', priority: 0.6, changeFreq: 'daily' },
       { path: '/contact', priority: 0.7, changeFreq: 'monthly' },
-      { path: '/search', priority: 0.6, changeFreq: 'daily' },
-      { path: '/login', priority: 0.5, changeFreq: 'monthly' },
-      { path: '/register', priority: 0.5, changeFreq: 'monthly' },
-      { path: '/forgot', priority: 0.4, changeFreq: 'monthly' },
-      { path: '/profile', priority: 0.5, changeFreq: 'weekly' },
-      { path: '/coupon', priority: 0.5, changeFreq: 'weekly' },
+      { path: '/about', priority: 0.6, changeFreq: 'monthly' },
+      // Excluded from sitemap (but kept in robots.txt disallow):
+      // /cart, /wishlist, /login, /checkout, /profile, /search, /register, /forgot, /compare, /coupon
     ];
 
     return staticRoutes.map(route => ({
@@ -219,7 +213,7 @@ export class SitemapManager {
    */
   isStaticPage(url) {
     const path = url.replace(this.baseUrl, '');
-    const staticPaths = ['/', '/shop', '/blog', '/cart', '/wishlist', '/login', '/contact', '/register', '/checkout', '/compare', '/search', '/profile', '/coupon', '/forgot'];
+    const staticPaths = ['/', '/shop', '/blog', '/contact', '/about'];
     
     return staticPaths.includes(path) || 
            path.startsWith('/shop-') || 
