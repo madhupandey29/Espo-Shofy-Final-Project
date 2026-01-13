@@ -4,6 +4,52 @@ const withBundleAnalyzer = require('@next/bundle-analyzer')({
   enabled: process.env.ANALYZE === 'true',
 });
 
+// Security headers for fabric e-commerce site
+const securityHeaders = [
+  {
+    key: 'X-Content-Type-Options',
+    value: 'nosniff',
+  },
+  {
+    key: 'Referrer-Policy',
+    value: 'strict-origin-when-cross-origin',
+  },
+  {
+    key: 'X-Frame-Options',
+    value: 'SAMEORIGIN',
+  },
+  {
+    key: 'Permissions-Policy',
+    value: 'camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()',
+  },
+  {
+    key: 'X-DNS-Prefetch-Control',
+    value: 'on',
+  },
+  {
+    key: 'Strict-Transport-Security',
+    value: 'max-age=31536000; includeSubDomains; preload',
+  },
+  {
+    key: 'Content-Security-Policy',
+    value: [
+      "default-src 'self'",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com https://vercel.live",
+      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+      "font-src 'self' https://fonts.gstatic.com",
+      "img-src 'self' data: blob: https: http:",
+      "media-src 'self' data: blob:",
+      "connect-src 'self' https://espobackend.vercel.app https://www.google-analytics.com https://vitals.vercel-insights.com",
+      "frame-src 'self' https://www.youtube.com https://youtube.com",
+      "object-src 'none'",
+      "base-uri 'self'",
+      "form-action 'self'",
+      "frame-ancestors 'self'",
+      "upgrade-insecure-requests"
+    ].join('; '),
+  },
+];
+
 const nextConfig = {
   images: {
     remotePatterns: [
@@ -19,6 +65,16 @@ const nextConfig = {
       { protocol: 'http',  hostname: 'localhost', port: '7000', pathname: '/**' },
     ],
     formats: ['image/avif', 'image/webp'],
+  },
+
+  // ✅ Security headers for all routes
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: securityHeaders,
+      },
+    ];
   },
 
   // ✅ allow production builds to succeed even if ESLint errors exist

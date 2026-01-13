@@ -8,9 +8,12 @@ Disallow: /api/*
 Disallow: /admin/*
 Disallow: /_next/*
 Disallow: /checkout
+Disallow: /test-*
+Disallow: /debug-*
+Disallow: /scripts/*
 
 # Host
-Host: https://fabric-shop-frontend-production.up.railway.app
+Host: https://espo-shofy-final-project.vercel.app
 
 # Sitemaps
-Sitemap: https://fabric-shop-frontend-production.up.railway.app/sitemap.xml
+Sitemap: https://espo-shofy-final-project.vercel.app/sitemap.xml

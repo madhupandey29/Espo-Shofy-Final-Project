@@ -7,10 +7,10 @@ import Link from 'next/link';
 const HERO_VIDEO = '/videos/canva_mix.mp4';
 const STATIC_FALLBACK = '/assets/img/hero/hero-bg.jpg';
 
-const EYEBROW = 'Your One-Stop Fabric Destination';
-const TITLE = "India's Trusted Fabric Manufacturer";
+const EYEBROW = 'eCatalogue by Amrita Global Enterprises';
+const TITLE = "Premium Quality Fabrics by eCatalogue";
 const SUBTITLE =
-  'From timeless cottons to new-age blends — explore fabrics that define style and durability.';
+  'Discover premium cotton fabrics, mercerized finishes, and textile excellence. From Nokia to Majestica collections - quality fabrics for fashion, home, and industrial use.';
 const CTA = { href: '/shop', label: 'Discover Now' };
 
 export default function FashionBanner() {
@@ -60,10 +60,10 @@ export default function FashionBanner() {
             <div className="badge-line" />
           </div>
 
-          <h2 className="main-title">
-            <span className="title-line">India&apos;s Trusted</span>
-            <span className="title-line accent-line">Fabric Manufacturer</span>
-          </h2>
+          <h1 className="main-title">
+            <span className="title-line">Premium Quality Fabrics</span>
+            <span className="title-line accent-line">by eCatalogue</span>
+          </h1>
 
           <p className="subtitle">{SUBTITLE}</p>
 

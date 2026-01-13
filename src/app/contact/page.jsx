@@ -11,9 +11,9 @@ import { generateMetadata as generateSEOMetadata } from "@/utils/seo";
 ----------------------------- */
 export async function generateMetadata() {
   return generateSEOMetadata({
-    title: "Shofy - Contact Page",
-    description: "Get in touch with Shofy. Contact us for inquiries about our premium fabrics and textiles.",
-    keywords: "contact, get in touch, shofy, fabrics, textiles, inquiries, support",
+    title: "Contact eCatalogue | Premium Fabric Supplier - Get in Touch",
+    description: "Contact eCatalogue by Amrita Global Enterprises for premium cotton fabrics, mercerized textiles, and custom fabric solutions. Expert textile consultation and support.",
+    keywords: "contact eCatalogue, fabric supplier contact, textile consultation, Amrita Global Enterprises, premium fabrics, cotton textiles, fabric inquiry",
     path: "/contact",
     ogImage: "/assets/img/logo/logo.svg",
     robots: "index, follow"
@@ -24,6 +24,7 @@ export default function ContactPage() {
   return (
     <Wrapper>
       <HeaderTwo style_2={true} />
+      {/* SEO-Optimized H1 for Contact Page */}
       <h1
         style={{
           position: "absolute",
@@ -34,7 +35,7 @@ export default function ContactPage() {
           overflow: "hidden",
         }}
       >
-        Contact Us - Get in Touch
+        Contact eCatalogue - Premium Fabric Supplier & Textile Experts
       </h1>
       <ContactBreadcrumb />
       <ContactArea />

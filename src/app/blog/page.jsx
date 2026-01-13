@@ -17,9 +17,9 @@ export async function generateMetadata() {
   const firstBlogImage = getFirstBlogImage();
   
   return generateSEOMetadata({
-    title: "Shofy - Blog Page",
-    description: "Read our latest blog posts about fabrics, textiles, and fashion trends. Stay updated with industry insights and tips.",
-    keywords: "blog, fabrics, textiles, fashion, trends, industry insights, tips",
+    title: "Textile Industry Blog | Fabric Trends & Insights - eCatalogue",
+    description: "Read our latest blog posts about premium fabrics, textile trends, and fashion industry insights. Expert tips on cotton fabrics, mercerized textiles, and fabric selection.",
+    keywords: "textile blog, fabric trends, cotton fabrics, mercerized textiles, fashion industry, fabric insights, textile news, eCatalogue blog",
     path: "/blog",
     ogImage: firstBlogImage,
     robots: "index, follow"
@@ -32,7 +32,7 @@ export default function BlogPage() {
       <HeaderTwo style_2={true} />
       <BlogBreadcrumb />
 
-      {/* Hidden H1 for SEO */}
+      {/* SEO-Optimized H1 for Blog Page */}
       <h1 
         style={{
           position: "absolute",
@@ -43,7 +43,7 @@ export default function BlogPage() {
           overflow: "hidden",
         }}
       >
-        Blog - Latest Articles and Insights
+        Textile Industry Blog - Fabric Trends & Expert Insights
       </h1>
 
       <BlogPostboxArea />

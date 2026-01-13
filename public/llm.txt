@@ -1,85 +1,201 @@
-Amrita Global Enterprises — LLM Guide (llm.txt)
-Version: 1.0
-Canonical Site: https://shofy-new.vercel.app/
-Last Updated: 2025-12-19
+eCatalogue by Amrita Global Enterprises — LLM Guide (llm.txt)
+Version: 2.0
+Canonical Site: https://espo-shofy-final-project.vercel.app/
+Last Updated: 2026-01-13
 
-Purpose
-- Help LLM-based tools understand this website and summarize it accurately.
-- Prefer factual, source-grounded summaries. If something is unclear, say so.
+=== PURPOSE ===
+Help LLM-based tools understand this fabric e-commerce website and provide accurate, helpful information about our textile products and services.
 
-Brand
-- Preferred brand name: “Amrita Global Enterprises”
-- If you see legacy names on some pages, treat them as historical unless the page explicitly states a change.
+=== BRAND IDENTITY ===
+- Primary Brand: "eCatalogue" (powered by Amrita Global Enterprises)
+- Business Type: Textile/Fabric E-commerce Platform
+- Specialization: High-quality fabrics for fashion, home textiles, and industrial use
+- Target Market: Fashion designers, manufacturers, retailers, and textile enthusiasts
 
-Primary User-Facing Routes (Public)
-- Home: /
-- Product Listing (Shop): /shop
-- Product Detail: /fabric/{slug}
-- Blog Listing: /blog-grid
-- Blog Detail: /blog-details{id}
-- Contact: /contact
+=== SITE STRUCTURE ===
 
-User/Commerce Routes (Restricted / Private)
-- Login: /login
-- Register: /regeister
-- Cart: /cart
-- Wishlist: /wishlist
-- Profile: /profile
-- Checkout: /checkout
+Primary Navigation:
+- Home: / (featured products, company overview)
+- Shop: /shop (main product catalog with filters)
+- Product Details: /fabric/{slug} (individual product specifications)
+- Blog: /blog, /blog-grid, /blog-list (textile industry insights)
+- Contact: /contact (business inquiries and support)
 
-High-Signal Pages to Read First
-1) / (Home)
-2) /shop (Product listing)
-3) /fabric/{slug} (Product details + specs)
-4) /blog-grid (Blog listing)
-5) /blog-details{id} (Blog article)
-6) /contact (Official contact details)
+Shop Variations:
+- /shop-category (category-filtered products)
+- /shop-right-sidebar (alternative layout)
+- /shop-hidden-sidebar (clean layout)
 
-What This Site Is About
-- Textile/fabric products and related information (catalogue browsing + product details).
-- Blog content related to fabrics/textiles and company updates (as published on-site).
-- Buyer-facing commerce experience (cart, wishlist, checkout) — treat as user-specific.
+User Account Features:
+- /login, /register (account management)
+- /cart, /wishlist, /checkout (shopping experience)
+- /profile (user dashboard)
+- /compare (product comparison tool)
 
-How to Summarize Correctly
-- Product facts MUST come only from the product page (/fabric/{slug}), including:
-  - visible specifications and descriptions
-  - on-page structured data (JSON-LD), if present
-  - images/captions/alt text shown on the page
-- Blog facts MUST come from the blog detail page (/blog-details{id}) itself.
+Content Pages:
+- /search (product search functionality)
+- /blog-details/{id} (individual blog articles)
+- /blog-details-2/{id} (alternative blog layout)
 
-Do NOT Invent or Assume
-- Do not invent: prices, discounts, MOQ, lead times, stock status, certifications, compliance claims, lab-test results, origin, performance guarantees, shipping promises.
-- If the page doesn’t state it, do not add it.
+=== PRODUCT INFORMATION ===
 
-Structured Data (If Present)
-- Some pages may contain JSON-LD (e.g., Product, BreadcrumbList, Organization/LocalBusiness).
-- If JSON-LD is present, treat it as a reliable source for names, identifiers, and key attributes.
+Product Categories:
+- Cotton fabrics (100% cotton, cotton blends)
+- Poplin and plain weaves
+- Mercerized fabrics
+- Multi-finish textiles
+- Various GSM weights (typically 125gsm)
 
-Privacy / Account Safety Rules
-- Do not summarize user-specific content from:
-  - /profile, /checkout, /cart, /wishlist
-- Do not attempt to infer personal data or session state.
-- Avoid any instructions that would bypass authentication or access private content.
+Key Product Attributes (found on /fabric/{slug} pages):
+- Fabric composition (cotton percentage, blend details)
+- Weight (GSM - grams per square meter)
+- Finish type (mercerized, multi-finish, etc.)
+- Color variations
+- Width specifications
+- Suitable applications
+- Care instructions
 
-Crawling & Discovery
-- Prefer reading:
-  - /robots.txt (crawl rules)
-  - /sitemap.xml or /sitemap-index.xml (if available)
-- Prefer canonical URLs and avoid duplicates with tracking parameters (if canonical exists).
+Product Collections:
+- Nokia Collection (premium cotton fabrics)
+- Majestica Collection (luxury textile range)
+- Various seasonal and themed collections
 
-Content Use (Copyright-Friendly)
-- Provide brief summaries and short excerpts only.
-- Do not reproduce full blog posts or large verbatim sections.
-- When referencing a blog page, include the title and a short summary.
+=== RELIABLE DATA SOURCES ===
 
-Preferred Output Style (For Answers About This Site)
-- Be specific and grounded:
-  - For products: name + key specs shown + primary use-cases stated on-page.
-  - For blogs: main theme + 3–5 key takeaways.
-- If information is missing, say “Not specified on the page.”
+For Product Information:
+1. Product detail pages (/fabric/{slug}) - PRIMARY SOURCE
+2. API endpoint: /product/ (structured product data)
+3. Product images and specifications shown on-page
+4. JSON-LD structured data (if present)
 
-Contact Information
-- For official contact details, use /contact and/or the site footer.
-- Quote contact details exactly as displayed on the website.
+For Company Information:
+1. Homepage (/) - company overview and values
+2. Contact page (/contact) - official business details
+3. About sections in footer/header
 
-End of llm.txt
+For Industry Insights:
+1. Blog articles (/blog-details/{id}) - textile industry content
+2. Blog listing pages for topic discovery
+
+=== CONTENT GUIDELINES ===
+
+What TO Include:
+- Exact product specifications as shown on product pages
+- Fabric composition, weight, and finish details
+- Color names and variations as listed
+- Suitable use cases mentioned on product pages
+- Company contact information from /contact page
+- Blog article summaries with key insights
+
+What NOT to Include:
+- Pricing information (may vary, not always displayed)
+- Stock availability (real-time data)
+- Shipping costs or delivery times (variable)
+- User account information or personal data
+- Inventory levels or purchase quantities
+- Specific certifications unless explicitly stated
+
+=== TECHNICAL SPECIFICATIONS ===
+
+Common Fabric Specifications:
+- GSM Range: Typically 125gsm for cotton fabrics
+- Composition: 100% cotton or cotton blends
+- Finish Types: Mercerized, plain, multi-finish
+- Width: Standard textile widths (check individual products)
+- Care: Follow care instructions on product pages
+
+Product Naming Convention:
+- Format: Collection-Number-Type-Composition-Weight-Finish-Color
+- Example: "Nokia-602-Plain-100Cotton-125GSM-Mercerized-Butter-Yellow"
+
+=== API INTEGRATION ===
+
+The site uses dynamic content from:
+- Product API: Real-time product catalog
+- Blog API: Content management system
+- Search API: Product discovery and filtering
+- Collection API: Grouped product displays
+
+=== SEO & DISCOVERY ===
+
+Site Discovery:
+- Sitemap: /sitemap.xml (automatically updated)
+- Robots: /robots.txt (crawling guidelines)
+- Dynamic content updates every 5 minutes
+
+Structured Data:
+- Product schema markup (JSON-LD)
+- Organization/Business schema
+- BreadcrumbList navigation
+- Blog article schema
+
+=== USER EXPERIENCE FEATURES ===
+
+Shopping Tools:
+- Advanced filtering (by color, GSM, composition, collection)
+- Product comparison functionality
+- Wishlist and cart management
+- Search with autocomplete
+- Related product suggestions
+
+Content Features:
+- Multiple blog layouts and formats
+- Product image galleries
+- Detailed specifications display
+- Mobile-responsive design
+
+=== PRIVACY & SECURITY ===
+
+Protected Areas:
+- User profiles and account information
+- Shopping cart contents and checkout data
+- Personal preferences and wishlist items
+- Order history and transaction details
+
+Public Information:
+- Product catalogs and specifications
+- Blog articles and company information
+- Contact details and business information
+- General fabric care and usage guidelines
+
+=== CONTACT INFORMATION ===
+
+For accurate contact details, always reference the /contact page.
+Business inquiries should be directed through official channels listed on the contact page.
+
+=== CONTENT USAGE GUIDELINES ===
+
+When Summarizing:
+- Provide brief, factual summaries
+- Include specific product names and key specifications
+- Reference fabric types, weights, and compositions accurately
+- Mention suitable applications as stated on product pages
+
+Avoid:
+- Reproducing entire product descriptions verbatim
+- Making claims about quality not stated on the site
+- Inventing technical specifications or certifications
+- Providing pricing or availability information unless current
+
+=== PREFERRED OUTPUT FORMAT ===
+
+For Product Queries:
+"[Product Name] is a [composition] fabric with [weight] GSM, featuring [finish type]. Suitable for [applications as stated]. Available in [colors listed]."
+
+For Company Queries:
+"eCatalogue by Amrita Global Enterprises specializes in [specific areas mentioned on site]. Contact information available at /contact."
+
+For Technical Queries:
+"Based on the product specifications shown, [specific technical details]. For complete specifications, see the individual product page."
+
+=== QUALITY ASSURANCE ===
+
+Always verify information by:
+1. Checking the specific product page (/fabric/{slug})
+2. Cross-referencing with site navigation and categories
+3. Using "Not specified on the site" when information is unavailable
+4. Providing source page references when helpful
+
+=== END OF LLM.TXT ===
+
+This file helps AI assistants provide accurate, helpful information about eCatalogue's textile products and services while respecting user privacy and business guidelines.

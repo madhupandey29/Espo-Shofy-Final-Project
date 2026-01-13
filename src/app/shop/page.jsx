@@ -15,9 +15,9 @@ export const revalidate = 120;
 ---------------------------------------------- */
 export async function generateMetadata() {
   return generateSEOMetadata({
-    title: "Shofy - Shop Page",
-    description: "Browse our complete collection of premium fabrics and textiles. Find the perfect materials for your projects.",
-    keywords: "shop, fabrics, textiles, materials, premium quality, browse products",
+    title: "Shop Premium Fabrics | Cotton, Mercerized & Designer Textiles - eCatalogue",
+    description: "Browse our complete collection of premium cotton fabrics, mercerized textiles, and designer materials. Nokia & Majestica collections with GSM specifications for fashion and industrial use.",
+    keywords: "shop fabrics, cotton fabrics, mercerized textiles, premium materials, Nokia collection, Majestica collection, GSM fabrics, textile shopping, fabric store",
     path: "/shop",
     ogImage: "/assets/img/logo/logo.svg",
     robots: "index, follow"
@@ -220,7 +220,7 @@ export default async function ShopPage() {
     <Wrapper>
       <HeaderTwo style_2 />
 
-      {/* ✅ Hidden H1 for SEO */}
+      {/* ✅ SEO-Optimized H1 for Shop Page */}
       <h1
         style={{
           position: "absolute",
@@ -231,7 +231,7 @@ export default async function ShopPage() {
           overflow: "hidden",
         }}
       >
-        Shop - Browse All Products
+        Shop Premium Fabrics - Cotton, Mercerized & Designer Textiles
         {productData.filtered && ` - ${productData.filterTag} Collection`}
       </h1>
 
