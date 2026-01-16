@@ -24,7 +24,7 @@ export default async function sitemap() {
   } catch (error) {
     console.error('Error generating sitemap:', error);
     
-    // Fallback to basic static pages
+    // Fallback to basic static pages (only active routes)
     const fallbackPages = [
       {
         url: baseUrl,
@@ -39,16 +39,22 @@ export default async function sitemap() {
         priority: 0.9,
       },
       {
-        url: `${baseUrl}/blog`,
+        url: `${baseUrl}/blog-grid`,
         lastModified: new Date(),
         changeFrequency: 'weekly',
-        priority: 0.8,
+        priority: 0.7,
       },
       {
         url: `${baseUrl}/contact`,
         lastModified: new Date(),
         changeFrequency: 'monthly',
         priority: 0.7,
+      },
+      {
+        url: `${baseUrl}/about`,
+        lastModified: new Date(),
+        changeFrequency: 'monthly',
+        priority: 0.6,
       },
     ];
     

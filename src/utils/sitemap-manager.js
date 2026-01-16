@@ -12,21 +12,22 @@ export class SitemapManager {
   /**
    * Get all static routes from the app directory
    * Excludes pages that shouldn't be indexed: cart, wishlist, login, checkout, profile, etc.
+   * ✅ UPDATED: Removed deleted routes (blog, blog-list, blog-details-2)
    */
   getStaticRoutes() {
     const staticRoutes = [
       { path: '/', priority: 1.0, changeFreq: 'daily' },
       { path: '/shop', priority: 0.9, changeFreq: 'daily' },
       { path: '/shop-category', priority: 0.8, changeFreq: 'daily' },
+      // ❌ REMOVED: /blog (deleted)
+      { path: '/blog-grid', priority: 0.7, changeFreq: 'weekly' }, // ✅ KEPT: Active blog page
+      // ❌ REMOVED: /blog-list (deleted)
       { path: '/shop-right-sidebar', priority: 0.7, changeFreq: 'daily' },
       { path: '/shop-hidden-sidebar', priority: 0.7, changeFreq: 'daily' },
-      { path: '/blog', priority: 0.8, changeFreq: 'weekly' },
-      { path: '/blog-grid', priority: 0.7, changeFreq: 'weekly' },
-      { path: '/blog-list', priority: 0.7, changeFreq: 'weekly' },
       { path: '/contact', priority: 0.7, changeFreq: 'monthly' },
       { path: '/about', priority: 0.6, changeFreq: 'monthly' },
       // Excluded from sitemap (but kept in robots.txt disallow):
-      // /cart, /wishlist, /login, /checkout, /profile, /search, /register, /forgot, /compare, /coupon
+      // /cart, /wishlist, /login, /checkout, /profile, /search, /register, /forgot, /compare
     ];
 
     return staticRoutes.map(route => ({
@@ -79,29 +80,43 @@ export class SitemapManager {
   }
 
   /**
-   * Fetch dynamic blog pages
+   * Fetch dynamic blog pages from API
+   * ✅ UPDATED: Fetch from API instead of static data, only use blog-details (not blog-details-2)
    */
   async getBlogPages() {
     try {
-      // Import blog data dynamically
-      const blogData = await import('@/data/blog-data');
-      const blogs = blogData.default || [];
+      // Fetch blogs from API
+      let apiUrl = this.apiBaseUrl;
+      if (!apiUrl.endsWith('/api')) {
+        apiUrl = apiUrl.replace(/\/$/, '') + '/api';
+      }
+      
+      const blogPath = process.env.NEXT_PUBLIC_API_BLOG_PATH || '/blog';
+      const response = await fetch(`${apiUrl}${blogPath}`, {
+        next: { revalidate: 300 },
+        headers: { 'Content-Type': 'application/json' },
+      });
 
-      const blogPages = blogs.map(blog => ({
-        url: `${this.baseUrl}/blog-details/${blog.id}`,
-        lastModified: new Date(blog.date),
-        changeFrequency: 'monthly',
-        priority: 0.6,
-      }));
+      if (!response.ok) {
+        console.warn('Failed to fetch blogs for sitemap');
+        return [];
+      }
 
-      const blogPages2 = blogs.map(blog => ({
-        url: `${this.baseUrl}/blog-details-2/${blog.id}`,
-        lastModified: new Date(blog.date),
-        changeFrequency: 'monthly',
-        priority: 0.6,
-      }));
+      const data = await response.json();
+      
+      if (!data.success || !data.data || !Array.isArray(data.data)) {
+        return [];
+      }
 
-      return [...blogPages, ...blogPages2];
+      // ✅ Only use /blog-details/[slug] (removed blog-details-2)
+      return data.data
+        .filter(blog => blog.slug || blog._id || blog.id)
+        .map(blog => ({
+          url: `${this.baseUrl}/blog-details/${blog.slug || blog._id || blog.id}`,
+          lastModified: blog.updatedAt ? new Date(blog.updatedAt) : (blog.createdAt ? new Date(blog.createdAt) : new Date()),
+          changeFrequency: 'monthly',
+          priority: 0.6,
+        }));
 
     } catch (error) {
       console.error('Error fetching blog data for sitemap:', error);
