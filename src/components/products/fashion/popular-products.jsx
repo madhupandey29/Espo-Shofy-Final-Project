@@ -334,7 +334,7 @@ export default function PopularProducts() {
                       sizes="(max-width: 768px) 100vw, 260px"
                       priority={eager}
                       loading={eager ? 'eager' : 'lazy'}
-                      quality={80}
+                      quality={75} // ✅ Optimized quality for performance
                       className="tp-popular-product-img"
                       onError={(e) => {
                         e.target.src = '/assets/img/product/product-1.jpg';

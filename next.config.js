@@ -70,6 +70,7 @@ const nextConfig = {
     minimumCacheTTL: 60,
     dangerouslyAllowSVG: true,
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
+    // ✅ PERFORMANCE OPTIMIZATION: Image quality is set per-component (quality={75})
   },
 
   // ✅ Security headers for all routes

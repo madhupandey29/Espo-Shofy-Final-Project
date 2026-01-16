@@ -5,7 +5,7 @@ export const newProductApi = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     getAllNewProducts: builder.query({
       query: (params = {}) => {
-        const { limit = 50, page = 1, merchTag } = params;
+        const { limit = 12, page = 1, merchTag } = params;
         let url = `/product/?limit=${limit}&page=${page}`;
         if (merchTag) {
           url += `&merchTag=${encodeURIComponent(merchTag)}`;
@@ -572,7 +572,9 @@ export const newProductApi = apiSlice.injectEndpoints({
     getAllProductsForFiltering: builder.query({
       query: () => {
         // Single API call that both Popular and Top Rated will use
-        return `/product/?limit=200`;
+        // ✅ PERFORMANCE OPTIMIZATION: Reduced from 200 to 50 to improve page load
+        // Products are filtered client-side by merchTags (PopularFabrics, TopRatedFabrics, ecatalogue)
+        return `/product/?limit=50`;
       },
       transformResponse: (res, meta, arg) => {
         console.log('🔍 Shared Products API Response:', res);
