@@ -181,19 +181,38 @@ export default function ShopArea({
           if (!prop || !pr[prop]) return false;
           const field = pr[prop];
           
-          // Handle array fields
+          // Handle array fields (like color, tags, etc.)
           if (Array.isArray(field)) {
-            return field.some(x => vals.includes(x._id ?? x));
+            // Check if any selected value matches any item in the array
+            return vals.some(selectedVal => {
+              return field.some(item => {
+                // Handle objects with _id or name
+                if (typeof item === 'object' && item !== null) {
+                  const itemValue = item._id || item.id || item.name || item.value || String(item);
+                  return String(itemValue).trim() === String(selectedVal).trim();
+                }
+                // Handle primitive values
+                return String(item).trim() === String(selectedVal).trim();
+              });
+            });
           }
           
           // Handle comma-separated string fields (like finish)
           if (typeof field === 'string' && field.includes(',')) {
             const fieldValues = field.split(',').map(v => v.trim());
-            return vals.some(val => fieldValues.includes(val));
+            return vals.some(val => 
+              fieldValues.some(fv => String(fv).trim() === String(val).trim())
+            );
           }
           
-          // Handle regular fields
-          return vals.includes(field._id ?? field);
+          // Handle object fields (like category, content)
+          if (typeof field === 'object' && field !== null) {
+            const fieldValue = field._id || field.id || field.name || field.value || String(field);
+            return vals.some(val => String(fieldValue).trim() === String(val).trim());
+          }
+          
+          // Handle regular string/number fields
+          return vals.some(val => String(field).trim() === String(val).trim());
         })
       );
     }
