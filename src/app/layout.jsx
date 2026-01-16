@@ -190,6 +190,10 @@ export default async function RootLayout({ children }) {
         <link rel="preconnect" href={process.env.NEXT_PUBLIC_API_BASE_URL?.replace('/api', '') || 'https://espobackend.vercel.app'} />
         <link rel="dns-prefetch" href={process.env.NEXT_PUBLIC_API_BASE_URL?.replace('/api', '') || 'https://espobackend.vercel.app'} />
         
+        {/* Preconnect to Vercel for faster chunk loading */}
+        <link rel="preconnect" href="https://espo-shofy-final-project.vercel.app" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://espo-shofy-final-project.vercel.app" />
+        
         {/* Preconnect to Google services - CRITICAL for fonts */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
@@ -228,6 +232,34 @@ export default async function RootLayout({ children }) {
         <noscript>
           <link rel="stylesheet" href="/assets/css/font-awesome-pro.css" />
         </noscript>
+        
+        {/* Load Animate CSS asynchronously (67 KB - don't block render) */}
+        <link 
+          rel="preload" 
+          as="style"
+          href="/assets/css/animate.css"
+        />
+        <link 
+          rel="stylesheet" 
+          href="/assets/css/animate.css"
+          media="print"
+          onLoad="this.media='all'"
+        />
+        <noscript>
+          <link rel="stylesheet" href="/assets/css/animate.css" />
+        </noscript>
+        
+        {/* Critical inline CSS for above-the-fold content */}
+        <style dangerouslySetInnerHTML={{__html: `
+          /* Critical CSS for initial render */
+          body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif; }
+          * { box-sizing: border-box; }
+          .container { max-width: 1200px; margin: 0 auto; padding: 0 15px; }
+          img { max-width: 100%; height: auto; }
+          /* Prevent layout shift */
+          .tp-header-area { min-height: 80px; }
+          .tp-slider-area { min-height: 400px; }
+        `}} />
         
         {/* Preconnect to analytics (lazy loaded) */}
         <link rel="preconnect" href="https://www.googletagmanager.com" />

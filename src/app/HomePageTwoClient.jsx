@@ -8,10 +8,14 @@ import Wrapper from "@/layout/wrapper";
 import HeaderTwo from '@/layout/headers/header-2';
 import FashionBanner from '@/components/banner/fashion-banner';
 import PopularProducts from '@/components/products/fashion/popular-products';
-import WeeksFeatured from '@/components/products/fashion/weeks-featured';
-import BestSellerProducts from '@/components/products/fashion/best-seller-products';
 
 // ✅ Lazy load below-the-fold components (not immediately visible)
+const WeeksFeatured = dynamic(() => import('@/components/products/fashion/weeks-featured'), {
+  loading: () => <div style={{ minHeight: '400px' }} />,
+});
+const BestSellerProducts = dynamic(() => import('@/components/products/fashion/best-seller-products'), {
+  loading: () => <div style={{ minHeight: '400px' }} />,
+});
 const FashionTestimonial = dynamic(() => import('@/components/testimonial/fashion-testimonial'), {
   loading: () => <div style={{ minHeight: '400px' }} />,
 });

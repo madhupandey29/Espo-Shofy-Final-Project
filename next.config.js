@@ -154,7 +154,7 @@ const nextConfig = {
         { module: /node_modules/ },
       ];
       
-      // ✅ Production optimizations: tree-shaking & code splitting
+      // ✅ Production optimizations: tree-shaking & aggressive code splitting
       config.optimization = {
         ...config.optimization,
         usedExports: true, // Tree-shaking: remove unused exports
@@ -164,23 +164,38 @@ const nextConfig = {
           cacheGroups: {
             default: false,
             vendors: false,
-            // Vendor chunk for node_modules
+            // Framework chunk (React, Next.js)
+            framework: {
+              name: 'framework',
+              test: /[\\/]node_modules[\\/](react|react-dom|scheduler|next)[\\/]/,
+              priority: 40,
+              enforce: true,
+            },
+            // Vendor chunk for other node_modules
             vendor: {
               name: 'vendor',
-              chunks: 'all',
-              test: /node_modules/,
+              test: /[\\/]node_modules[\\/]/,
               priority: 20,
+              minChunks: 1,
+            },
+            // Redux chunk
+            redux: {
+              name: 'redux',
+              test: /[\\/]node_modules[\\/](@reduxjs|react-redux|redux)[\\/]/,
+              priority: 30,
+              enforce: true,
             },
             // Common chunk for shared code
             common: {
               name: 'common',
               minChunks: 2,
-              chunks: 'all',
               priority: 10,
               reuseExistingChunk: true,
               enforce: true,
             },
           },
+          maxInitialRequests: 25,
+          minSize: 20000,
         },
       };
     }
