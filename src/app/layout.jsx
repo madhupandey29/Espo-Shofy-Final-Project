@@ -8,7 +8,9 @@ import AntiInspection from '@/components/security/AntiInspection';
 import AdvancedProtection from '@/components/security/AdvancedProtection';
 import Script from 'next/script';
 
-import '/public/assets/css/font-awesome-pro.css';
+// ⚠️ REMOVED: Font Awesome CSS is 513 KB and render-blocking
+// import '/public/assets/css/font-awesome-pro.css';
+// We'll load it asynchronously below
 
 /* -------------------------------------------------- */
 /* API Data Fetcher - Only Default SEO Settings       */
@@ -188,11 +190,48 @@ export default async function RootLayout({ children }) {
         <link rel="preconnect" href={process.env.NEXT_PUBLIC_API_BASE_URL?.replace('/api', '') || 'https://espobackend.vercel.app'} />
         <link rel="dns-prefetch" href={process.env.NEXT_PUBLIC_API_BASE_URL?.replace('/api', '') || 'https://espobackend.vercel.app'} />
         
-        {/* Preconnect to Google services for analytics */}
+        {/* Preconnect to Google services - CRITICAL for fonts */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        
+        {/* Preload critical Google Fonts to avoid render-blocking */}
+        <link 
+          rel="preload" 
+          as="style"
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        />
+        <link 
+          rel="stylesheet" 
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+          media="print"
+          onLoad="this.media='all'"
+        />
+        <noscript>
+          <link 
+            rel="stylesheet" 
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+          />
+        </noscript>
+        
+        {/* Load Font Awesome CSS asynchronously (513 KB - don't block render) */}
+        <link 
+          rel="preload" 
+          as="style"
+          href="/assets/css/font-awesome-pro.css"
+        />
+        <link 
+          rel="stylesheet" 
+          href="/assets/css/font-awesome-pro.css"
+          media="print"
+          onLoad="this.media='all'"
+        />
+        <noscript>
+          <link rel="stylesheet" href="/assets/css/font-awesome-pro.css" />
+        </noscript>
+        
+        {/* Preconnect to analytics (lazy loaded) */}
         <link rel="preconnect" href="https://www.googletagmanager.com" />
         <link rel="preconnect" href="https://www.google-analytics.com" />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
         
         {/* Preconnect to image CDNs */}
         <link rel="preconnect" href="https://res.cloudinary.com" />

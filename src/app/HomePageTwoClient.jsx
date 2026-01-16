@@ -3,15 +3,25 @@
 'use client';
 
 import React, { useEffect, useMemo, useState } from "react";
+import dynamic from 'next/dynamic';
 import Wrapper from "@/layout/wrapper";
 import HeaderTwo from '@/layout/headers/header-2';
 import FashionBanner from '@/components/banner/fashion-banner';
 import PopularProducts from '@/components/products/fashion/popular-products';
 import WeeksFeatured from '@/components/products/fashion/weeks-featured';
 import BestSellerProducts from '@/components/products/fashion/best-seller-products';
-import FashionTestimonial from '@/components/testimonial/fashion-testimonial';
-import BlogArea from '@/components/blog/fashion/blog-area';
-import FeatureAreaTwo from '@/components/features/feature-area-2';
+
+// ✅ Lazy load below-the-fold components (not immediately visible)
+const FashionTestimonial = dynamic(() => import('@/components/testimonial/fashion-testimonial'), {
+  loading: () => <div style={{ minHeight: '400px' }} />,
+});
+const BlogArea = dynamic(() => import('@/components/blog/fashion/blog-area'), {
+  loading: () => <div style={{ minHeight: '400px' }} />,
+});
+const FeatureAreaTwo = dynamic(() => import('@/components/features/feature-area-2'), {
+  loading: () => <div style={{ minHeight: '200px' }} />,
+});
+
 import { FiShare2, FiPhoneCall } from 'react-icons/fi';
 import { FaWhatsapp, FaFacebookF, FaInstagram, FaLinkedinIn, FaYoutube } from 'react-icons/fa';
 import { FaXTwitter } from 'react-icons/fa6';

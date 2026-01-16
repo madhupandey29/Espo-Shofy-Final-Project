@@ -109,6 +109,11 @@ const nextConfig = {
   productionBrowserSourceMaps: false, // Disable source maps in production for smaller builds
   compress: true, // Enable gzip compression
   
+  // ✅ Reduce JavaScript payload
+  experimental: {
+    optimizePackageImports: ['react-icons', 'lucide-react', '@fortawesome/react-fontawesome'],
+  },
+  
   // ✅ Ignore build errors in production
   onDemandEntries: {
     maxInactiveAge: 25 * 1000,
