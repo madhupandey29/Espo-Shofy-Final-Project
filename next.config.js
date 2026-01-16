@@ -105,10 +105,30 @@ const nextConfig = {
   swcMinify: true,
   poweredByHeader: false,
   
+  // ✅ Production optimizations (tree-shaking, minification)
+  productionBrowserSourceMaps: false, // Disable source maps in production for smaller builds
+  compress: true, // Enable gzip compression
+  
   // ✅ Ignore build errors in production
   onDemandEntries: {
     maxInactiveAge: 25 * 1000,
     pagesBufferLength: 2,
+  },
+  
+  // ✅ Optimize CSS and fonts
+  optimizeFonts: true,
+  
+  // ✅ Modularize imports for tree-shaking
+  modularizeImports: {
+    'react-icons': {
+      transform: 'react-icons/{{member}}',
+    },
+    '@fortawesome/free-brands-svg-icons': {
+      transform: '@fortawesome/free-brands-svg-icons/{{member}}',
+    },
+    'lucide-react': {
+      transform: 'lucide-react/dist/esm/icons/{{kebabCase member}}',
+    },
   },
 
   // ✅ webpack configuration to ignore specific errors
@@ -128,6 +148,36 @@ const nextConfig = {
         /Attempted import error/,
         { module: /node_modules/ },
       ];
+      
+      // ✅ Production optimizations: tree-shaking & code splitting
+      config.optimization = {
+        ...config.optimization,
+        usedExports: true, // Tree-shaking: remove unused exports
+        minimize: true, // Minification enabled
+        splitChunks: {
+          chunks: 'all',
+          cacheGroups: {
+            default: false,
+            vendors: false,
+            // Vendor chunk for node_modules
+            vendor: {
+              name: 'vendor',
+              chunks: 'all',
+              test: /node_modules/,
+              priority: 20,
+            },
+            // Common chunk for shared code
+            common: {
+              name: 'common',
+              minChunks: 2,
+              chunks: 'all',
+              priority: 10,
+              reuseExistingChunk: true,
+              enforce: true,
+            },
+          },
+        },
+      };
     }
     
     // Add fallbacks for Node.js modules
