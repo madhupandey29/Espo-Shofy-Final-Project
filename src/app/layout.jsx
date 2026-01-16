@@ -7,10 +7,28 @@ import MicrosoftClarity from '@/components/analytics/MicrosoftClarity';
 import AntiInspection from '@/components/security/AntiInspection';
 import AdvancedProtection from '@/components/security/AdvancedProtection';
 import Script from 'next/script';
+import { Inter, Poppins } from 'next/font/google';
 
 // ⚠️ REMOVED: Font Awesome CSS is 513 KB and render-blocking
 // import '/public/assets/css/font-awesome-pro.css';
 // We'll load it asynchronously below
+
+// ✅ Optimize Google Fonts with next/font (self-hosted, no render blocking)
+const inter = Inter({
+  subsets: ['latin'],
+  weight: ['300', '400', '500', '600', '700', '800'],
+  display: 'swap',
+  variable: '--font-inter',
+  preload: true,
+});
+
+const poppins = Poppins({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700', '800'],
+  display: 'swap',
+  variable: '--font-poppins',
+  preload: true,
+});
 
 /* -------------------------------------------------- */
 /* API Data Fetcher - Only Default SEO Settings       */
@@ -180,7 +198,7 @@ export default async function RootLayout({ children }) {
   };
 
   return (
-    <html lang="en">
+    <html lang="en" className={`${inter.variable} ${poppins.variable}`}>
       <head>
         {/* ============================================ */}
         {/* PERFORMANCE OPTIMIZATIONS                   */}
@@ -194,28 +212,7 @@ export default async function RootLayout({ children }) {
         <link rel="preconnect" href="https://espo-shofy-final-project.vercel.app" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://espo-shofy-final-project.vercel.app" />
         
-        {/* Preconnect to Google services - CRITICAL for fonts */}
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        
-        {/* Preload critical Google Fonts to avoid render-blocking */}
-        <link 
-          rel="preload" 
-          as="style"
-          href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
-        />
-        <link 
-          rel="stylesheet" 
-          href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
-          media="print"
-          onLoad="this.media='all'"
-        />
-        <noscript>
-          <link 
-            rel="stylesheet" 
-            href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
-          />
-        </noscript>
+        {/* ✅ Google Fonts now loaded via next/font (self-hosted, no blocking) */}
         
         {/* Load Font Awesome CSS asynchronously (513 KB - don't block render) */}
         <link 
@@ -252,7 +249,10 @@ export default async function RootLayout({ children }) {
         {/* Critical inline CSS for above-the-fold content */}
         <style dangerouslySetInnerHTML={{__html: `
           /* Critical CSS for initial render */
-          body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif; }
+          body { 
+            margin: 0; 
+            font-family: var(--font-inter), -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif; 
+          }
           * { box-sizing: border-box; }
           .container { max-width: 1200px; margin: 0 auto; padding: 0 15px; }
           img { max-width: 100%; height: auto; }

@@ -9,9 +9,9 @@
 @import 'node_modules/react-modal-video/scss/modal-video.scss';
 @import '../../public/assets/scss/main.scss';
 
-/* ✅ Better UI fonts for shop (safe, clean) */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap');
+/* ✅ Google Fonts now loaded via next/font in layout.jsx (self-hosted, optimized) */
+/* REMOVED: @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap'); */
+/* REMOVED: @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap'); */
 
 /* ===========================
    Brand Tokens (GLOBAL)
@@ -46,8 +46,9 @@
   --tp-theme-green: #1E824C;
   --tp-green-dark:  #10603B;
 
-  /* ✅ Fonts (tokens) */
-  --tp-ff-jost:   'Poppins','Jost',system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif; /* headings/display */
+  /* ✅ Fonts (tokens) - now using next/font variables */
+  --tp-ff-jost:   var(--font-poppins),'Poppins','Jost',system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif; /* headings/display */
+  --font-inter-fallback: var(--font-inter),'Inter',system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
   --tp-ff-roboto: 'Inter','Hind','Jost',system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif; /* body/UI */
 
   /* Layout helpers - Enhanced for better sticky positioning */
