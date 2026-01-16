@@ -7,9 +7,11 @@ import dynamic from 'next/dynamic';
 import Wrapper from "@/layout/wrapper";
 import HeaderTwo from '@/layout/headers/header-2';
 import FashionBanner from '@/components/banner/fashion-banner';
-import PopularProducts from '@/components/products/fashion/popular-products';
 
-// ✅ Lazy load below-the-fold components (not immediately visible)
+// ✅ Lazy load ALL below-the-fold components for mobile performance
+const PopularProducts = dynamic(() => import('@/components/products/fashion/popular-products'), {
+  loading: () => <div style={{ minHeight: '500px' }} />,
+});
 const WeeksFeatured = dynamic(() => import('@/components/products/fashion/weeks-featured'), {
   loading: () => <div style={{ minHeight: '400px' }} />,
 });
@@ -25,11 +27,13 @@ const BlogArea = dynamic(() => import('@/components/blog/fashion/blog-area'), {
 const FeatureAreaTwo = dynamic(() => import('@/components/features/feature-area-2'), {
   loading: () => <div style={{ minHeight: '200px' }} />,
 });
+const Footer = dynamic(() => import('@/layout/footers/footer'), {
+  loading: () => <div style={{ minHeight: '400px' }} />,
+});
 
 import { FiShare2, FiPhoneCall } from 'react-icons/fi';
 import { FaWhatsapp, FaFacebookF, FaInstagram, FaLinkedinIn, FaYoutube } from 'react-icons/fa';
 import { FaXTwitter } from 'react-icons/fa6';
-import Footer from '@/layout/footers/footer';
 
 // ✅ RTK Query hook
 import { useGetOfficeInformationQuery } from "@/redux/features/officeInformationApi";

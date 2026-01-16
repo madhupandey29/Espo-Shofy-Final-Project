@@ -4,15 +4,13 @@ import { useEffect } from 'react';
 
 export default function AdvancedProtection() {
   useEffect(() => {
-    // 🚀 ONLY ACTIVATE IN PRODUCTION - Allow full inspection in development
-    if (process.env.NODE_ENV !== 'production') {
-      console.log('🔧 Development Mode: Advanced protection is DISABLED');
-      console.log('💡 Full developer tools access available for debugging');
-      console.log('🎯 Protection will activate automatically in production build');
-      return;
-    }
+    // 🔓 COMPLETELY DISABLED - No security
+    console.log('🔓 Advanced protection COMPLETELY DISABLED');
+    return; // Exit immediately, no protections applied
+  }, []);
 
-    console.log('🛡️ Production Mode: Advanced protection is ACTIVE');
+  return null;
+}
 
     // Obfuscate console
     const obfuscateConsole = () => {

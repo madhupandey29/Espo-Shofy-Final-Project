@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useDispatch, useSelector } from 'react-redux';
 import { usePathname, useRouter } from 'next/navigation';
 
@@ -425,13 +426,15 @@ const HeaderTwo = ({ style_2 = false }) => {
                   <div className="col-6 col-sm-4 col-md-4 col-lg-3 col-xl-2">
                     <div className="logo d-flex align-items-center" style={{ gap: '12px' }}>
                       <Link href="/" className="d-flex align-items-center" style={{ gap: '12px' }}>
-                        <img
+                        <Image
                           src="/assets/img/logo/age.jpg"
                           alt="Company Logo"
                           width={140}
                           height={44}
-                          style={{ height: 'auto', width: 'auto', maxWidth: '140px', maxHeight: '44px' }}
+                          priority
+                          quality={90}
                           sizes="(max-width: 600px) 110px, 140px"
+                          style={{ height: 'auto', width: 'auto', maxWidth: '140px', maxHeight: '44px' }}
                         />
                       </Link>
                     </div>
@@ -685,9 +688,12 @@ const HeaderTwo = ({ style_2 = false }) => {
                               >
                                 {userImage ? (
                                   <>
-                                    <img
+                                    <Image
                                       src={userImage}
                                       alt="Profile"
+                                      width={32}
+                                      height={32}
+                                      quality={85}
                                       style={{
                                         width: '32px',
                                         height: '32px',

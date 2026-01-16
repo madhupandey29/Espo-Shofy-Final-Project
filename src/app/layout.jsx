@@ -4,8 +4,9 @@ import '../styles/security-protection.css';
 import Providers from '@/components/provider';
 import GoogleAnalytics from '@/components/analytics/GoogleAnalytics';
 import MicrosoftClarity from '@/components/analytics/MicrosoftClarity';
-import AntiInspection from '@/components/security/AntiInspection';
-import AdvancedProtection from '@/components/security/AdvancedProtection';
+// ⚠️ SECURITY COMPONENTS TEMPORARILY DISABLED FOR TESTING
+// import AntiInspection from '@/components/security/AntiInspection';
+// import AdvancedProtection from '@/components/security/AdvancedProtection';
 import Script from 'next/script';
 import { Inter, Poppins } from 'next/font/google';
 
@@ -14,9 +15,10 @@ import { Inter, Poppins } from 'next/font/google';
 // We'll load it asynchronously below
 
 // ✅ Optimize Google Fonts with next/font (self-hosted, no render blocking)
+// Reduced font weights for better performance (only keep commonly used weights)
 const inter = Inter({
   subsets: ['latin'],
-  weight: ['300', '400', '500', '600', '700', '800'],
+  weight: ['400', '600', '700'], // Removed: 300, 500, 800
   display: 'swap',
   variable: '--font-inter',
   preload: true,
@@ -24,7 +26,7 @@ const inter = Inter({
 
 const poppins = Poppins({
   subsets: ['latin'],
-  weight: ['400', '500', '600', '700', '800'],
+  weight: ['400', '600', '700'], // Removed: 500, 800
   display: 'swap',
   variable: '--font-poppins',
   preload: true,
@@ -214,6 +216,10 @@ export default async function RootLayout({ children }) {
         
         {/* ✅ Google Fonts now loaded via next/font (self-hosted, no blocking) */}
         
+        {/* Prefetch critical resources for faster navigation */}
+        <link rel="prefetch" href="/shop" />
+        <link rel="prefetch" href="/contact" />
+        
         {/* Load Font Awesome CSS asynchronously (513 KB - don't block render) */}
         <link 
           rel="preload" 
@@ -256,9 +262,23 @@ export default async function RootLayout({ children }) {
           * { box-sizing: border-box; }
           .container { max-width: 1200px; margin: 0 auto; padding: 0 15px; }
           img { max-width: 100%; height: auto; }
+          
           /* Prevent layout shift */
           .tp-header-area { min-height: 80px; }
           .tp-slider-area { min-height: 400px; }
+          
+          /* Mobile-specific optimizations */
+          @media (max-width: 768px) {
+            .tp-slider-area { min-height: 300px; }
+            body { font-size: 14px; }
+            h1 { font-size: 24px; }
+            h2 { font-size: 20px; }
+            h3 { font-size: 18px; }
+          }
+          
+          /* Prevent FOUC */
+          .tp-product-item { min-height: 350px; }
+          .tp-blog-item { min-height: 400px; }
         `}} />
         
         {/* Preconnect to analytics (lazy loaded) */}
@@ -432,9 +452,9 @@ export default async function RootLayout({ children }) {
           }}
         />
 
-        {/* Security Protection Components */}
-        <AntiInspection />
-        <AdvancedProtection />
+        {/* ⚠️ SECURITY COMPONENTS TEMPORARILY DISABLED FOR TESTING */}
+        {/* <AntiInspection /> */}
+        {/* <AdvancedProtection /> */}
 
         {/* Google Tag Manager (noscript) from default SEO settings */}
         {defaultSeoSettings?.gtmId && (

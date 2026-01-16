@@ -4,8 +4,13 @@ import { useEffect } from 'react';
 
 export default function AntiInspection() {
   useEffect(() => {
-    // 🔒 ALWAYS ACTIVE - Block inspection at all times
-    console.log('🔒 Anti-inspection protection is ACTIVE');
+    // 🔓 COMPLETELY DISABLED - No security on localhost
+    console.log('🔓 Anti-inspection COMPLETELY DISABLED');
+    return; // Exit immediately, no protections applied
+  }, []);
+
+  return null;
+}
 
     // Disable right-click context menu
     const disableRightClick = (e) => {
