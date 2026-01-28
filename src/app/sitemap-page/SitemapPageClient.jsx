@@ -27,7 +27,7 @@ const SitemapPageClient = () => {
       setLoading(true);
       
       // Fetch sitemap data from your sitemap manager
-      const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin;
+      const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || (typeof window !== 'undefined' ? window.location.origin : 'https://amrita-fashions.com');
       const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
       
       // Import the SitemapManager dynamically
@@ -40,9 +40,10 @@ const SitemapPageClient = () => {
     } catch (error) {
       console.error('Error fetching sitemap data:', error);
       // Enhanced fallback data with more realistic examples
+      const fallbackOrigin = typeof window !== 'undefined' ? window.location.origin : 'https://amrita-fashions.com';
       const fallbackData = [
         { 
-          url: window.location.origin + '/', 
+          url: fallbackOrigin + '/', 
           priority: 1.0, 
           changeFrequency: 'daily', 
           lastModified: new Date(),
@@ -50,7 +51,7 @@ const SitemapPageClient = () => {
           description: 'Main landing page showcasing our textile products and services'
         },
         { 
-          url: window.location.origin + '/fabric', 
+          url: fallbackOrigin + '/fabric', 
           priority: 0.9, 
           changeFrequency: 'daily', 
           lastModified: new Date(),
@@ -58,7 +59,7 @@ const SitemapPageClient = () => {
           description: 'Browse our complete collection of textile products'
         },
         { 
-          url: window.location.origin + '/about', 
+          url: fallbackOrigin + '/about', 
           priority: 0.8, 
           changeFrequency: 'monthly', 
           lastModified: new Date(),
@@ -66,7 +67,7 @@ const SitemapPageClient = () => {
           description: 'Learn about our company history and values'
         },
         { 
-          url: window.location.origin + '/capabilities', 
+          url: fallbackOrigin + '/capabilities', 
           priority: 0.8, 
           changeFrequency: 'monthly', 
           lastModified: new Date(),
@@ -74,7 +75,7 @@ const SitemapPageClient = () => {
           description: 'Discover our manufacturing capabilities and processes'
         },
         { 
-          url: window.location.origin + '/blog-grid', 
+          url: fallbackOrigin + '/blog-grid', 
           priority: 0.7, 
           changeFrequency: 'weekly', 
           lastModified: new Date(),
@@ -82,7 +83,7 @@ const SitemapPageClient = () => {
           description: 'Latest news and insights from the textile industry'
         },
         { 
-          url: window.location.origin + '/contact', 
+          url: fallbackOrigin + '/contact', 
           priority: 0.7, 
           changeFrequency: 'monthly', 
           lastModified: new Date(),
@@ -90,7 +91,7 @@ const SitemapPageClient = () => {
           description: 'Get in touch with our team'
         },
         { 
-          url: window.location.origin + '/fabric/cotton-fabric', 
+          url: fallbackOrigin + '/fabric/cotton-fabric', 
           priority: 0.8, 
           changeFrequency: 'weekly', 
           lastModified: new Date(),
@@ -98,7 +99,7 @@ const SitemapPageClient = () => {
           description: 'Premium cotton fabric collection'
         },
         { 
-          url: window.location.origin + '/fabric/silk-fabric', 
+          url: fallbackOrigin + '/fabric/silk-fabric', 
           priority: 0.8, 
           changeFrequency: 'weekly', 
           lastModified: new Date(),
@@ -106,7 +107,7 @@ const SitemapPageClient = () => {
           description: 'Luxurious silk fabric varieties'
         },
         { 
-          url: window.location.origin + '/fabric/polyester-fabric', 
+          url: fallbackOrigin + '/fabric/polyester-fabric', 
           priority: 0.8, 
           changeFrequency: 'weekly', 
           lastModified: new Date(),
@@ -114,7 +115,7 @@ const SitemapPageClient = () => {
           description: 'Durable polyester fabric options'
         },
         { 
-          url: window.location.origin + '/blog-details/textile-trends-2024', 
+          url: fallbackOrigin + '/blog-details/textile-trends-2024', 
           priority: 0.6, 
           changeFrequency: 'monthly', 
           lastModified: new Date(),
@@ -122,7 +123,7 @@ const SitemapPageClient = () => {
           description: 'Latest trends in the textile industry'
         },
         { 
-          url: window.location.origin + '/blog-details/sustainable-manufacturing', 
+          url: fallbackOrigin + '/blog-details/sustainable-manufacturing', 
           priority: 0.6, 
           changeFrequency: 'monthly', 
           lastModified: new Date(),
@@ -130,7 +131,7 @@ const SitemapPageClient = () => {
           description: 'Our commitment to sustainable practices'
         },
         { 
-          url: window.location.origin + '/shop-category', 
+          url: fallbackOrigin + '/shop-category', 
           priority: 0.7, 
           changeFrequency: 'daily', 
           lastModified: new Date(),
@@ -138,7 +139,7 @@ const SitemapPageClient = () => {
           description: 'Browse products by category'
         },
         { 
-          url: window.location.origin + '/cart', 
+          url: fallbackOrigin + '/cart', 
           priority: 0.5, 
           changeFrequency: 'daily', 
           lastModified: new Date(),
@@ -146,7 +147,7 @@ const SitemapPageClient = () => {
           description: 'Review your selected items'
         },
         { 
-          url: window.location.origin + '/wishlist', 
+          url: fallbackOrigin + '/wishlist', 
           priority: 0.5, 
           changeFrequency: 'daily', 
           lastModified: new Date(),
@@ -154,7 +155,7 @@ const SitemapPageClient = () => {
           description: 'Save your favorite products'
         },
         { 
-          url: window.location.origin + '/login', 
+          url: fallbackOrigin + '/login', 
           priority: 0.4, 
           changeFrequency: 'monthly', 
           lastModified: new Date(),
@@ -162,7 +163,7 @@ const SitemapPageClient = () => {
           description: 'Access your account'
         },
         { 
-          url: window.location.origin + '/register', 
+          url: fallbackOrigin + '/register', 
           priority: 0.4, 
           changeFrequency: 'monthly', 
           lastModified: new Date(),
@@ -260,7 +261,8 @@ const SitemapPageClient = () => {
   };
 
   const getPageTitle = (url) => {
-    const path = url.replace(process.env.NEXT_PUBLIC_SITE_URL || window.location.origin, '');
+    const fallbackOrigin = typeof window !== 'undefined' ? window.location.origin : 'https://amrita-fashions.com';
+    const path = url.replace(process.env.NEXT_PUBLIC_SITE_URL || fallbackOrigin, '');
     
     if (path.includes('/fabric/')) {
       const slug = path.split('/fabric/')[1];
@@ -345,7 +347,7 @@ const SitemapPageClient = () => {
                         {filteredPages.slice(0, showAllProducts ? filteredPages.length : 5).map((page, index) => (
                           <li key={index} className={styles.linkItem}>
                             <Link
-                              href={page.url.replace(process.env.NEXT_PUBLIC_SITE_URL || window.location.origin, '') || '/'}
+                              href={page.url.replace(process.env.NEXT_PUBLIC_SITE_URL || (typeof window !== 'undefined' ? window.location.origin : 'https://amrita-fashions.com'), '') || '/'}
                               className={styles.sitemapLink}
                             >
                               {page.title || getPageTitle(page.url)}
@@ -368,7 +370,7 @@ const SitemapPageClient = () => {
                       filteredPages.map((page, index) => (
                         <li key={index} className={styles.linkItem}>
                           <Link
-                            href={page.url.replace(process.env.NEXT_PUBLIC_SITE_URL || window.location.origin, '') || '/'}
+                            href={page.url.replace(process.env.NEXT_PUBLIC_SITE_URL || (typeof window !== 'undefined' ? window.location.origin : 'https://amrita-fashions.com'), '') || '/'}
                             className={styles.sitemapLink}
                           >
                             {page.title || getPageTitle(page.url)}

@@ -15,9 +15,6 @@ const PopularProducts = dynamic(() => import('@/components/products/fashion/popu
 const WeeksFeatured = dynamic(() => import('@/components/products/fashion/weeks-featured'), {
   loading: () => <div style={{ minHeight: '400px' }} />,
 });
-const BestSellerProducts = dynamic(() => import('@/components/products/fashion/best-seller-products'), {
-  loading: () => <div style={{ minHeight: '400px' }} />,
-});
 const FashionTestimonial = dynamic(() => import('@/components/testimonial/fashion-testimonial'), {
   loading: () => <div style={{ minHeight: '400px' }} />,
 });
@@ -52,12 +49,16 @@ export default function HomePageTwoClient() {
   
   useEffect(() => {
     const checkMobile = () => {
-      setIsMobile(window.innerWidth <= 768);
+      if (typeof window !== 'undefined') {
+        setIsMobile(window.innerWidth <= 768);
+      }
     };
     
     checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
+    if (typeof window !== 'undefined') {
+      window.addEventListener('resize', checkMobile);
+      return () => window.removeEventListener('resize', checkMobile);
+    }
   }, []);
 
   // ✅ Fetch office info
@@ -129,9 +130,9 @@ export default function HomePageTwoClient() {
 
         <ul className={`social-items ${socialOpen ? 'show' : ''}`} aria-hidden={!socialOpen}>
           {socialLinks.map((s, index) => {
-            const iconSize = isMobile ? (window.innerWidth <= 480 ? '38px' : '42px') : '48px';
+            const iconSize = isMobile ? (typeof window !== 'undefined' && window.innerWidth <= 480 ? '38px' : '42px') : '48px';
             const borderWidth = isMobile ? '2px' : '3px';
-            const fontSize = isMobile ? (window.innerWidth <= 480 ? '16px' : '18px') : '22px';
+            const fontSize = isMobile ? (typeof window !== 'undefined' && window.innerWidth <= 480 ? '16px' : '18px') : '22px';
             
             // Desktop positioning
             const desktopPositions = [
@@ -143,7 +144,7 @@ export default function HomePageTwoClient() {
             ];
             
             // Mobile positioning
-            const mobilePositions = window.innerWidth <= 480 ? [
+            const mobilePositions = typeof window !== 'undefined' && window.innerWidth <= 480 ? [
               'translate(-90px, -75px) scale(1)',
               'translate(-120px, -38px) scale(1)',
               'translate(-135px, 0px) scale(1)', 

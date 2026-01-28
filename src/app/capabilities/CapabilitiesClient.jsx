@@ -30,6 +30,8 @@ const CapabilitiesClient = () => {
   // Handle URL hash navigation
   React.useEffect(() => {
     const handleHashChange = () => {
+      if (typeof window === 'undefined') return;
+      
       const hash = window.location.hash.replace('#', '');
       console.log('Hash changed to:', hash); // Debug log
       
@@ -67,10 +69,14 @@ const CapabilitiesClient = () => {
     handleHashChange();
 
     // Listen for hash changes
-    window.addEventListener('hashchange', handleHashChange);
+    if (typeof window !== 'undefined') {
+      window.addEventListener('hashchange', handleHashChange);
+    }
     
     return () => {
-      window.removeEventListener('hashchange', handleHashChange);
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('hashchange', handleHashChange);
+      }
     };
   }, []);
 
@@ -79,7 +85,9 @@ const CapabilitiesClient = () => {
     setActiveTab(tabId);
     // Update URL hash without page reload
     const newUrl = `/capabilities#${tabId}`;
-    window.history.pushState(null, '', newUrl);
+    if (typeof window !== 'undefined') {
+      window.history.pushState(null, '', newUrl);
+    }
     
     // Scroll to section
     setTimeout(() => {
