@@ -236,7 +236,7 @@ const nextConfig = {
 
   async redirects() {
     return [
-      { source: '/home-2', destination: '/', permanent: true },
+      { source: '/', destination: '/', permanent: true },
     ];
   },
 };
