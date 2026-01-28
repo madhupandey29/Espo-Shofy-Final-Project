@@ -235,11 +235,9 @@ export class SitemapManager {
     const staticPaths = ['/', '/shop', '/blog', '/contact', '/about'];
     
     return staticPaths.includes(path) || 
-           path.startsWith('/shop-') || 
+           path.startsWith('/fabric-') || 
            path.includes('/blog') ||
-           path.includes('/blog-grid') || 
-           path.includes('/blog-details') ||
-           path.includes('/blog-list');
+           path.includes('/blog-details') ;
   }
 }
 

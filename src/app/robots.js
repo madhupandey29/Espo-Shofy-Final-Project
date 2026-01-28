@@ -7,12 +7,7 @@ export default function robots() {
         userAgent: '*',
         allow: [
           '/',
-          '/shop',
-          '/shop-category',
-          '/shop-right-sidebar',
-          '/shop-hidden-sidebar',
           '/blog',
-          '/blog-grid',
           '/contact',
           '/about',
           '/fabric/*',

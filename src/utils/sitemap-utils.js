@@ -29,10 +29,8 @@ export function logSitemapStats(sitemapData) {
     static: sitemapData.filter(item => {
       const path = item.url.split('/').pop() || '/';
       return ['/', 'shop', 'blog', 'cart', 'wishlist', 'login', 'contact', 'register', 'checkout', 'compare', 'search', 'profile', 'coupon', 'forgot'].includes(path) ||
-             item.url.includes('/shop-') ||
-             item.url.includes('/blog-grid') ||
-             item.url.includes('/blog-details') ||
-             item.url.includes('/blog-list');
+             item.url.includes('/fabric-') ||
+             item.url.includes('/blog');
     }).length,
     products: sitemapData.filter(item => item.url.includes('/fabric/')).length,
     blogs: sitemapData.filter(item => item.url.includes('/blog-details')).length,

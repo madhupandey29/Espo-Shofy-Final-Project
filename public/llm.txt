@@ -16,9 +16,9 @@ Help LLM-based tools understand this fabric e-commerce website and provide accur
 
 Primary Navigation:
 - Home: / (featured products, company overview)
-- Shop: /shop (main product catalog with filters)
+- Shop: /fabric (main product catalog with filters)
 - Product Details: /fabric/{slug} (individual product specifications)
-- Blog: /blog, /blog-grid, /blog-list (textile industry insights)
+- Blog: /blog, (textile industry insights)
 - Contact: /contact (business inquiries and support)
 
 Shop Variations:

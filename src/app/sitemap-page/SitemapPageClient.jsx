@@ -75,7 +75,7 @@ const SitemapPageClient = () => {
           description: 'Discover our manufacturing capabilities and processes'
         },
         { 
-          url: fallbackOrigin + '/blog-grid', 
+          url: fallbackOrigin + '/blog', 
           priority: 0.7, 
           changeFrequency: 'weekly', 
           lastModified: new Date(),
@@ -239,7 +239,7 @@ const SitemapPageClient = () => {
       contact: '/contact',
       fabric: '/fabric',
       products: '/fabric',
-      blog: '/blog-grid',
+      blog: '/blog',
       account: '/login'
     };
     return sectionUrls[sectionKey] || '/';

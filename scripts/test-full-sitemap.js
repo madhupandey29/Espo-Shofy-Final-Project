@@ -49,8 +49,6 @@ async function testFullSitemap() {
       { url: `${baseUrl}/shop-right-sidebar`, priority: 0.7, changeFreq: 'daily' },
       { url: `${baseUrl}/shop-hidden-sidebar`, priority: 0.7, changeFreq: 'daily' },
       { url: `${baseUrl}/blog`, priority: 0.8, changeFreq: 'weekly' },
-      { url: `${baseUrl}/blog-grid`, priority: 0.7, changeFreq: 'weekly' },
-      { url: `${baseUrl}/blog-list`, priority: 0.7, changeFreq: 'weekly' },
       { url: `${baseUrl}/cart`, priority: 0.6, changeFreq: 'daily' },
       { url: `${baseUrl}/wishlist`, priority: 0.6, changeFreq: 'daily' },
       { url: `${baseUrl}/compare`, priority: 0.6, changeFreq: 'daily' },
