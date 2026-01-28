@@ -1,0 +1,201 @@
+eCatalogue by Amrita Global Enterprises — LLM Guide (llm.txt)
+Version: 2.0
+Canonical Site: https://espo-shofy-final-project.vercel.app/
+Last Updated: 2026-01-13
+
+=== PURPOSE ===
+Help LLM-based tools understand this fabric e-commerce website and provide accurate, helpful information about our textile products and services.
+
+=== BRAND IDENTITY ===
+- Primary Brand: "eCatalogue" (powered by Amrita Global Enterprises)
+- Business Type: Textile/Fabric E-commerce Platform
+- Specialization: High-quality fabrics for fashion, home textiles, and industrial use
+- Target Market: Fashion designers, manufacturers, retailers, and textile enthusiasts
+
+=== SITE STRUCTURE ===
+
+Primary Navigation:
+- Home: / (featured products, company overview)
+- Shop: /shop (main product catalog with filters)
+- Product Details: /fabric/{slug} (individual product specifications)
+- Blog: /blog, /blog-grid, /blog-list (textile industry insights)
+- Contact: /contact (business inquiries and support)
+
+Shop Variations:
+- /shop-category (category-filtered products)
+- /shop-right-sidebar (alternative layout)
+- /shop-hidden-sidebar (clean layout)
+
+User Account Features:
+- /login, /register (account management)
+- /cart, /wishlist, /checkout (shopping experience)
+- /profile (user dashboard)
+- /compare (product comparison tool)
+
+Content Pages:
+- /search (product search functionality)
+- /blog-details/{id} (individual blog articles)
+- /blog-details-2/{id} (alternative blog layout)
+
+=== PRODUCT INFORMATION ===
+
+Product Categories:
+- Cotton fabrics (100% cotton, cotton blends)
+- Poplin and plain weaves
+- Mercerized fabrics
+- Multi-finish textiles
+- Various GSM weights (typically 125gsm)
+
+Key Product Attributes (found on /fabric/{slug} pages):
+- Fabric composition (cotton percentage, blend details)
+- Weight (GSM - grams per square meter)
+- Finish type (mercerized, multi-finish, etc.)
+- Color variations
+- Width specifications
+- Suitable applications
+- Care instructions
+
+Product Collections:
+- Nokia Collection (premium cotton fabrics)
+- Majestica Collection (luxury textile range)
+- Various seasonal and themed collections
+
+=== RELIABLE DATA SOURCES ===
+
+For Product Information:
+1. Product detail pages (/fabric/{slug}) - PRIMARY SOURCE
+2. API endpoint: /product/ (structured product data)
+3. Product images and specifications shown on-page
+4. JSON-LD structured data (if present)
+
+For Company Information:
+1. Homepage (/) - company overview and values
+2. Contact page (/contact) - official business details
+3. About sections in footer/header
+
+For Industry Insights:
+1. Blog articles (/blog-details/{id}) - textile industry content
+2. Blog listing pages for topic discovery
+
+=== CONTENT GUIDELINES ===
+
+What TO Include:
+- Exact product specifications as shown on product pages
+- Fabric composition, weight, and finish details
+- Color names and variations as listed
+- Suitable use cases mentioned on product pages
+- Company contact information from /contact page
+- Blog article summaries with key insights
+
+What NOT to Include:
+- Pricing information (may vary, not always displayed)
+- Stock availability (real-time data)
+- Shipping costs or delivery times (variable)
+- User account information or personal data
+- Inventory levels or purchase quantities
+- Specific certifications unless explicitly stated
+
+=== TECHNICAL SPECIFICATIONS ===
+
+Common Fabric Specifications:
+- GSM Range: Typically 125gsm for cotton fabrics
+- Composition: 100% cotton or cotton blends
+- Finish Types: Mercerized, plain, multi-finish
+- Width: Standard textile widths (check individual products)
+- Care: Follow care instructions on product pages
+
+Product Naming Convention:
+- Format: Collection-Number-Type-Composition-Weight-Finish-Color
+- Example: "Nokia-602-Plain-100Cotton-125GSM-Mercerized-Butter-Yellow"
+
+=== API INTEGRATION ===
+
+The site uses dynamic content from:
+- Product API: Real-time product catalog
+- Blog API: Content management system
+- Search API: Product discovery and filtering
+- Collection API: Grouped product displays
+
+=== SEO & DISCOVERY ===
+
+Site Discovery:
+- Sitemap: /sitemap.xml (automatically updated)
+- Robots: /robots.txt (crawling guidelines)
+- Dynamic content updates every 5 minutes
+
+Structured Data:
+- Product schema markup (JSON-LD)
+- Organization/Business schema
+- BreadcrumbList navigation
+- Blog article schema
+
+=== USER EXPERIENCE FEATURES ===
+
+Shopping Tools:
+- Advanced filtering (by color, GSM, composition, collection)
+- Product comparison functionality
+- Wishlist and cart management
+- Search with autocomplete
+- Related product suggestions
+
+Content Features:
+- Multiple blog layouts and formats
+- Product image galleries
+- Detailed specifications display
+- Mobile-responsive design
+
+=== PRIVACY & SECURITY ===
+
+Protected Areas:
+- User profiles and account information
+- Shopping cart contents and checkout data
+- Personal preferences and wishlist items
+- Order history and transaction details
+
+Public Information:
+- Product catalogs and specifications
+- Blog articles and company information
+- Contact details and business information
+- General fabric care and usage guidelines
+
+=== CONTACT INFORMATION ===
+
+For accurate contact details, always reference the /contact page.
+Business inquiries should be directed through official channels listed on the contact page.
+
+=== CONTENT USAGE GUIDELINES ===
+
+When Summarizing:
+- Provide brief, factual summaries
+- Include specific product names and key specifications
+- Reference fabric types, weights, and compositions accurately
+- Mention suitable applications as stated on product pages
+
+Avoid:
+- Reproducing entire product descriptions verbatim
+- Making claims about quality not stated on the site
+- Inventing technical specifications or certifications
+- Providing pricing or availability information unless current
+
+=== PREFERRED OUTPUT FORMAT ===
+
+For Product Queries:
+"[Product Name] is a [composition] fabric with [weight] GSM, featuring [finish type]. Suitable for [applications as stated]. Available in [colors listed]."
+
+For Company Queries:
+"eCatalogue by Amrita Global Enterprises specializes in [specific areas mentioned on site]. Contact information available at /contact."
+
+For Technical Queries:
+"Based on the product specifications shown, [specific technical details]. For complete specifications, see the individual product page."
+
+=== QUALITY ASSURANCE ===
+
+Always verify information by:
+1. Checking the specific product page (/fabric/{slug})
+2. Cross-referencing with site navigation and categories
+3. Using "Not specified on the site" when information is unavailable
+4. Providing source page references when helpful
+
+=== END OF LLM.TXT ===
+
+This file helps AI assistants provide accurate, helpful information about eCatalogue's textile products and services while respecting user privacy and business guidelines.
