@@ -27,7 +27,7 @@ const SitemapPageClient = () => {
       setLoading(true);
       
       // Fetch sitemap data from your sitemap manager
-      const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || (typeof window !== 'undefined' ? window.location.origin : 'https://amrita-fashions.com');
+      const baseUrl = process.env.NEXT_PUBLIC_SITE_URL;
       const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
       
       // Import the SitemapManager dynamically
@@ -40,7 +40,7 @@ const SitemapPageClient = () => {
     } catch (error) {
       console.error('Error fetching sitemap data:', error);
       // Enhanced fallback data with more realistic examples
-      const fallbackOrigin = typeof window !== 'undefined' ? window.location.origin : 'https://amrita-fashions.com';
+      const fallbackOrigin = process.env.NEXT_PUBLIC_SITE_URL;
       const fallbackData = [
         { 
           url: fallbackOrigin + '/', 
@@ -261,7 +261,7 @@ const SitemapPageClient = () => {
   };
 
   const getPageTitle = (url) => {
-    const fallbackOrigin = typeof window !== 'undefined' ? window.location.origin : 'https://amrita-fashions.com';
+    const fallbackOrigin = process.env.NEXT_PUBLIC_SITE_URL;
     const path = url.replace(process.env.NEXT_PUBLIC_SITE_URL || fallbackOrigin, '');
     
     if (path.includes('/fabric/')) {
@@ -347,7 +347,7 @@ const SitemapPageClient = () => {
                         {filteredPages.slice(0, showAllProducts ? filteredPages.length : 5).map((page, index) => (
                           <li key={index} className={styles.linkItem}>
                             <Link
-                              href={page.url.replace(process.env.NEXT_PUBLIC_SITE_URL || (typeof window !== 'undefined' ? window.location.origin : 'https://amrita-fashions.com'), '') || '/'}
+                              href={page.url.replace(process.env.NEXT_PUBLIC_SITE_URL, '') || '/'}
                               className={styles.sitemapLink}
                             >
                               {page.title || getPageTitle(page.url)}
@@ -370,7 +370,7 @@ const SitemapPageClient = () => {
                       filteredPages.map((page, index) => (
                         <li key={index} className={styles.linkItem}>
                           <Link
-                            href={page.url.replace(process.env.NEXT_PUBLIC_SITE_URL || (typeof window !== 'undefined' ? window.location.origin : 'https://amrita-fashions.com'), '') || '/'}
+                            href={page.url.replace(process.env.NEXT_PUBLIC_SITE_URL, '') || '/'}
                             className={styles.sitemapLink}
                           >
                             {page.title || getPageTitle(page.url)}
@@ -388,7 +388,7 @@ const SitemapPageClient = () => {
           <div className={styles.footerActions}>
             <div className={styles.actionGroup}>
               <Link
-                href={`${process.env.NEXT_PUBLIC_SITE_URL || ''}/sitemap.xml`}
+                href={`${process.env.NEXT_PUBLIC_SITE_URL}/sitemap.xml`}
                 target="_blank"
                 className={styles.actionButton}
               >

@@ -63,7 +63,7 @@ function testLlmTxt() {
     
     // Check URL and site info
     console.log('\n🌐 Checking site information:');
-    const siteUrl = 'espo-shofy-final-project.vercel.app';
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.replace('https://', '');
     const hasCorrectUrl = content.includes(siteUrl);
     console.log(`${hasCorrectUrl ? '✅' : '❌'} Correct site URL`);
     
@@ -138,7 +138,7 @@ function testLlmTxt() {
     
     // Live URL info
     console.log(`\n🌐 Your llm.txt is available at:`);
-    console.log(`   https://espo-shofy-final-project.vercel.app/llm.txt`);
+    console.log(`   ${process.env.NEXT_PUBLIC_SITE_URL}/llm.txt`);
     
     console.log(`\n💡 Test it by asking AI assistants about your site!`);
     

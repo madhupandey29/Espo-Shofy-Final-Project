@@ -6,8 +6,7 @@ const stripTrailingSlash = (s = "") => String(s || "").replace(/\/+$/, "");
 
 // Ensure we always use the production URL, with fallback
 const SITE_URL = stripTrailingSlash(
-  process.env.NEXT_PUBLIC_SITE_URL || 
-  "https://espo-shofy-final-project.vercel.app"
+  process.env.NEXT_PUBLIC_SITE_URL
 );
 
 // Debug logging in development

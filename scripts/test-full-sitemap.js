@@ -35,7 +35,7 @@ async function testFullSitemap() {
     // Load environment variables
     loadEnvFile();
     
-    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://espo-shofy-final-project.vercel.app';
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL;
     const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
     
     console.log('Base URL:', baseUrl);

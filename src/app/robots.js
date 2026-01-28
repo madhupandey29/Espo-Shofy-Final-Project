@@ -1,5 +1,5 @@
 export default function robots() {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://espo-shofy-final-project.vercel.app';
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL;
   
   return {
     rules: [

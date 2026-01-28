@@ -18,7 +18,7 @@ export async function pingSearchEngines(sitemapUrl) {
 }
 
 export function getSitemapUrl() {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://fabric-shop-frontend-production.up.railway.app';
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL;
   return `${baseUrl}/sitemap.xml`;
 }
 

@@ -3,7 +3,7 @@ import { SitemapManager } from '@/utils/sitemap-manager';
 import { logSitemapStats, validateSitemapData } from '@/utils/sitemap-utils';
 
 export default async function sitemap() {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://espo-shofy-final-project.vercel.app';
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL;
   const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
   
   try {

@@ -1,6 +1,6 @@
 eCatalogue by Amrita Global Enterprises — LLM Guide (llm.txt)
 Version: 2.0
-Canonical Site: https://espo-shofy-final-project.vercel.app/
+Canonical Site: https://amrita-fashions.com/
 Last Updated: 2026-01-13
 
 === PURPOSE ===

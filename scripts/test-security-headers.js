@@ -13,7 +13,7 @@ function testSecurityHeaders() {
   console.log('🔒 Testing security headers...\n');
   
   // Load environment variables
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://espo-shofy-final-project.vercel.app';
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
   
   console.log(`Testing: ${siteUrl}`);
   

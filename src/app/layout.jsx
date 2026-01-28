@@ -211,9 +211,9 @@ export default async function RootLayout({ children }) {
         <link rel="preconnect" href={process.env.NEXT_PUBLIC_API_BASE_URL?.replace('/api', '')} />
         <link rel="dns-prefetch" href={process.env.NEXT_PUBLIC_API_BASE_URL?.replace('/api', '')} />
         
-        {/* Preconnect to Vercel for faster chunk loading */}
-        <link rel="preconnect" href="https://espo-shofy-final-project.vercel.app" crossOrigin="anonymous" />
-        <link rel="dns-prefetch" href="https://espo-shofy-final-project.vercel.app" />
+        {/* Preconnect to domain for faster chunk loading */}
+        <link rel="preconnect" href={process.env.NEXT_PUBLIC_SITE_URL} crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href={process.env.NEXT_PUBLIC_SITE_URL} />
         
         {/* ✅ Google Fonts now loaded via next/font (self-hosted, no blocking) */}
         

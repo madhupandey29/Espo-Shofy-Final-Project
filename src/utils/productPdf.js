@@ -837,7 +837,7 @@ export async function downloadProductPdf(product, options = {}) {
 
     // Try multiple logo paths with full URLs - prioritize your actual logo
     let logoDataUrl = null;
-    const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'https://amrita-fashions.com';
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL;
     const logoPaths = [
       "/assets/img/logo/my_logo.png", // Your actual logo (FIRST PRIORITY)
       logoPath,
