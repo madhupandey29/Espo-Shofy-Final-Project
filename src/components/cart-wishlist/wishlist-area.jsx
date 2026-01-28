@@ -11,9 +11,9 @@ const WishlistArea = () => {
   const { userId, wishlist, loading } = useWishlistManager();
 
   /* --------------------------- actions --------------------------- */
-  const handleAddProduct = () => router.push('/shop');
+  const handleAddProduct = () => router.push('/fabric');
   const handleGoToCart = () => router.push('/cart');
-  const handleContinueShopping = () => router.push('/shop');
+  const handleContinueShopping = () => router.push('/fabric');
 
   const hasItems = Array.isArray(wishlist) && wishlist.length > 0;
 

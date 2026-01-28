@@ -13,7 +13,7 @@ const ElectronicCategory = () => {
 
   // handle category route
   const handleCategoryRoute = (title) => {
-    router.push(`/shop?category=${title.toLowerCase().replace("&", "").split(" ").join("-")}`)
+    router.push(`/fabric?category=${title.toLowerCase().replace("&", "").split(" ").join("-")}`)
   }
   // decide what to render
   let content = null;

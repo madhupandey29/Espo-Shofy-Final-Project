@@ -44,7 +44,7 @@ async function testFullSitemap() {
     // Static pages
     const staticPages = [
       { url: baseUrl, priority: 1.0, changeFreq: 'daily' },
-      { url: `${baseUrl}/shop`, priority: 0.9, changeFreq: 'daily' },
+      { url: `${baseUrl}/fabric`, priority: 0.9, changeFreq: 'daily' },
       { url: `${baseUrl}/shop-category`, priority: 0.8, changeFreq: 'daily' },
       { url: `${baseUrl}/shop-right-sidebar`, priority: 0.7, changeFreq: 'daily' },
       { url: `${baseUrl}/shop-hidden-sidebar`, priority: 0.7, changeFreq: 'daily' },

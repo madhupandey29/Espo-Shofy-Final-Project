@@ -17,7 +17,7 @@ const CartCheckout = () => {
           <button
             type="button"
             className="btn-ghost-invert w-100"
-            onClick={() => router.push('/shop')}
+            onClick={() => router.push('/fabric')}
           >
             Continue Shopping
           </button>

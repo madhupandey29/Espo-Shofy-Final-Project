@@ -8,11 +8,33 @@
 const fs = require('fs');
 const path = require('path');
 
+// Read environment variables from .env.local
+function loadEnvVars() {
+  const envPath = path.join(process.cwd(), '.env.local');
+  const envVars = {};
+  
+  if (fs.existsSync(envPath)) {
+    const envContent = fs.readFileSync(envPath, 'utf8');
+    const lines = envContent.split('\n');
+    
+    lines.forEach(line => {
+      line = line.trim();
+      if (line && !line.startsWith('#') && line.includes('=')) {
+        const [key, ...valueParts] = line.split('=');
+        const value = valueParts.join('=').trim();
+        envVars[key.trim()] = value;
+      }
+    });
+  }
+  
+  return envVars;
+}
+
 function testLlmTxt() {
   console.log('🤖 Testing llm.txt file...\n');
   
   try {
-    // Check if file exists
+    // Check if static file exists
     const llmTxtPath = path.join(process.cwd(), 'public', 'llm.txt');
     
     if (!fs.existsSync(llmTxtPath)) {
@@ -20,8 +42,16 @@ function testLlmTxt() {
       return;
     }
     
+    console.log('✅ Static llm.txt file found');
+    console.log(`📁 Location: public/llm.txt`);
+    
     // Read and analyze content
     const content = fs.readFileSync(llmTxtPath, 'utf8');
+    
+    if (!content) {
+      console.log('❌ Could not read content from file');
+      return;
+    }
     const lines = content.split('\n');
     
     console.log('✅ File found and readable');
@@ -63,9 +93,10 @@ function testLlmTxt() {
     
     // Check URL and site info
     console.log('\n🌐 Checking site information:');
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.replace('https://', '');
+    const envVars = loadEnvVars();
+    const siteUrl = envVars.NEXT_PUBLIC_SITE_URL || 'https://amrita-fashions.com';
     const hasCorrectUrl = content.includes(siteUrl);
-    console.log(`${hasCorrectUrl ? '✅' : '❌'} Correct site URL`);
+    console.log(`${hasCorrectUrl ? '✅' : '❌'} Correct site URL (${siteUrl})`);
     
     const currentYear = new Date().getFullYear();
     const hasCurrentYear = content.includes(currentYear.toString());
@@ -138,9 +169,10 @@ function testLlmTxt() {
     
     // Live URL info
     console.log(`\n🌐 Your llm.txt is available at:`);
-    console.log(`   ${process.env.NEXT_PUBLIC_SITE_URL}/llm.txt`);
+    console.log(`   ${siteUrl}/llm.txt`);
     
     console.log(`\n💡 Test it by asking AI assistants about your site!`);
+    console.log(`\n🔧 Note: This is a static file in public/llm.txt`);
     
   } catch (error) {
     console.error('❌ Error testing llm.txt:', error.message);

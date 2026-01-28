@@ -15,7 +15,7 @@ const StatusFilter = ({setCurrPage,shop_right=false}) => {
   const handleStatusRoute = (status) => {
     setCurrPage(1)
     router.push(
-      `/${shop_right?'shop-right-sidebar':'shop'}?status=${status
+      `/${shop_right?'shop-right-sidebar':'fabric'}?status=${status
         .toLowerCase()
         .replace("&", "")
         .split(" ")

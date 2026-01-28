@@ -22,7 +22,7 @@ const StructureFilter = ({setCurrPage,shop_right=false}) => {
   const handleStructure = (struct) => {
     setCurrPage(1)
     router.push(
-      `/${shop_right?'shop-right-sidebar':'shop'}?structure=${struct
+      `/${shop_right?'shop-right-sidebar':'fabric'}?structure=${struct
         .toLowerCase()
         .split(" ")
         .join("-")}`

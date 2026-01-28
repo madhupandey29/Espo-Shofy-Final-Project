@@ -1,7 +1,7 @@
 eCatalogue by Amrita Global Enterprises — LLM Guide (llm.txt)
 Version: 2.0
-Canonical Site: https://amrita-fashions.com/
-Last Updated: 2026-01-13
+Canonical Site: https://amrita-fashions.com
+Last Updated: 2026-01-28
 
 === PURPOSE ===
 Help LLM-based tools understand this fabric e-commerce website and provide accurate, helpful information about our textile products and services.
@@ -35,7 +35,6 @@ User Account Features:
 Content Pages:
 - /search (product search functionality)
 - /blog-details/{id} (individual blog articles)
-- /blog-details-2/{id} (alternative blog layout)
 
 === PRODUCT INFORMATION ===
 

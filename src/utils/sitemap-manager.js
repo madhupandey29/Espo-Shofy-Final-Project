@@ -17,7 +17,7 @@ export class SitemapManager {
   getStaticRoutes() {
     const staticRoutes = [
       { path: '/', priority: 1.0, changeFreq: 'daily' },
-      { path: '/shop', priority: 0.9, changeFreq: 'daily' }, // Main shop page
+      { path: '/fabric', priority: 0.9, changeFreq: 'daily' }, // Main shop page
       { path: '/blog', priority: 0.8, changeFreq: 'weekly' }, // Main blog page
       { path: '/contact', priority: 0.7, changeFreq: 'monthly' },
       { path: '/about', priority: 0.6, changeFreq: 'monthly' },
@@ -232,7 +232,7 @@ export class SitemapManager {
    */
   isStaticPage(url) {
     const path = url.replace(this.baseUrl, '');
-    const staticPaths = ['/', '/shop', '/blog', '/contact', '/about'];
+    const staticPaths = ['/', '/fabric', '/blog', '/contact', '/about'];
     
     return staticPaths.includes(path) || 
            path.startsWith('/fabric-') || 

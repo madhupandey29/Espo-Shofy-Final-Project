@@ -20,7 +20,7 @@ const ColorFilter = ({setCurrPage,shop_right=false}) => {
   const handleColor = (clr) => {
     setCurrPage(1)
     router.push(
-      `/${shop_right?'shop-right-sidebar':'shop'}?color=${clr
+      `/fabric?color=${clr
         .toLowerCase()
         .split(" ")
         .join("-")}`

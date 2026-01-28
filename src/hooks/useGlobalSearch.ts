@@ -35,9 +35,9 @@ export default function useGlobalSearch(debounceMs = 250) {
     };
   }, []);
 
-  // ✅ if on /shop, sync input from URL (?q= / ?searchText=)
+  // ✅ if on /fabric, sync input from URL (?q= / ?searchText=)
   useEffect(() => {
-    if (!pathname?.includes('/shop')) return;
+    if (!pathname?.includes('/fabric')) return;
 
     const urlQ = (searchParams?.get('q') || searchParams?.get('searchText') || '').trim();
 
@@ -62,7 +62,7 @@ export default function useGlobalSearch(debounceMs = 250) {
   useEffect(() => {
     if (!pathname) return;
 
-    if (!pathname.includes('/shop')) {
+    if (!pathname.includes('/fabric')) {
       setQuery('');
       if (lastPublishedRef.current !== '') {
         lastPublishedRef.current = '';

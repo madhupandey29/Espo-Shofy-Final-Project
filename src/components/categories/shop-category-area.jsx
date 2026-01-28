@@ -11,7 +11,7 @@ const ShopCategoryArea = () => {
   // handle category route
   const handleCategoryRoute = (title) => {
     router.push(
-      `/shop?category=${title
+      `/fabric?category=${title
         .toLowerCase()
         .replace("&", "")
         .split(" ")

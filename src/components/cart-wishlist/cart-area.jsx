@@ -40,7 +40,7 @@ const CartArea = () => {
       )
       .filter(Boolean) || [];
 
-  const handleAddProduct = () => router.push('/shop');
+  const handleAddProduct = () => router.push('/fabric');
 
   const handleClearCart = async () => {
     if (!userId || isClearing) return;

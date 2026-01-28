@@ -18,7 +18,7 @@ const BeautyCategory = () => {
       .replace(/&/g, "")
       .split(" ")
       .join("-");
-    router.push(`/shop?category=${slug}`);
+    router.push(`/fabric?category=${slug}`);
   };
 
   let content = null;
