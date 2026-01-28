@@ -6,7 +6,7 @@ const withBundleAnalyzer = require('@next/bundle-analyzer')({
 
 // Security headers for fabric e-commerce site
 const getSecurityHeaders = () => {
-  const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://espobackend.vercel.app';
+  const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
   const apiDomain = new URL(apiBaseUrl).origin;
   
   return [

@@ -5,7 +5,6 @@ import Link from 'next/link';
 
 /* ---- constants ---- */
 const HERO_VIDEO = '/videos/canva_mix.mp4';
-const STATIC_FALLBACK = '/assets/img/blog/2/blog-1.jpg';
 
 const EYEBROW = 'eCatalogue by Amrita Global Enterprises';
 const TITLE = "Premium Quality Fabrics by eCatalogue";
@@ -32,10 +31,18 @@ export default function FashionBanner() {
           loop
           playsInline
           controls={false}
-          preload="metadata"
-          onLoadedData={() => setVideoLoaded(true)}
+          preload="auto"
+          onLoadedData={() => {
+            console.log('Video loaded successfully');
+            setVideoLoaded(true);
+          }}
+          onCanPlay={() => {
+            console.log('Video can play');
+            setVideoLoaded(true);
+          }}
           onError={(e) => {
             console.error('Video loading error:', e);
+            console.error('Video error details:', e.currentTarget.error);
             // hide video, fallback will show
             e.currentTarget.style.display = 'none';
           }}
@@ -43,10 +50,6 @@ export default function FashionBanner() {
           <source src={HERO_VIDEO} type="video/mp4" />
         </video>
 
-        <div
-          className="hero-fallback"
-          style={{ backgroundImage: `url(${STATIC_FALLBACK})` }}
-        />
 
         <div className="bg-overlay primary-overlay" />
         <div className="bg-overlay accent-overlay" />
@@ -133,7 +136,7 @@ export default function FashionBanner() {
           inset: 0;
           width: 100%;
           height: 100%;
-          object-fit: none; /* IMPORTANT: cover for mobile */
+          object-fit: cover; /* IMPORTANT: cover for mobile */
           object-position: center;
           opacity: 0;
           transition: opacity 0.9s ease;
