@@ -106,7 +106,7 @@ function mapBackendProductToFrontend(p) {
     status: p.status || 'in-stock',
     sku: p.sku || p.fabricCode,
     category: p.category || '',
-    categoryId: p.category?._id || p.category || '',
+    categoryId: p.category?._id || '',
     structure: p.structure || '',
     structureId: p.structure?._id || p.structure || '',
     content: p.content || [],

@@ -182,7 +182,7 @@ export default function DetailsTabNav({ product = {} }) {
     async function fetchBySlug() {
       if (!slug || !API_BASE) return;
       try {
-        const res = await fetch(`${API_BASE}/product/${slug}`, {
+        const res = await fetch(`${API_BASE}/product/fieldname/productslug/${slug}`, {
           headers: { 'x-api-key': API_KEY || '', 'Content-Type': 'application/json' },
           credentials: 'include',
         });

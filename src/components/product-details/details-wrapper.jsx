@@ -204,7 +204,7 @@ const DetailsWrapper = ({ productItem = {} }) => {
         if (live) setProductFull(null);
         return;
       }
-      const json = await fetchJson(`${API_BASE}/product/${slugValue}`);
+      const json = await fetchJson(`${API_BASE}/product/fieldname/productslug/${slugValue}`);
       const data = json?.data || null;
       if (live) setProductFull(data);
     })();

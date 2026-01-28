@@ -77,7 +77,7 @@ export const productApi = apiSlice.injectEndpoints({
     }),
     getSingleProduct: builder.query({
       query: (id) =>
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}/product/single-product/${id}`,
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/product/${id}`,
       transformResponse: (res) => {
         // For single product, might return { success: true, product: {...} }
         if (res?.product) {

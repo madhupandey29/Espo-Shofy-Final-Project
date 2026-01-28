@@ -5,7 +5,7 @@ import Link from 'next/link';
 
 /* ---- constants ---- */
 const HERO_VIDEO = '/videos/canva_mix.mp4';
-const STATIC_FALLBACK = '/assets/img/hero/hero-bg.jpg';
+const STATIC_FALLBACK = '/assets/img/blog/2/blog-1.jpg';
 
 const EYEBROW = 'eCatalogue by Amrita Global Enterprises';
 const TITLE = "Premium Quality Fabrics by eCatalogue";
