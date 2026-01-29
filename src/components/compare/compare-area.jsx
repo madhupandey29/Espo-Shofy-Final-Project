@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useDispatch, useSelector } from "react-redux";
 import { Rating } from "react-simple-star-rating";
+import { FaTrashAlt } from 'react-icons/fa';
 // internal
 import { add_cart_product } from "@/redux/features/cartSlice";
 import { remove_compare_product } from "@/redux/features/compareSlice";
@@ -120,7 +121,7 @@ const CompareArea = () => {
                           <td key={item._id}>
                             <div className="tp-compare-remove">
                               <button onClick={()=>handleRemoveComparePrd({title:item.title,id:item._id })}>
-                                <i className="fal fa-trash-alt"></i>
+                                <FaTrashAlt />
                               </button>
                             </div>
                           </td>

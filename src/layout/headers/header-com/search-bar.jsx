@@ -1,5 +1,6 @@
 'use client';
 import React from "react";
+import { FaSearch } from 'react-icons/fa';
 import useSearchFormSubmit from "@/hooks/use-search-form-submit";
 
 const SearchBar = ({ isSearchOpen, setIsSearchOpen }) => {
@@ -38,7 +39,7 @@ const SearchBar = ({ isSearchOpen, setIsSearchOpen }) => {
                       placeholder="Search for product..."
                     />
                     <button type="submit">
-                      <i className="flaticon-search-1"></i>
+                      <FaSearch />
                     </button>
                   </div>
                   <div className="tp-search-category">

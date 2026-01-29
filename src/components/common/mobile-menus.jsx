@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import Link from "next/link";
+import { FaPlus } from 'react-icons/fa';
 // import Image from 'next/image'; // ❌ remove (unused)
 import { mobile_menu } from "@/data/menu-data";
 
@@ -28,7 +29,7 @@ const MobileMenus = () => {
               >
                 {menu.title}
                 <span className="dropdown-toggle-btn">
-                  <i className="fa-regular fa-plus" />
+                  <FaPlus />
                 </span>
               </button>
               <ul className={`tp-submenu ${isActiveMenu === menu.title ? "active" : ""}`}>

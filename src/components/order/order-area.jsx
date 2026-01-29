@@ -2,6 +2,7 @@
 
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import dayjs from 'dayjs';
+import { FaPrint } from 'react-icons/fa';
 import {
   pdf as pdfRenderer,
   Document as PDFDocument,
@@ -644,7 +645,7 @@ const OrderArea = ({ orderId, userId: userIdProp }) => {
                   onClick={handlePrint}
                   className="tp-invoice-print tp-btn tp-btn-black"
                 >
-                  <span className="mr-5"><i className="fa-regular fa-print"></i></span> Print
+                  <span className="mr-5"><FaPrint /></span> Print
                 </button>
               </div>
             </div>

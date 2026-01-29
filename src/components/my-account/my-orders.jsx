@@ -1,6 +1,7 @@
 import dayjs from "dayjs";
 import Link from "next/link";
 import React from "react";
+import { FaShoppingCart } from 'react-icons/fa';
 
 const MyOrders = ({ orderData }) => {
   const order_items = orderData?.orders;
@@ -13,10 +14,7 @@ const MyOrders = ({ orderData }) => {
             className="d-flex align-items-center justify-content-center"
           >
             <div className="text-center">
-              <i
-                style={{ fontSize: "30px" }}
-                className="fa-solid fa-cart-circle-xmark"
-              ></i>
+              <FaShoppingCart style={{ fontSize: "30px" }} />
               <p>You Have no order Yet!</p>
             </div>
           </div>

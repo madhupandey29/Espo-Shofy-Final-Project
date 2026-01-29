@@ -139,7 +139,7 @@ const nextConfig = {
   
   // ✅ CHUNK LOADING FIX: Reduce chunk complexity
   experimental: {
-    optimizePackageImports: ['react-icons', 'lucide-react', '@fortawesome/react-fontawesome'],
+    optimizePackageImports: ['react-icons'],
     // Disable aggressive optimizations that can cause chunk issues
     missingSuspenseWithCSRBailout: false,
     serverComponentsExternalPackages: [],

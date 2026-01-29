@@ -4,25 +4,25 @@ const social_data = [
   {
     id:1,
     link:'https://www.facebook.com/',
-    icon:'fa-brands fa-facebook-f',
+    icon:'facebook-f',
     title:'Facebook'
   },
   {
     id:2,
     link:'https://twitter.com/',
-    icon:'fa-brands fa-twitter',
+    icon:'twitter',
     title:'Twitter'
   },
   {
     id:3,
     link:'https://www.linkedin.com/',
-    icon:'fa-brands fa-linkedin-in',
+    icon:'linkedin-in',
     title:'Linkedin'
   },
   {
     id:4,
     link:'https://vimeo.com/',
-    icon:'fa-brands fa-vimeo-v',
+    icon:'vimeo-v',
     title:'Vimeo'
   },
   {

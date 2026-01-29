@@ -6,6 +6,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useDispatch, useSelector } from 'react-redux';
+import { FaStar, FaStarHalfAlt, FaFileAlt, FaCommentDots, FaHeart } from 'react-icons/fa';
+import { AiOutlineStar, AiOutlineHeart } from 'react-icons/ai';
 
 import { useGetDesignByIdQuery } from '@/redux/features/designApi';
 import { useGetMotifSizeByIdQuery } from '@/redux/features/motifSizeApi';
@@ -56,11 +58,11 @@ const Stars = ({ value }) => {
   return (
     <span aria-label={`Rating ${v} out of 5`} className="stars-only">
       {Array.from({ length: full }).map((_, i) => (
-        <i key={`f${i}`} className="fa-solid fa-star" style={iconStyle} />
+        <FaStar key={`f${i}`} style={iconStyle} />
       ))}
-      {half === 1 && <i className="fa-solid fa-star-half-stroke" style={iconStyle} />}
+      {half === 1 && <FaStarHalfAlt style={iconStyle} />}
       {Array.from({ length: empty }).map((_, i) => (
-        <i key={`e${i}`} className="fa-regular fa-star" style={iconStyle} />
+        <AiOutlineStar key={`e${i}`} style={iconStyle} />
       ))}
     </span>
   );
@@ -432,12 +434,12 @@ const DetailsWrapper = ({ productItem = {} }) => {
             type="button"
             onClick={handleRequestSample}
           >
-            <i className="fa-regular fa-file-lines"></i>
+            <FaFileAlt />
             <span className="btn-text">Request Sample</span>
           </button>
 
           <button className="action-btn secondary" type="button">
-            <i className="fa-regular fa-comment-dots"></i>
+            <FaCommentDots />
             <span className="btn-text">Request Quote</span>
           </button>
 
@@ -447,7 +449,7 @@ const DetailsWrapper = ({ productItem = {} }) => {
             className={`wishlist-btn ${isInWishlist ? 'active' : ''}`}
             aria-label="Add to Wishlist"
           >
-            <i className={isInWishlist ? 'fas fa-heart' : 'far fa-heart'} />
+            {isInWishlist ? <FaHeart /> : <AiOutlineHeart />}
           </button>
         </div>
       </div>

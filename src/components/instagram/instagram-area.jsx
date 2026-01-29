@@ -1,6 +1,7 @@
 'use client';
 import React from 'react';
 import Image from 'next/image';
+import { FaInstagram } from 'react-icons/fa';
 // internal
 import ins_1 from '@assets/img/instagram/instagram-1.jpg';
 import ins_2 from '@assets/img/instagram/instagram-2.jpg';
@@ -28,7 +29,7 @@ const InstagramArea = () => {
                 <Image src={item.img} alt="instagram img" style={{width:'100%',height:'100%'}} />
                 <div className="tp-instagram-icon">
                   <a href={item.link} target="_blank" className="popup-image">
-                    <i className="fa-brands fa-instagram"></i>
+                    <FaInstagram />
                   </a>
                 </div>
               </div>

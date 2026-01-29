@@ -2,6 +2,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { FaAngleRight } from 'react-icons/fa';
 // internal
 import { useGetProductTypeCategoryQuery } from "@/redux/features/categoryApi";
 import ErrorMsg from "@/components/common/error-msg";
@@ -71,7 +72,7 @@ const MobileCategory = ({ isCategoryActive, categoryType }) => {
           {item.parent}
           {item.children && (
             <button onClick={()=> handleOpenSubMenu(item.parent)} className="dropdown-toggle-btn">
-              <i className="fa-regular fa-angle-right"></i>
+              <FaAngleRight />
             </button>
           )}
         </a>

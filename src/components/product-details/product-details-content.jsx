@@ -241,8 +241,8 @@ export default function ProductDetailsContent({ productItem }) {
       </div>
 
       <DetailsTabNav product={p} />
-      <RelatedProducts collectionId={collectionId} />
       <DetailsSuitableKeywords product={p} />
+      <RelatedProducts collectionId={collectionId} />
       
       <AltTextDebugger 
         productItem={productItem} 

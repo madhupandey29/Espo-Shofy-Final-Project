@@ -4,8 +4,13 @@ import Footer from "@/layout/footers/footer";
 import CommonBreadcrumb from "@/components/breadcrumb/common-breadcrumb";
 import LoginArea from "@/components/login-register/login-area";
 
+const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || "https://amrita-fashions.com").replace(/\/$/, "");
+
 export const metadata = {
   title: "Shofy - Login Page",
+  alternates: {
+    canonical: `${SITE_URL}/login`,
+  },
 };
 
 export default function LoginPage() {
@@ -13,7 +18,7 @@ export default function LoginPage() {
     <Wrapper>
       <HeaderTwo style_2={true} />
       <CommonBreadcrumb title="Login" subtitle="Login" center={true} />
-      <LoginArea/>
+      <LoginArea />
       <Footer primary_style={true} />
     </Wrapper>
   );

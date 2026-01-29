@@ -1,6 +1,7 @@
 import React from "react";
+import { FaUserEdit, FaInfoCircle, FaClipboardList, FaLock } from 'react-icons/fa';
 
-function SingleNav({ active = false, id, title, icon }) {
+function SingleNav({ active = false, id, title, IconComponent }) {
   return (
     <button
       className={`nav-link ${active ? "active" : ""}`}
@@ -13,7 +14,7 @@ function SingleNav({ active = false, id, title, icon }) {
       aria-selected={active ? "true" : "false"}
     >
       <span>
-        <i className={icon}></i>
+        <IconComponent />
       </span>
       {title}
     </button>
@@ -32,22 +33,22 @@ const ProfileNavTab = () => {
           active={true}
           id="profile"
           title="Profile"
-          icon="fa-regular fa-user-pen"
+          IconComponent={FaUserEdit}
         />
         <SingleNav
           id="information"
           title="Information"
-          icon="fa-regular fa-circle-info"
+          IconComponent={FaInfoCircle}
         />
         <SingleNav
           id="order"
           title="My Orders"
-          icon="fa-light fa-clipboard-list-check"
+          IconComponent={FaClipboardList}
         />
         <SingleNav
           id="password"
           title="Change Password"
-          icon="fa-regular fa-lock"
+          IconComponent={FaLock}
         />
       </div>
     </nav>
