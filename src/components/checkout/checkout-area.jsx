@@ -537,7 +537,7 @@ const CheckoutArea = () => {
                       item?.productId?.images?.[0]?.url ||
                       item?.productId?.img ||
                       item?.productId?.image ||
-                      '/images/placeholder.png';
+                      '/assets/img/product/default-product-img.jpg';
                     return (
                       <div className="product-card" key={item._id || item?.productId?._id}>
                         <div className="product-image">

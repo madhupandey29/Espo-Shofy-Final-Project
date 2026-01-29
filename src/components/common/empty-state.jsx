@@ -24,10 +24,10 @@ export default function EmptyState({
             
             {/* Search magnifying glass */}
             <circle cx="36" cy="33" r="8" fill="none" stroke="var(--tp-theme-secondary)" strokeWidth="2"/>
-            <path d="42 39l5 5" stroke="var(--tp-theme-secondary)" strokeWidth="2" strokeLinecap="round"/>
+            <path d="M42 39l5 5" stroke="var(--tp-theme-secondary)" strokeWidth="2" strokeLinecap="round"/>
             
             {/* X mark indicating no results */}
-            <path d="31 28l10 10M41 28l-10 10" stroke="#ef4444" strokeWidth="1.5" strokeLinecap="round"/>
+            <path d="M31 28l10 10M41 28l-10 10" stroke="#ef4444" strokeWidth="1.5" strokeLinecap="round"/>
             
             {/* Decorative elements */}
             <circle cx="12" cy="15" r="1.5" fill="var(--tp-theme-secondary)" opacity="0.6"/>

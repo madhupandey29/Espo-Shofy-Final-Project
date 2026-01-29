@@ -32,7 +32,7 @@ export default function BlogItem({ blog }) {
   
   // Fallback to ID if slug is empty
   slug = slug || id;
-  const img  = blog?.blogimage1 || blog?.blogimage2 || blog?.img || '/images/placeholder-16x9.jpg';
+  const img  = blog?.blogimage1 || blog?.blogimage2 || blog?.img || '/assets/img/blog/fallback.jpg';
   const date = fmt(blog?.createdAt) || blog?.date || '';
   const tags = Array.isArray(blog?.tags) ? blog.tags
              : Array.isArray(blog?.categories) ? blog.categories

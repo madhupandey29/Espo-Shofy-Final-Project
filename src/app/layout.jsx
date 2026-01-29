@@ -153,62 +153,36 @@ export default async function RootLayout({ children }) {
       </head>
 
       <body>
-        {/* Chunk Load Error Handler Script */}
+        {/* Simplified Chunk Load Error Handler Script */}
         <Script
           id="chunk-error-handler"
-          strategy="beforeInteractive"
+          strategy="afterInteractive"
           dangerouslySetInnerHTML={{
             __html: `
-              // Chunk Load Error Handler - Inline for immediate availability
+              // Simplified Chunk Load Error Handler
               (function() {
                 let retryCount = 0;
-                const MAX_RETRIES = 2;
+                const MAX_RETRIES = 1;
                 
                 function handleChunkError(error) {
+                  // Only handle actual chunk loading errors, not CSS/JS confusion
                   const isChunkError = error?.name === 'ChunkLoadError' || 
-                                      error?.message?.includes('Loading chunk') ||
-                                      error?.message?.includes('Loading CSS chunk');
+                                      (error?.message?.includes('Loading chunk') && 
+                                       !error?.message?.includes('.css'));
                   
-                  if (!isChunkError) return false;
+                  if (!isChunkError || retryCount >= MAX_RETRIES) return false;
                   
                   retryCount++;
+                  console.warn('Chunk load error detected, reloading page...');
                   
-                  if (retryCount <= MAX_RETRIES) {
-                    // Clear caches and reload
-                    try {
-                      if ('serviceWorker' in navigator) {
-                        navigator.serviceWorker.getRegistrations().then(function(registrations) {
-                          registrations.forEach(function(reg) { reg.unregister(); });
-                        });
-                      }
-                      
-                      // Clear localStorage
-                      Object.keys(localStorage).forEach(function(key) {
-                        if (key.startsWith('__next') || key.startsWith('_next')) {
-                          localStorage.removeItem(key);
-                        }
-                      });
-                    } catch (e) {
-                      }
-                    
-                    setTimeout(function() {
-                      window.location.reload();
-                    }, 1000);
-                    
-                    return true;
-                  } else {
+                  setTimeout(function() {
                     window.location.reload();
-                    return true;
-                  }
+                  }, 500);
+                  
+                  return true;
                 }
                 
-                // Global error handlers
-                window.addEventListener('error', function(event) {
-                  if (handleChunkError(event.error)) {
-                    event.preventDefault();
-                  }
-                });
-                
+                // Only handle unhandled promise rejections for chunk errors
                 window.addEventListener('unhandledrejection', function(event) {
                   if (handleChunkError(event.reason)) {
                     event.preventDefault();
@@ -230,13 +204,11 @@ export default async function RootLayout({ children }) {
           strategy="beforeInteractive"
           dangerouslySetInnerHTML={{
             __html: `
-              // Set environment attribute on body for CSS targeting
+              // Set environment attribute on html only to avoid hydration mismatch
               (function() {
                 const isProduction = '${process.env.NODE_ENV}' === 'production';
                 document.documentElement.setAttribute('data-env', isProduction ? 'production' : 'development');
-                document.body.setAttribute('data-env', isProduction ? 'production' : 'development');
-                
-                                })();
+              })();
             `,
           }}
         />

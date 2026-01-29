@@ -40,7 +40,6 @@ const slider_setting = {
   touchEventsTarget: 'container',
   passiveListeners: false,
   watchSlidesProgress: true,
-  watchSlidesVisibility: true,
   breakpoints: {
     640: { slidesPerView: 2, spaceBetween: 14, loop: false },
     1024: { slidesPerView: 3, spaceBetween: 16, loop: true, loopAdditionalSlides: 1 }

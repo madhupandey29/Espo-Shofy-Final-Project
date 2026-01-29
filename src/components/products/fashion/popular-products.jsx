@@ -162,7 +162,6 @@ const SLIDER_OPTS = {
   touchEventsTarget: 'container',
   passiveListeners: false,
   watchSlidesProgress: true,
-  watchSlidesVisibility: true,
   breakpoints: {
     1400: { slidesPerView: 5, spaceBetween: 24, centeredSlides: false, loop: true, loopAdditionalSlides: 2 },
     1200: { slidesPerView: 4, spaceBetween: 20, centeredSlides: false, loop: true, loopAdditionalSlides: 2 },

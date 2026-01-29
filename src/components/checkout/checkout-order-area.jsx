@@ -48,7 +48,7 @@ const CheckoutOrderArea = ({
               const name = item?.title || item?.name || 'Product';
               const qty = Number(item?.orderQuantity || item?.quantity || 1);
               const price = Number(item?.price || 0);
-              const img = item?.img || item?.image || '/images/placeholder.png';
+              const img = item?.img || item?.image || '/assets/img/product/default-product-img.jpg';
               
               return (
                 <div className="product-card" key={item?._id || index}>

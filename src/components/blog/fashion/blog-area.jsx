@@ -84,8 +84,8 @@ export default function BlogArea() {
 
           {!loading &&
             !err &&
-            blogs.map((blog) => (
-              <div key={blog._id} className="col-xl-4 col-lg-4 col-md-6 tp-blog-col">
+            blogs.map((blog, index) => (
+              <div key={blog._id || blog.id || `blog-${index}`} className="col-xl-4 col-lg-4 col-md-6 tp-blog-col">
                 <BlogItem blog={blog} />
               </div>
             ))}

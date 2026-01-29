@@ -254,7 +254,7 @@ const CartItem = ({ product }) => {
     ? isHttpUrl(rawImg)
       ? rawImg
       : `${apiBase || fallbackCdn}/uploads/${clean(rawImg)}`
-    : '/images/placeholder-portrait.webp';
+    : '/assets/img/product/default-product-img.jpg';
 
   // meta (same as wishlist)
   const src = hydrated || product || product?.product || {};

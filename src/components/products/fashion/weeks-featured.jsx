@@ -144,7 +144,6 @@ const SLIDER_SETTINGS = {
   touchEventsTarget: 'container',
   passiveListeners: false,
   watchSlidesProgress: true,
-  watchSlidesVisibility: true,
   breakpoints: {
     1400: {
       slidesPerView: 4,

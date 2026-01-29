@@ -83,6 +83,25 @@ const nextConfig = {
         source: '/(.*)',
         headers: getSecurityHeaders(),
       },
+      // Fix MIME type issues for static assets
+      {
+        source: '/assets/css/:path*',
+        headers: [
+          {
+            key: 'Content-Type',
+            value: 'text/css',
+          },
+        ],
+      },
+      {
+        source: '/assets/fonts/:path*',
+        headers: [
+          {
+            key: 'Content-Type',
+            value: 'font/ttf',
+          },
+        ],
+      },
     ];
   },
 
@@ -175,10 +194,10 @@ const nextConfig = {
         minimize: true, // Minification enabled
         splitChunks: {
           chunks: 'all',
-          maxInitialRequests: 10, // Reduced from 25 to prevent too many chunks
-          maxAsyncRequests: 10,   // Limit async chunks
-          minSize: 30000,         // Increased minimum chunk size
-          maxSize: 250000,        // Set maximum chunk size to prevent huge chunks
+          maxInitialRequests: 8, // Reduced from 10 to prevent too many chunks
+          maxAsyncRequests: 8,   // Limit async chunks
+          minSize: 40000,        // Increased minimum chunk size
+          maxSize: 200000,       // Set maximum chunk size to prevent huge chunks
           cacheGroups: {
             default: false,
             vendors: false,
@@ -195,7 +214,7 @@ const nextConfig = {
               name: 'vendor',
               test: /[\\/]node_modules[\\/]/,
               priority: 20,
-              minChunks: 2, // Increased from 1 to reduce chunk count
+              minChunks: 3, // Increased from 2 to reduce chunk count
               chunks: 'all',
             },
             // Redux chunk
@@ -209,7 +228,7 @@ const nextConfig = {
             // Common chunk for shared code - more conservative
             common: {
               name: 'common',
-              minChunks: 3, // Increased from 2
+              minChunks: 4, // Increased from 3
               priority: 10,
               reuseExistingChunk: true,
               enforce: true,
