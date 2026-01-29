@@ -8,7 +8,6 @@ import shape_2 from '@assets/img/login/shape-2.png';
 import shape_3 from '@assets/img/login/shape-3.png';
 import shape_4 from '@assets/img/login/shape-4.png';
 
-
 const ProfileShape = () => {
   return (
     <div className="profile__shape">

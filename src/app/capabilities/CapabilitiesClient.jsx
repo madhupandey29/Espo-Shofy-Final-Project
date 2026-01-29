@@ -33,18 +33,15 @@ const CapabilitiesClient = () => {
       if (typeof window === 'undefined') return;
       
       const hash = window.location.hash.replace('#', '');
-      console.log('Hash changed to:', hash); // Debug log
-      
+            
       if (hash && ['products', 'process', 'machines', 'quality', 'certifications'].includes(hash)) {
-        console.log('Setting active tab to:', hash); // Debug log
-        setActiveTab(hash);
+                setActiveTab(hash);
         
         // Scroll to the section after a short delay to ensure content is rendered
         setTimeout(() => {
           const element = document.getElementById(hash);
           if (element) {
-            console.log('Scrolling to element:', hash); // Debug log
-            const headerOffset = 120; // Account for sticky header
+                        const headerOffset = 120; // Account for sticky header
             const elementPosition = element.offsetTop;
             const offsetPosition = elementPosition - headerOffset;
             
@@ -53,20 +50,16 @@ const CapabilitiesClient = () => {
               behavior: 'smooth'
             });
           } else {
-            console.log('Element not found:', hash); // Debug log
-          }
+                      }
         }, 300); // Increased delay
       } else if (hash) {
-        console.log('Invalid hash:', hash); // Debug log
-      } else {
-        console.log('No hash, setting default tab'); // Debug log
-        setActiveTab('products'); // Default tab
+              } else {
+                setActiveTab('products'); // Default tab
       }
     };
 
     // Handle initial load
-    console.log('Initial hash check'); // Debug log
-    handleHashChange();
+        handleHashChange();
 
     // Listen for hash changes
     if (typeof window !== 'undefined') {

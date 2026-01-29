@@ -22,7 +22,6 @@ export function getSitemapUrl() {
   return `${baseUrl}/sitemap.xml`;
 }
 
-
 export function logSitemapStats(sitemapData) {
   const stats = {
     total: sitemapData.length,
@@ -37,14 +36,11 @@ export function logSitemapStats(sitemapData) {
     categories: sitemapData.filter(item => item.url.includes('category=')).length,
   };
   
-  console.log('Sitemap Statistics:', stats);
   return stats;
 }
 
-
 export function validateSitemapData(sitemapData) {
   if (!Array.isArray(sitemapData)) {
-    console.error('Sitemap data is not an array');
     return false;
   }
   
@@ -54,7 +50,6 @@ export function validateSitemapData(sitemapData) {
   );
   
   if (invalidEntries.length > 0) {
-    console.error('Invalid sitemap entries found:', invalidEntries.length);
     return false;
   }
   
@@ -63,8 +58,7 @@ export function validateSitemapData(sitemapData) {
   const duplicates = urls.filter((url, index) => urls.indexOf(url) !== index);
   
   if (duplicates.length > 0) {
-    console.warn('Duplicate URLs found in sitemap:', [...new Set(duplicates)]);
-  }
+    }
   
   // Validate URL format
   const invalidUrls = sitemapData.filter(entry => {
@@ -77,10 +71,8 @@ export function validateSitemapData(sitemapData) {
   });
   
   if (invalidUrls.length > 0) {
-    console.error('Invalid URL format found:', invalidUrls.map(entry => entry.url));
     return false;
   }
   
-  console.log('Sitemap validation passed');
   return true;
 } 

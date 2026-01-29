@@ -38,7 +38,6 @@ const SitemapPageClient = () => {
       
       setSitemapData(data);
     } catch (error) {
-      console.error('Error fetching sitemap data:', error);
       // Enhanced fallback data with more realistic examples
       const fallbackOrigin = process.env.NEXT_PUBLIC_SITE_URL;
       const fallbackData = [
@@ -256,8 +255,7 @@ const SitemapPageClient = () => {
         buttonElement.style.background = '';
       }, 1000);
     } catch (err) {
-      console.error('Failed to copy text: ', err);
-    }
+      }
   };
 
   const getPageTitle = (url) => {

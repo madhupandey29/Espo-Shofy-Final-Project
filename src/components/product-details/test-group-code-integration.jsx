@@ -40,10 +40,6 @@ const SimpleMediaViewer = ({ productData, groupCodeData }) => {
     const items = [];
     
     // Log input data
-    console.log('=== SimpleMediaViewer Input ===');
-    console.log('Product data:', productData);
-    console.log('Group code data:', groupCodeData);
-    
     // Product images
     if (productData?.img) {
       items.push({ 
@@ -51,8 +47,7 @@ const SimpleMediaViewer = ({ productData, groupCodeData }) => {
         url: productData.img, 
         source: 'Product Primary Image' 
       });
-      console.log('Added Product Primary Image:', productData.img);
-    }
+      }
     
     if (productData?.image1) {
       items.push({ 
@@ -60,8 +55,7 @@ const SimpleMediaViewer = ({ productData, groupCodeData }) => {
         url: productData.image1, 
         source: 'Product Image 1' 
       });
-      console.log('Added Product Image 1:', productData.image1);
-    }
+      }
     
     if (productData?.image2) {
       items.push({ 
@@ -69,8 +63,7 @@ const SimpleMediaViewer = ({ productData, groupCodeData }) => {
         url: productData.image2, 
         source: 'Product Image 2' 
       });
-      console.log('Added Product Image 2:', productData.image2);
-    }
+      }
     
     if (productData?.image3) {
       items.push({ 
@@ -78,8 +71,7 @@ const SimpleMediaViewer = ({ productData, groupCodeData }) => {
         url: productData.image3, 
         source: 'Product Image 3' 
       });
-      console.log('Added Product Image 3:', productData.image3);
-    }
+      }
     
     // Product video
     const productVideoUrl = productData?.videourl || productData?.video;
@@ -90,8 +82,7 @@ const SimpleMediaViewer = ({ productData, groupCodeData }) => {
         thumbnail: productData?.videoThumbnail || productData?.image1 || productData?.img,
         source: 'Product Video' 
       });
-      console.log('Added Product Video:', productVideoUrl);
-    }
+      }
     
     // Group code image
     if (groupCodeData?.img) {
@@ -100,8 +91,7 @@ const SimpleMediaViewer = ({ productData, groupCodeData }) => {
         url: groupCodeData.img, 
         source: 'Group Code Image' 
       });
-      console.log('Added Group Code Image:', groupCodeData.img);
-    }
+      }
     
     // Group code video
     const groupCodeVideoUrl = groupCodeData?.videourl || groupCodeData?.video;
@@ -112,12 +102,8 @@ const SimpleMediaViewer = ({ productData, groupCodeData }) => {
         thumbnail: groupCodeData?.videoThumbnail || groupCodeData?.altimg || groupCodeData?.img,
         source: 'Group Code Video' 
       });
-      console.log('Added Group Code Video:', groupCodeVideoUrl);
-    }
+      }
     
-    console.log('=== SimpleMediaViewer Result ===');
-    console.log('Total media items collected:', items.length);
-    console.log('All media items:', items);
     return items;
   }, [productData, groupCodeData]);
   
@@ -261,8 +247,7 @@ const TestGroupCodeIntegration = () => {
   const [showDebug, setShowDebug] = useState(false);
   
   useEffect(() => {
-    // Show debug info by default
-    setShowDebug(true);
+        setShowDebug(true);
   }, []);
 
   return (

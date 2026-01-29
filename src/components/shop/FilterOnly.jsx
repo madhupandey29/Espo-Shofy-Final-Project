@@ -24,14 +24,8 @@ const FilterOnly = ({
     skip: !filter,
   });
 
-  // Debug logging for mobile
-  useEffect(() => {
-    console.log('Mobile FilterOnly - Filter:', filter);
-    console.log('Mobile FilterOnly - API call for field:', filter?.key);
-    console.log('Mobile FilterOnly - Loading:', isLoading);
-    console.log('Mobile FilterOnly - Error:', error);
-    console.log('Mobile FilterOnly - Data:', fieldData);
-  }, [filter, isLoading, error, fieldData]);
+    useEffect(() => {
+    }, [filter, isLoading, error, fieldData]);
 
   const toggleDraft = (key, rawValue) => {
     const value = String(rawValue);

@@ -52,8 +52,7 @@ export const authApi = apiSlice.injectEndpoints({
         try {
           await queryFulfilled;
         } catch (err) {
-          console.error("verifyOTPAndRegister error:", err);
-        }
+          }
       },
     }),
 
@@ -84,8 +83,7 @@ export const authApi = apiSlice.injectEndpoints({
             dispatch(userLoggedIn({ user, userId }));
           }
         } catch (err) {
-          console.error("loginUser error:", err);
-        }
+          }
       },
     }),
 
@@ -122,8 +120,7 @@ export const authApi = apiSlice.injectEndpoints({
             dispatch(userLoggedIn({ user, userId }));
           }
         } catch (err) {
-          console.error("verifyLoginOTP error:", err);
-        }
+          }
       },
     }),
 
@@ -154,9 +151,7 @@ export const authApi = apiSlice.injectEndpoints({
           }
         } catch (err) {
           // Keep this silent-ish to avoid noisy console when not logged in
-          if (process.env.NODE_ENV === "development") {
-            console.warn("getSessionInfo (no active session?):", err);
-          }
+          
         }
       },
     }),
@@ -180,8 +175,7 @@ export const authApi = apiSlice.injectEndpoints({
           await queryFulfilled;
         } catch (err) {
           // Even if server replies "not found", clear local state to avoid ghost sessions
-          console.warn("logoutUser server response:", err?.error || err);
-        } finally {
+          } finally {
           clearUserIdLS();
           Cookies.remove("userInfo");
         }
@@ -245,8 +239,7 @@ export const authApi = apiSlice.injectEndpoints({
           const userId = getUserIdLS();
           dispatch(userLoggedIn({ user: data, userId }));
         } catch (err) {
-          console.error("updateProfile error:", err);
-        }
+          }
       },
     }),
 

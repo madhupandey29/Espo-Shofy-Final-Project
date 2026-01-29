@@ -128,7 +128,6 @@ async function toDataUrl(url) {
       reader.readAsDataURL(blob);
     });
   } catch (error) {
-    console.warn("Failed to load image:", url, error);
     return null;
   }
 }
@@ -319,7 +318,6 @@ async function fetchCompanyInformation() {
     
     return sorted[0] || null;
   } catch (error) {
-    console.warn("Failed to fetch company information:", error);
     return null;
   }
 }
@@ -348,10 +346,8 @@ async function fetchCollectionProductsCount(collectionId) {
              product.collection_id === collectionId;
     });
     
-    console.log(`Collection ${collectionId} has ${collectionProducts.length} products`);
     return collectionProducts.length;
   } catch (error) {
-    console.warn("Failed to fetch collection products:", error);
     return 0;
   }
 }
@@ -383,7 +379,6 @@ async function fetchCollectionProductsList(collectionId) {
     
     return collectionProducts; // Return all products for complete grid
   } catch (error) {
-    console.warn("Failed to fetch collection products:", error);
     return [];
   }
 }
@@ -475,15 +470,11 @@ function drawHeader(doc, { pageW, headerTop, logoDataUrl, logoSize, companyName,
     const dy = logoY + (logoBoxH - drawH) / 2;
     
     try {
-      console.log(`🖼️ Adding logo: ${fmt} format, size: ${drawW}x${drawH}`);
       doc.addImage(logoDataUrl, fmt, dx, dy, drawW, drawH);
-      console.log(`✅ Logo added successfully to header`);
-    } catch (error) {
-      console.warn("❌ Failed to add logo image:", error);
-    }
+      } catch (error) {
+      }
   } else {
-    console.log("⚠️ No logo data available, showing company name only");
-  }
+    }
   
   if (headerCompanyName) {
     doc.text(headerCompanyName, logoX + logoBoxW + gap, headerTop + 11.0);
@@ -851,21 +842,17 @@ export async function downloadProductPdf(product, options = {}) {
     for (const path of logoPaths) {
       try {
         const fullUrl = path.startsWith('http') ? path : `${baseUrl}${path}`;
-        console.log(`Trying logo path: ${fullUrl}`);
         logoDataUrl = await toDataUrl(fullUrl);
         if (logoDataUrl) {
-          console.log(`✅ Logo loaded successfully from: ${fullUrl}`);
           break;
         }
       } catch (error) {
-        console.warn(`❌ Failed to load logo from ${path}:`, error.message);
         continue;
       }
     }
     
     if (!logoDataUrl) {
-      console.warn("⚠️ No logo could be loaded from any path");
-    }
+      }
 
     const logoSize = logoDataUrl ? await getDataUrlSize(logoDataUrl) : null;
 
@@ -938,13 +925,11 @@ export async function downloadProductPdf(product, options = {}) {
         try {
           doc.addImage(imgDataUrl, fmt, imgX + 2, imgY + 2, imgW - 4, imgH - 4);
         } catch (error) {
-          console.warn("Failed to add product image:", error);
-        }
+          }
       }
     }
 
     // ✅ IMPROVED: Better styled options badge (like reference)
-    console.log(`Collection count for ${collectionId}: ${collectionCount}`);
     if (collectionCount > 0) {
       const badgeW = 34;
       const badgeH = 7.0;
@@ -970,10 +955,8 @@ export async function downloadProductPdf(product, options = {}) {
       doc.setTextColor(255, 255, 255);
       const optionsText = collectionCount === 1 ? "1 Option" : `${fmtNum(collectionCount, 0)} Options`;
       doc.text(optionsText, bx + 8.2, by + badgeH * 0.68);
-      console.log(`✅ Options badge displayed: ${optionsText}`);
-    } else {
-      console.log("⚠️ No collection options badge - count is 0");
-    }
+      } else {
+      }
 
     // Right content block
     const rightX = imgX + imgW + 12;
@@ -1011,7 +994,6 @@ export async function downloadProductPdf(product, options = {}) {
 
     // ✅ IMPROVED: Better star rating design
     const rawRating = product?.ratingValue || product?.rating || product?.ratingPercent || 5;
-    console.log(`Rating value: ${rawRating}`);
     if (rawRating !== null && rawRating !== undefined) {
       const ratingPillH = 7.2;
       const ratingPillW = 44;
@@ -1025,44 +1007,34 @@ export async function downloadProductPdf(product, options = {}) {
         size: STAR_SIZE,
         gap: STAR_GAP,
       });
-      console.log(`✅ Star rating displayed: ${rawRating}/5`);
-    } else {
-      console.log("⚠️ No star rating displayed - rating value is null/undefined");
-    }
+      } else {
+      }
 
     // Title and tagline
     const titleTopY = pillsY + 16.5;
     let titleSize = 16.0; // Reduced size to fit longer titles
 
-    console.log(`Product title: "${enhancedTitle}"`);
-    console.log(`Product tagline: "${enhancedTagline}"`);
-    
     if (enhancedTitle) {
       doc.setFont("times", "bold");
       doc.setFontSize(titleSize);
       doc.setTextColor(0, 0, 0);
       const titleLines = pdfWrap(doc, enhancedTitle, rightW).slice(0, 3);
       doc.text(titleLines, rightX, titleTopY);
-      console.log(`✅ Product title displayed: ${titleLines.length} lines`);
-
       if (enhancedTagline) {
         doc.setFont("helvetica", "normal");
         doc.setFontSize(9.5);
         doc.setTextColor(100, 116, 139);
         const tagLines = pdfWrap(doc, enhancedTagline, rightW).slice(0, 2);
         doc.text(tagLines, rightX, titleTopY + (titleLines.length * 6) + 4);
-        console.log(`✅ Product tagline displayed: ${tagLines.length} lines`);
-      }
+        }
     } else if (code) {
       // If no title, use code as title
       doc.setFont("times", "bold");
       doc.setFontSize(titleSize);
       doc.setTextColor(0, 0, 0);
       doc.text(code, rightX, titleTopY);
-      console.log(`✅ Product code displayed as title: ${code}`);
-    } else {
-      console.log("⚠️ No product title or code to display");
-    }
+      } else {
+      }
 
     // Description paragraph
     const paraY = imgY + imgH + 10;
@@ -1169,8 +1141,7 @@ export async function downloadProductPdf(product, options = {}) {
       try {
         doc.addImage(finalQrDataUrl, "PNG", qrX + (qrCardW - qrSize) / 2, qrY + 6, qrSize, qrSize);
       } catch (error) {
-        console.warn("Failed to add QR code:", error);
-      }
+        }
 
       doc.setFont("helvetica", "bold");
       doc.setFontSize(8.6);
@@ -1182,16 +1153,12 @@ export async function downloadProductPdf(product, options = {}) {
     const sectionsY = finishY + finishH + 8;
     const availableWidth = finalQrDataUrl ? pageW - M - 40 : pageW - M * 2;
     
-    console.log(`Sections Y position: ${sectionsY}, Content max Y: ${contentMaxY}`);
-    
     if (sectionsY < contentMaxY - 60) {
       // Apparel section
       doc.setFont("helvetica", "bold");
       doc.setFontSize(12);
       doc.setTextColor(0, 0, 0);
       doc.text("Apparel :", M, sectionsY);
-      console.log("✅ Apparel section header displayed");
-
       const apparelItems = [
         "Womenswear: Blouses / tops, Summer dresses, and Tunics / kurta.",
         "Menswear: Casual shirts, Summer short-sleeve shirts, and Kurta / casual ethnic tops.",
@@ -1210,16 +1177,12 @@ export async function downloadProductPdf(product, options = {}) {
           currentY += 5;
         }
       });
-      console.log(`✅ Apparel items displayed: ${apparelItems.length} items`);
-
       // Home & Accessories section - ALWAYS show if there's space
       if (currentY < contentMaxY - 25) {
         doc.setFont("helvetica", "bold");
         doc.setFontSize(12);
         doc.setTextColor(0, 0, 0);
         doc.text("Home & Accessories :", M, currentY + 4);
-        console.log("✅ Home & Accessories section header displayed");
-
         const homeItems = [
           "Accessories: Lightweight scarves / stoles, Pocket squares, and Fabric belts / trims.",
           "Home Textiles: Pillow covers, Lightweight cushion covers, and Decorative table runners.",
@@ -1237,18 +1200,13 @@ export async function downloadProductPdf(product, options = {}) {
             currentY += 5;
           }
         });
-        console.log(`✅ Home & Accessories items displayed: ${homeItems.length} items`);
-      } else {
-        console.log("⚠️ Not enough space for Home & Accessories section");
-      }
+        } else {
+        }
     } else {
-      console.log("⚠️ Not enough space for sections - sectionsY >= contentMaxY - 60");
-    }
+      }
 
     // ✅ NEW: Add collection products as 2x2 grid on additional pages
     if (collectionProducts.length > 0) {
-      console.log(`📄 Generating collection pages for ${collectionProducts.length} products`);
-      
       // Preload card images
       for (const prod of collectionProducts) {
         const imgUrl = getCardImage(prod);
@@ -1275,13 +1233,9 @@ export async function downloadProductPdf(product, options = {}) {
       const cardsPerPage = cols * rows; // 4 products per page
       const totalPages = Math.ceil(collectionProducts.length / cardsPerPage);
       
-      console.log(`📄 Will generate ${totalPages} additional pages for ${collectionProducts.length} products (${cardsPerPage} per page)`);
-
       for (let pageStart = 0; pageStart < collectionProducts.length; pageStart += cardsPerPage) {
         const currentPage = Math.floor(pageStart / cardsPerPage) + 1;
         const productsOnThisPage = Math.min(cardsPerPage, collectionProducts.length - pageStart);
-        console.log(`📄 Generating page ${currentPage}/${totalPages} with ${productsOnThisPage} products`);
-        
         doc.addPage();
 
         // header (same)
@@ -1325,7 +1279,6 @@ export async function downloadProductPdf(product, options = {}) {
     
     return { success: true, fileName };
   } catch (error) {
-    console.error("Error generating PDF:", error);
     throw error;
   }
 }

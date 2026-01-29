@@ -30,8 +30,7 @@ const FloatingButtons = () => {
           }
         }
       } catch (error) {
-        console.error('Error fetching office info:', error);
-      }
+        }
     };
 
     fetchOfficeInfo();

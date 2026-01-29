@@ -4,7 +4,6 @@ import CommonBreadcrumb from "@/components/breadcrumb/common-breadcrumb";
 import SearchArea from "@/components/search/search-area";
 import Footer from "@/layout/footers/footer";
 
-
 export const metadata = {
   title: "Shofy - Search Page",
 };

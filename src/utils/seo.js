@@ -9,12 +9,6 @@ const SITE_URL = stripTrailingSlash(
   process.env.NEXT_PUBLIC_SITE_URL
 );
 
-// Debug logging in development
-if (process.env.NODE_ENV === 'development') {
-  console.log('SEO Utils - SITE_URL:', SITE_URL);
-  console.log('SEO Utils - NODE_ENV:', process.env.NODE_ENV);
-}
-
 /**
  * Fetch default SEO settings from API
  */
@@ -34,7 +28,6 @@ async function getDefaultSeoSettings() {
     
     return json.data[0];
   } catch (error) {
-    console.error('Error fetching default SEO settings:', error);
     return null;
   }
 }
@@ -46,7 +39,6 @@ async function getDefaultSeoSettings() {
  */
 export const getCanonicalUrl = (path = "/") => {
   if (!SITE_URL) {
-    console.warn('NEXT_PUBLIC_SITE_URL is not set, using path only:', path);
     return path;
   }
   
@@ -54,12 +46,7 @@ export const getCanonicalUrl = (path = "/") => {
   const cleanPath = path.startsWith("/") ? path : `/${path}`;
   
   const canonicalUrl = `${SITE_URL}${cleanPath}`;
-  
-  // Debug logging
-  if (process.env.NODE_ENV === 'development') {
-    console.log('Generated canonical URL:', canonicalUrl);
-  }
-  
+
   return canonicalUrl;
 };
 
@@ -211,20 +198,6 @@ export const generateMetadata = async ({
   // Add verification if we have any - CRITICAL FOR SEARCH CONSOLE
   if (Object.keys(verification).length > 0) {
     metadata.verification = verification;
-  }
-
-  // Debug log to see what metadata is being generated
-  if (process.env.NODE_ENV === 'development') {
-    console.log('🔍 SEO Utils - Generated Metadata:', {
-      title,
-      hasVerification: !!metadata.verification,
-      googleVerification: defaultSeoSettings?.googleVerification,
-      bingVerification: defaultSeoSettings?.bingVerification,
-      verificationObject: metadata.verification,
-      robots: finalRobots,
-      siteName,
-      hasOtherMeta: Object.keys(metadata.other || {}).length > 0
-    });
   }
 
   return metadata;

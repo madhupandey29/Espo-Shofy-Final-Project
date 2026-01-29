@@ -5,7 +5,6 @@ import Providers from '@/components/provider';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import GoogleAnalytics from '@/components/analytics/GoogleAnalytics';
 import MicrosoftClarity from '@/components/analytics/MicrosoftClarity';
-// ⚠️ SECURITY COMPONENTS TEMPORARILY DISABLED FOR TESTING
 // import AntiInspection from '@/components/security/AntiInspection';
 // import AdvancedProtection from '@/components/security/AdvancedProtection';
 import Script from 'next/script';
@@ -33,309 +32,33 @@ const poppins = Poppins({
   preload: true,
 });
 
-/* -------------------------------------------------- */
-/* API Data Fetcher - Only Default SEO Settings       */
-/* -------------------------------------------------- */
-async function getDefaultSeoSettings() {
-  try {
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_API_BASE_URL}/sitesettings/fieldname/name/eCatalogue`,
-      { 
-        next: { revalidate: 3600 } // Cache for 1 hour
-      }
-    );
-    
-    if (!res.ok) return null;
-    const json = await res.json();
-    
-    if (!json?.success || !json.data || json.data.length === 0) return null;
-    
-    return json.data[0];
-  } catch (error) {
-    console.error('Error fetching default SEO settings:', error);
-    return null;
-  }
-}
+// Default metadata for the application
+export const metadata = {
+  title: 'Shofy - Next.js E-commerce',
+  description: 'Modern e-commerce platform built with Next.js',
+};
 
-async function getCompanyInformation() {
-  try {
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_API_BASE_URL}/companyinformation`,
-      { 
-        next: { revalidate: 3600 } // Cache for 1 hour
-      }
-    );
-    
-    if (!res.ok) return null;
-    const json = await res.json();
-    
-    if (!json?.success || !json.data) return null;
-    
-    // Get filter value from environment variable - REQUIRED
-    const companyFilter = process.env.NEXT_PUBLIC_COMPANY_FILTER;
-    
-    if (!companyFilter) {
-      console.error('NEXT_PUBLIC_COMPANY_FILTER is required but not set');
-      return null;
-    }
-    
-    // Find exact match only - NO FALLBACK
-    const targetCompany = json.data.find(company => company.name === companyFilter);
-    
-    if (!targetCompany) {
-      console.error(`No company found with name: ${companyFilter}`);
-      return null;
-    }
-    
-    return targetCompany;
-  } catch (error) {
-    console.error('Error fetching company information:', error);
-    return null;
-  }
-}
-
-/* -------------------------------------------------- */
-/* Root Layout Component - Using Default SEO API      */
-/* -------------------------------------------------- */
 export default async function RootLayout({ children }) {
-  // Fetch only default SEO settings and company info
-  const defaultSeoSettings = await getDefaultSeoSettings();
-  const companyInfo = await getCompanyInformation();
-
-  // Debug: Log the SEO settings to see if they're being fetched
-  if (defaultSeoSettings) {
-    console.log('🔍 Layout - Default SEO Settings loaded:', {
-      name: defaultSeoSettings.name,
-      siteKey: defaultSeoSettings.siteKey,
-      siteStatus: defaultSeoSettings.siteStatus,
-      description: defaultSeoSettings.description,
-      gaMeasurementId: defaultSeoSettings.gaMeasurementId,
-      gtmId: defaultSeoSettings.gtmId,
-      clarityId: defaultSeoSettings.clarityId,
-      googleVerification: defaultSeoSettings.googleVerification,
-      bingVerification: defaultSeoSettings.bingVerification,
-      twitterHandle: defaultSeoSettings.twitterHandle,
-      robotsPolicy: defaultSeoSettings.robotsPolicy,
-      baseUrl: defaultSeoSettings.baseUrl,
-      websiteFaqId: defaultSeoSettings.websiteFaqId,
-      websiteFaqName: defaultSeoSettings.websiteFaqName
-    });
-
-    // Log which analytics will be rendered
-    console.log('📊 Analytics Status:', {
-      willRenderGA: !!defaultSeoSettings.gaMeasurementId,
-      willRenderGTM: !!defaultSeoSettings.gtmId,
-      willRenderClarity: !!defaultSeoSettings.clarityId,
-      gaId: defaultSeoSettings.gaMeasurementId,
-      gtmId: defaultSeoSettings.gtmId,
-      clarityId: defaultSeoSettings.clarityId
-    });
-  } else {
-    console.log('❌ Layout - No default SEO settings found');
-  }
-
-  // Generate Local Business JSON-LD ONLY if company info exists
-  const localBusinessJsonLd = companyInfo && {
-    '@context': 'https://schema.org',
-    '@type': 'LocalBusiness',
-    name: companyInfo.name || companyInfo.legalName,
-    legalName: companyInfo.legalName,
-    telephone: companyInfo.phone1,
-    email: companyInfo.salesEmail || companyInfo.supportEmail || companyInfo.primaryEmail,
-    url: process.env.NEXT_PUBLIC_SITE_URL,
-    
-    // Address from company information
-    address: {
-      '@type': 'PostalAddress',
-      streetAddress: companyInfo.addressStreet,
-      addressLocality: companyInfo.addressCity,
-      addressRegion: companyInfo.addressState,
-      postalCode: companyInfo.addressPostalCode,
-      addressCountry: companyInfo.addressCountry,
-    },
-
-    // Geo coordinates (only if both exist)
-    ...(companyInfo.latitude && companyInfo.longitude && {
-      geo: {
-        '@type': 'GeoCoordinates',
-        latitude: companyInfo.latitude,
-        longitude: companyInfo.longitude,
-      },
-    }),
-
-    // Area served (if available)
-    ...(companyInfo.areaServed && companyInfo.areaServed.length > 0 && {
-      areaServed: companyInfo.areaServed,
-    }),
-
-    // GSTIN (Tax ID for India)
-    ...(companyInfo.gstin && {
-      taxID: companyInfo.gstin,
-    }),
-
-    // Social media profiles (filter out null/empty values)
-    sameAs: [
-      companyInfo.facebookUrl,
-      companyInfo.instagramUrl,
-      companyInfo.youtubeUrl,
-      companyInfo.linkedinUrl,
-      companyInfo.xUrl,
-      companyInfo.pinterestUrl,
-    ].filter(Boolean),
-
-    // Additional business information
-    foundingDate: companyInfo.foundingYear?.toString(),
-    ...(companyInfo.recognitions?.length > 0 && {
-      award: companyInfo.recognitions,
-    }),
-
-    // Logo/Image
-    ...(companyInfo.faviconUrl && {
-      logo: companyInfo.faviconUrl,
-    }),
-
-    // Default OG Image
-    ...(companyInfo.defaultOgImage && {
-      image: companyInfo.defaultOgImage,
-    }),
+  // You can add any server-side data fetching here if needed
+  const defaultSeoSettings = {
+    gtmId: process.env.NEXT_PUBLIC_GTM_ID || null,
   };
+
+  const companyInfo = null; // Add your company info logic here
+  const localBusinessJsonLd = null; // Add your JSON-LD logic here
 
   return (
     <html lang="en" className={`${inter.variable} ${poppins.variable}`}>
       <head>
-        {/* ============================================ */}
-        {/* PERFORMANCE OPTIMIZATIONS                   */}
-        {/* ============================================ */}
+        {/* Google Analytics */}
+        <GoogleAnalytics />
         
-        {/* Preconnect to backend API for faster API calls */}
-        <link rel="preconnect" href={process.env.NEXT_PUBLIC_API_BASE_URL?.replace('/api', '')} />
-        <link rel="dns-prefetch" href={process.env.NEXT_PUBLIC_API_BASE_URL?.replace('/api', '')} />
-        
-        {/* Preconnect to domain for faster chunk loading */}
-        <link rel="preconnect" href={process.env.NEXT_PUBLIC_SITE_URL} crossOrigin="anonymous" />
-        <link rel="dns-prefetch" href={process.env.NEXT_PUBLIC_SITE_URL} />
-        
-        {/* ✅ Google Fonts now loaded via next/font (self-hosted, no blocking) */}
-        
-        {/* Prefetch critical resources for faster navigation */}
-        <link rel="prefetch" href="/fabric" />
-        <link rel="prefetch" href="/contact" />
-        
-        {/* Load Font Awesome CSS asynchronously (513 KB - don't block render) */}
-        <link 
-          rel="preload" 
-          as="style"
-          href="/assets/css/font-awesome-pro.css"
-        />
-        <link 
-          rel="stylesheet" 
-          href="/assets/css/font-awesome-pro.css"
-          media="print"
-          onLoad="this.media='all'"
-        />
-        <noscript>
-          <link rel="stylesheet" href="/assets/css/font-awesome-pro.css" />
-        </noscript>
-        
-        {/* Load Animate CSS asynchronously (67 KB - don't block render) */}
-        <link 
-          rel="preload" 
-          as="style"
-          href="/assets/css/animate.css"
-        />
-        <link 
-          rel="stylesheet" 
-          href="/assets/css/animate.css"
-          media="print"
-          onLoad="this.media='all'"
-        />
-        <noscript>
-          <link rel="stylesheet" href="/assets/css/animate.css" />
-        </noscript>
-        
-        {/* Critical inline CSS for above-the-fold content */}
-        <style dangerouslySetInnerHTML={{__html: `
-          /* Critical CSS for initial render */
-          body { 
-            margin: 0; 
-            font-family: var(--font-inter), -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif; 
-          }
-          * { box-sizing: border-box; }
-          .container { max-width: 1200px; margin: 0 auto; padding: 0 15px; }
-          img { max-width: 100%; height: auto; }
-          
-          /* Prevent layout shift */
-          .tp-header-area { min-height: 80px; }
-          .tp-slider-area { min-height: 400px; }
-          
-          /* Mobile-specific optimizations */
-          @media (max-width: 768px) {
-            .tp-slider-area { min-height: 300px; }
-            body { font-size: 14px; }
-            h1 { font-size: 24px; }
-            h2 { font-size: 20px; }
-            h3 { font-size: 18px; }
-          }
-          
-          /* Prevent FOUC */
-          .tp-product-item { min-height: 350px; }
-          .tp-blog-item { min-height: 400px; }
-        `}} />
-        
-        {/* Preconnect to analytics (lazy loaded) */}
-        <link rel="preconnect" href="https://www.googletagmanager.com" />
-        <link rel="preconnect" href="https://www.google-analytics.com" />
-        
-        {/* Preconnect to image CDNs */}
-        <link rel="preconnect" href="https://res.cloudinary.com" />
-        <link rel="preconnect" href="https://i.ibb.co" />
-        
-        {/* DNS prefetch for other external resources */}
-        <link rel="dns-prefetch" href="https://vitals.vercel-insights.com" />
-        <link rel="dns-prefetch" href="https://vercel.live" />
+        {/* Microsoft Clarity */}
+        <MicrosoftClarity />
 
-        {/* Preload critical API endpoints for homepage */}
-        <link 
-          rel="preload" 
-          href={`${process.env.NEXT_PUBLIC_API_BASE_URL}/product/?limit=50&merchTag=${process.env.NEXT_PUBLIC_MERCH_TAG_FILTER || 'ecatalogue'}`}
-          as="fetch" 
-          crossOrigin="anonymous"
-        />
-        
-        {/* Preload site settings API */}
-        <link 
-          rel="preload" 
-          href={`${process.env.NEXT_PUBLIC_API_BASE_URL}/sitesettings/fieldname/name/${process.env.NEXT_PUBLIC_SITE_NAME || 'eCatalogue'}`}
-          as="fetch" 
-          crossOrigin="anonymous"
-        />
-
-        {/* ============================================ */}
-        {/* ANALYTICS SCRIPTS FROM DEFAULT SEO API      */}
-        {/* ============================================ */}
-
-        {/* Google Analytics from eCatalogue API */}
-        {defaultSeoSettings?.gaMeasurementId && (
-          <>
-            {/* GA Debug Comment */}
-            {/* GA ID: {defaultSeoSettings.gaMeasurementId} */}
-            <GoogleAnalytics gaId={defaultSeoSettings.gaMeasurementId} />
-          </>
-        )}
-        
-        {/* Microsoft Clarity from eCatalogue API */}
-        {defaultSeoSettings?.clarityId && (
-          <>
-            {/* Clarity Debug Comment */}
-            {/* Clarity ID: {defaultSeoSettings.clarityId} */}
-            <MicrosoftClarity clarityId={defaultSeoSettings.clarityId} />
-          </>
-        )}
-
-        {/* Google Tag Manager from eCatalogue API */}
+        {/* Google Tag Manager */}
         {defaultSeoSettings?.gtmId && (
           <>
-            {/* GTM Debug Comment */}
             {/* GTM ID: {defaultSeoSettings.gtmId} */}
             <Script
               id="gtm-script"
@@ -442,8 +165,6 @@ export default async function RootLayout({ children }) {
                 const MAX_RETRIES = 2;
                 
                 function handleChunkError(error) {
-                  console.error('ChunkLoadError detected:', error);
-                  
                   const isChunkError = error?.name === 'ChunkLoadError' || 
                                       error?.message?.includes('Loading chunk') ||
                                       error?.message?.includes('Loading CSS chunk');
@@ -453,8 +174,6 @@ export default async function RootLayout({ children }) {
                   retryCount++;
                   
                   if (retryCount <= MAX_RETRIES) {
-                    console.log('🔄 Recovering from ChunkLoadError, attempt ' + retryCount);
-                    
                     // Clear caches and reload
                     try {
                       if ('serviceWorker' in navigator) {
@@ -470,8 +189,7 @@ export default async function RootLayout({ children }) {
                         }
                       });
                     } catch (e) {
-                      console.warn('Cache clear failed:', e);
-                    }
+                      }
                     
                     setTimeout(function() {
                       window.location.reload();
@@ -479,7 +197,6 @@ export default async function RootLayout({ children }) {
                     
                     return true;
                   } else {
-                    console.log('❌ Max retries exceeded, forcing reload');
                     window.location.reload();
                     return true;
                   }
@@ -519,13 +236,7 @@ export default async function RootLayout({ children }) {
                 document.documentElement.setAttribute('data-env', isProduction ? 'production' : 'development');
                 document.body.setAttribute('data-env', isProduction ? 'production' : 'development');
                 
-                // Console log for debugging
-                console.log('🌍 Environment Detection:', {
-                  nodeEnv: '${process.env.NODE_ENV}',
-                  isProduction: isProduction,
-                  dataEnvSet: isProduction ? 'production' : 'development'
-                });
-              })();
+                                })();
             `,
           }}
         />

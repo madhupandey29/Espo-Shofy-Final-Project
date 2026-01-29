@@ -13,37 +13,7 @@ export default function ProductDetailsContent({ productItem }) {
   // ✅ IMPORTANT: normalize productItem (handles {data:[{...}]} / [{...}] / {...})
   const p = useMemo(() => {
     if (!productItem) return {};
-    
-    // 🔍 Debug: Log the raw productItem received
-    if (process.env.NODE_ENV === 'development') {
-      console.log('🔍 ProductDetailsContent - Raw productItem received:', {
-        type: typeof productItem,
-        isArray: Array.isArray(productItem),
-        hasData: !!productItem?.data,
-        dataIsArray: Array.isArray(productItem?.data),
-        altTextFields: {
-          direct: {
-            altTextImage1: productItem?.altTextImage1,
-            altTextImage2: productItem?.altTextImage2,
-            altTextImage3: productItem?.altTextImage3,
-            altTextVideo: productItem?.altTextVideo
-          },
-          inData: productItem?.data ? {
-            altTextImage1: productItem.data.altTextImage1,
-            altTextImage2: productItem.data.altTextImage2,
-            altTextImage3: productItem.data.altTextImage3,
-            altTextVideo: productItem.data.altTextVideo
-          } : 'No data property',
-          inDataArray: (Array.isArray(productItem?.data) && productItem.data[0]) ? {
-            altTextImage1: productItem.data[0].altTextImage1,
-            altTextImage2: productItem.data[0].altTextImage2,
-            altTextImage3: productItem.data[0].altTextImage3,
-            altTextVideo: productItem.data[0].altTextVideo
-          } : 'No data array or empty'
-        }
-      });
-    }
-    
+
     let normalizedProduct = {};
     
     if (Array.isArray(productItem)) {
@@ -65,6 +35,16 @@ export default function ProductDetailsContent({ productItem }) {
     if (productItem?.productTitle && !normalizedProduct.productTitle) {
       normalizedProduct.productTitle = productItem.productTitle;
     }
+    
+    // ✅ ADDITIONAL FIX: Also check if productTitle exists in nested data structures
+    if (!normalizedProduct.productTitle) {
+      if (Array.isArray(productItem?.data) && productItem.data[0]?.productTitle) {
+        normalizedProduct.productTitle = productItem.data[0].productTitle;
+      } else if (productItem?.data?.productTitle) {
+        normalizedProduct.productTitle = productItem.data.productTitle;
+      }
+    }
+
     if (productItem?.productTagline && !normalizedProduct.productTagline) {
       normalizedProduct.productTagline = productItem.productTagline;
     }
@@ -108,19 +88,7 @@ export default function ProductDetailsContent({ productItem }) {
         normalizedProduct.altTextVideo = firstItem.altTextVideo;
       }
     }
-    
-    // 🔍 Debug: Log the normalized product
-    if (process.env.NODE_ENV === 'development') {
-      console.log('🔍 ProductDetailsContent - Normalized Product Alt Text:', {
-        productName: normalizedProduct.name,
-        altTextImage1: normalizedProduct.altTextImage1,
-        altTextImage2: normalizedProduct.altTextImage2,
-        altTextImage3: normalizedProduct.altTextImage3,
-        altTextVideo: normalizedProduct.altTextVideo,
-        hasAnyAltText: !!(normalizedProduct.altTextImage1 || normalizedProduct.altTextImage2 || normalizedProduct.altTextImage3)
-      });
-    }
-    
+
     return normalizedProduct;
   }, [productItem]);
 
@@ -150,25 +118,6 @@ export default function ProductDetailsContent({ productItem }) {
                        (productItem?.data?.altTextVideo) ||
                        (productItem?.altTextVideo) ||
                        null;
-
-  // 🔍 Debug: Log alt text extraction in development
-  if (process.env.NODE_ENV === 'development') {
-    console.log('🔍 ProductDetailsContent Alt Text Debug:', {
-      productName: p?.name || p?.productTitle,
-      altTextImage1,
-      altTextImage2,
-      altTextImage3,
-      altTextVideo,
-      rawProductKeys: Object.keys(p || {}),
-      rawProductAltFields: {
-        altTextImage1: p?.altTextImage1,
-        altTextImage2: p?.altTextImage2,
-        altTextImage3: p?.altTextImage3,
-        altTextVideo: p?.altTextVideo
-      },
-      originalProductItem: productItem
-    });
-  }
 
   // ✅ normalize product media (your API uses image1,image2,image3 + videourl)
   const img = p?.img || p?.image || p?.image0 || p?.image1 || null;
@@ -252,75 +201,38 @@ export default function ProductDetailsContent({ productItem }) {
       <div className="tp-product-details-top pb-25">
         <div className="container">
           <div className="row">
-            {/* Left: gallery */}
-            <div className="col-xl-7 col-lg-6 col-md-12">
+            <div className="col-lg-7 col-md-12">
               <DetailsThumbWrapper
-                key={_id}
-
-                // ✅ PASS REAL product object (not wrapper)
-                apiImages={p}
-                
-                // ✅ PASS collection data as groupCodeData for compatibility
-                groupCodeData={collectionData}
-
-                // ✅ PASS alt text data from API - Enhanced debugging
-                altTextImage1={(() => {
-                  if (process.env.NODE_ENV === 'development') {
-                    console.log('🔍 Passing altTextImage1 to DetailsThumbWrapper:', altTextImage1);
-                  }
-                  return altTextImage1;
-                })()}
-                altTextImage2={(() => {
-                  if (process.env.NODE_ENV === 'development') {
-                    console.log('🔍 Passing altTextImage2 to DetailsThumbWrapper:', altTextImage2);
-                  }
-                  return altTextImage2;
-                })()}
-                altTextImage3={(() => {
-                  if (process.env.NODE_ENV === 'development') {
-                    console.log('🔍 Passing altTextImage3 to DetailsThumbWrapper:', altTextImage3);
-                  }
-                  return altTextImage3;
-                })()}
-                altTextVideo={(() => {
-                  if (process.env.NODE_ENV === 'development') {
-                    console.log('🔍 Passing altTextVideo to DetailsThumbWrapper:', altTextVideo);
-                  }
-                  return altTextVideo;
-                })()}
-
-                // ✅ control main image properly
                 activeImg={activeImg}
                 handleImageActive={handleImageActive}
-
-                // ✅ keep legacy props too (safe)
-                img={img}
-                image1={image1}
-                image2={image2}
-                image3={image3}
+                imgWidth={416}
+                imgHeight={480}
                 videourl={videourl}
-                videoThumbnail={videoThumbnail}
-
-                // ✅ Responsive image dimensions
-                imgWidth={600}
-                imgHeight={600}
-                zoomPaneWidth={600}
-                zoomPaneHeight={600}
-                objectFitMode="contain"
-                lensSize={150}
-                extraZoom={2.0}
                 status={status}
+                images={{
+                  img: img,
+                  image1: image1,
+                  image2: image2,
+                  image3: image3,
+                  videoThumbnail: videoThumbnail
+                }}
+                altTexts={{
+                  altTextImage1: altTextImage1,
+                  altTextImage2: altTextImage2,
+                  altTextImage3: altTextImage3,
+                  altTextVideo: altTextVideo
+                }}
               />
             </div>
-
-            {/* Right: details */}
-            <div className="col-xl-5 col-lg-6 col-md-12">
+            <div className="col-lg-5 col-md-12">
               <div className="product-details-sticky-wrapper">
                 <DetailsWrapper
-                  productItem={p} // ✅ pass normalized product
+                  productItem={p}
                   handleImageActive={handleImageActive}
-                  activeImg={activeImg || img}
-                  detailsBottom
+                  activeImg={activeImg}
+                  detailsBottom={true}
+                  collectionId={collectionId}
+                  collectionData={collectionData}
                 />
               </div>
             </div>
@@ -328,36 +240,10 @@ export default function ProductDetailsContent({ productItem }) {
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="tp-product-details-bottom pb-10">
-        <div className="container">
-          <div className="row">
-            <div className="col-xl-12">
-              <DetailsTabNav product={p} seoData={seoData} /> {/* ✅ pass normalized product */}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Suitable For & Keywords Section */}
+      <DetailsTabNav product={p} />
+      <RelatedProducts collectionId={collectionId} />
       <DetailsSuitableKeywords product={p} />
-
-      {/* Related */}
-      <section className="tp-related-product pt-95 pb-50">
-        <div className="container">
-          <div className="row">
-            <div className="tp-section-title-wrapper-6 text-center mb-40">
-              <span className="tp-section-title-pre-6">Style It With</span>
-              <h3 className="tp-section-title-6">Mix &amp; Match</h3>
-            </div>
-          </div>
-          <div className="row">
-            <RelatedProducts key={collectionId} id={_id} collectionId={collectionId} />
-          </div>
-        </div>
-      </section>
-
-      {/* Alt Text Debugger - only shows in development with ?debug=alt */}
+      
       <AltTextDebugger 
         productItem={productItem} 
         show={typeof window !== 'undefined' && window.location.search.includes('debug=alt')} 

@@ -223,8 +223,6 @@ export default function EnhancedShopSidebarFilters({ onFilterChange, selected = 
     return fieldValues;
   }, [eCatalogueProducts]);
 
-  console.log('🎯 eCatalogue Field Values:', eCatalogueFieldValues);
-
   const totalActive = Object.values(selected).reduce(
     (sum, v) => sum + (Array.isArray(v) ? v.length : 0),
     0
@@ -695,12 +693,10 @@ function FilterSection({
     if (shouldUseECatalogueData) {
       // 🎯 Use eCatalogue filtered data
       rawValues = eCatalogueFieldValues[filter.key];
-      console.log(`🎯 Using eCatalogue data for ${filter.key}:`, rawValues?.length, 'values');
-    } else {
+      } else {
       // Fall back to API data
       rawValues = data?.values || [];
-      console.log(`📡 Using API data for ${filter.key}:`, rawValues?.length, 'values');
-    }
+      }
     
     const norm = normalizeOptions(rawValues);
     

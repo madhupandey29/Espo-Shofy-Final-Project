@@ -22,14 +22,12 @@ export default function useWishlistManager() {
 
       // If userId changed (user switched accounts)
       if (previousUserId && previousUserId !== userId) {
-        console.log('User switched from', previousUserId, 'to', userId);
         // Clear wishlist data for the previous user
         dispatch(clear_wishlist_for_user_switch());
       }
 
       // Fetch wishlist for current user
       if (userId) {
-        console.log('Fetching wishlist for user:', userId);
         dispatch(fetchWishlist(userId));
       }
     }
@@ -39,14 +37,12 @@ export default function useWishlistManager() {
   useEffect(() => {
     const handleFocus = () => {
       if (userId && currentUserId !== userId) {
-        console.log('Window focused, refreshing wishlist for user:', userId);
         dispatch(fetchWishlist(userId));
       }
     };
 
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible' && userId && currentUserId !== userId) {
-        console.log('Page visible, refreshing wishlist for user:', userId);
         dispatch(fetchWishlist(userId));
       }
     };
@@ -54,7 +50,6 @@ export default function useWishlistManager() {
     // Handle storage events (when user switches accounts in another tab)
     const handleStorageChange = (e) => {
       if (e.key === 'userId' && e.newValue !== e.oldValue) {
-        console.log('userId changed in localStorage, refreshing wishlist');
         if (e.newValue) {
           dispatch(fetchWishlist(e.newValue));
         } else {

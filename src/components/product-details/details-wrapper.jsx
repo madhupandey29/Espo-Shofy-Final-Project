@@ -148,6 +148,7 @@ const DetailsWrapper = ({ productItem = {} }) => {
     _id,
 
     name,
+    title,
     productTitle,
 
     category,
@@ -192,7 +193,18 @@ const DetailsWrapper = ({ productItem = {} }) => {
 
   const productId = pick(_id, id);
   const slugValue = pick(slug, productslug);
-  const titleValue = pick(productTitle, name);
+  
+    let finalProductTitle = productTitle;
+  if (!finalProductTitle && typeof window !== 'undefined') {
+    // Try to get the productTitle from the raw API response if it's available
+    // This is a fallback in case the mapping/normalization is losing the field
+    const rawApiData = window.__PRODUCT_API_DATA__;
+    if (rawApiData?.productTitle) {
+      finalProductTitle = rawApiData.productTitle;
+      }
+  }
+  
+  const titleValue = pick(finalProductTitle, title, name);
 
   /* Fetch full product (slug) for reliable fields */
   const [productFull, setProductFull] = useState(null);
@@ -264,13 +276,7 @@ const DetailsWrapper = ({ productItem = {} }) => {
         // etc.
       });
 
-      console.log('PDF generated successfully for product:', {
-        fabricCode: fabricCodeDisplay,
-        name: name,
-        title: titleValue
-      });
-    } catch (error) {
-      console.error('Error generating PDF:', error);
+      } catch (error) {
       alert('Error generating PDF. Please try again.');
     } finally {
       // Reset button state

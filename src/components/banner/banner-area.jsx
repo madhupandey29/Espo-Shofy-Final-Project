@@ -7,7 +7,6 @@ import banner_1 from "@assets/img/product/banner/product-banner-1.jpg";
 import banner_2 from "@assets/img/product/banner/product-banner-2.jpg";
 import styles from './BannerArea.module.scss';
 
-
 // banner item
 function BannerItem({ sm = false, bg, title }) {
   return (

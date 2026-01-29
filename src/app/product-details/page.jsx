@@ -19,7 +19,6 @@ async function getProductData(productId) {
     const data = await response.json();
     return data?.data || null;
   } catch (error) {
-    console.error('Error fetching product for metadata:', error);
     return null;
   }
 }

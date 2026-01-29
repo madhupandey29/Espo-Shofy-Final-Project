@@ -29,9 +29,6 @@ async function getProductBySlug(slug) {
   try {
     // Clean the slug by removing trailing hash character
     const cleanSlug = slug ? slug.replace(/#$/, '') : slug;
-    console.log('getProductBySlug - original slug:', slug);
-    console.log('getProductBySlug - cleaned slug:', cleanSlug);
-    
     // ✅ FIX: Since the slug endpoint is broken, get all products and search client-side
     const res = await fetch(`${API_BASE}/product?limit=150`, {
       next: { revalidate },
@@ -70,10 +67,8 @@ async function getProductBySlug(slug) {
       );
     });
     
-    console.log('getProductBySlug - found product:', !!foundProduct, foundProduct?.name);
     return foundProduct || null;
   } catch (error) {
-    console.error('getProductBySlug error:', error);
     return null;
   }
 }

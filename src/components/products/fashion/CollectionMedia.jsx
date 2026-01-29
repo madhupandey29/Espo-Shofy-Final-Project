@@ -26,8 +26,7 @@ const CollectionMedia = ({ product, className = '' }) => {
         const media = await getCollectionMediaForProduct(product);
         setCollectionMedia(media);
       } catch (error) {
-        console.error('Error loading collection media:', error);
-      } finally {
+        } finally {
         setLoading(false);
       }
     };
@@ -88,7 +87,6 @@ const CollectionMedia = ({ product, className = '' }) => {
               className="collection-img"
               loading="lazy"
               onError={(e) => {
-                console.log('Collection image failed to load:', collectionMedia.image);
                 e.target.style.display = 'none';
               }}
             />

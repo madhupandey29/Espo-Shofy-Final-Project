@@ -50,11 +50,9 @@ const ShopTopRight = ({ selectHandleFilter, onSearchResults }) => {
           onSearchResults?.({ data: [], total: 0, success: false });
         }
       } else {
-        console.error('Search API error:', response.status);
         onSearchResults?.({ data: [], total: 0, success: false });
       }
     } catch (error) {
-      console.error('Search error:', error);
       onSearchResults?.({ data: [], total: 0, success: false });
     } finally {
       setIsSearching(false);

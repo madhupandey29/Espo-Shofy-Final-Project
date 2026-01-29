@@ -51,5 +51,4 @@ const NiceSelect = ({options,defaultCurrent, placeholder,className,onChange,name
     );
 };
 
-
 export default NiceSelect;

@@ -30,8 +30,7 @@ export default function robots() {
           '/email-verify/*',  // Block email verification
           '/forget-password/*', // Block password reset
           '/test-*',          // Block test pages
-          '/debug-*',         // Block debug pages
-        ],
+          '/debug-*',                 ],
       },
     ],
     sitemap: `${baseUrl}/sitemap.xml`,

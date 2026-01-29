@@ -17,13 +17,9 @@ export default async function sitemap() {
     validateSitemapData(allPages);
     const stats = logSitemapStats(allPages);
     
-    console.log(`Generated sitemap with ${stats.total} URLs`);
-    
     return allPages;
     
   } catch (error) {
-    console.error('Error generating sitemap:', error);
-    
     // Fallback to basic static pages (only active routes)
     const fallbackPages = [
       {

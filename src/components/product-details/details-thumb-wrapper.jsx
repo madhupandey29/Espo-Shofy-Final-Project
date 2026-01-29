@@ -131,18 +131,6 @@ const DetailsThumbWrapper = ({
     const list = [];
     const productData = apiImages || {};
 
-    // 🔍 Debug: Log alt text props in development
-    if (process.env.NODE_ENV === 'development') {
-      console.log('🔍 DetailsThumbWrapper Alt Text Debug:', {
-        productName,
-        altTextImage1,
-        altTextImage2,
-        altTextImage3,
-        altTextVideo,
-        apiImages: productData
-      });
-    }
-
     const isImageUrl = (field) => {
       if (!field || typeof field !== 'string') return false;
       const t = field.trim();
@@ -198,17 +186,7 @@ const DetailsThumbWrapper = ({
           source: 'product', 
           index: imageItem.index 
         };
-        
-        // 🔍 Debug: Log each product image being added
-        if (process.env.NODE_ENV === 'development') {
-          console.log(`🔍 Adding product image ${imageItem.index}:`, {
-            url: imageItem.url,
-            processedUrl: imgUrl,
-            alt: imageItem.alt,
-            hasAlt: !!imageItem.alt
-          });
-        }
-        
+
         list.push(mediaItem);
       }
     });
@@ -248,18 +226,7 @@ const DetailsThumbWrapper = ({
   /* ---------- Collection media (using collection data passed as groupCodeData) ---------- */
   const collectionMedia = useMemo(() => {
     if (!groupCodeData) return [];
-    
-    // 🔍 Debug: Log collection data
-    if (process.env.NODE_ENV === 'development') {
-      console.log('🔍 Collection Media Debug:', {
-        groupCodeData,
-        altTextCollectionImage1: groupCodeData.altTextCollectionImage1,
-        collectionImage1CloudUrl: groupCodeData.collectionImage1CloudUrl,
-        collectionaltTextVideo: groupCodeData.collectionaltTextVideo,
-        collectionvideoURL: groupCodeData.collectionvideoURL
-      });
-    }
-    
+
     const media = [];
 
     // Collection image - using the new API structure and remove trailing hash
@@ -274,17 +241,7 @@ const DetailsThumbWrapper = ({
       const collectionImageUrl = processImageUrl(collectionImageField);
       if (collectionImageUrl) {
         const altText = groupCodeData.altTextCollectionImage1 || `${groupCodeData.name || 'Collection'} image`;
-        
-        // 🔍 Debug: Log collection image alt text
-        if (process.env.NODE_ENV === 'development') {
-          console.log('🔍 Collection Image Alt Text:', {
-            altTextCollectionImage1: groupCodeData.altTextCollectionImage1,
-            collectionName: groupCodeData.name,
-            finalAltText: altText,
-            imageUrl: collectionImageUrl
-          });
-        }
-        
+
         media.push({ 
           type: 'image', 
           img: collectionImageUrl, 
@@ -333,28 +290,7 @@ const DetailsThumbWrapper = ({
     // Put collection media AFTER product media (5th position)
     const finalMedia = [...primaryThumbs, ...collectionMedia];
     const uniqueMedia = uniqueByUrl(finalMedia);
-    
-    // 🔍 Debug: Log processed media with alt text
-    if (process.env.NODE_ENV === 'development') {
-      console.log('🔍 Processed Image URLs with Alt Text:', uniqueMedia.map((item, index) => ({
-        index,
-        type: item.type,
-        source: item.source,
-        alt: item.alt,
-        hasUrl: !!(item.img || item.video),
-        img: item.img?.substring(0, 50) + '...' // Show partial URL
-      })));
-      
-      // 🔍 Also log the raw alt text props
-      console.log('🔍 Raw Alt Text Props:', {
-        altTextImage1,
-        altTextImage2,
-        altTextImage3,
-        altTextVideo,
-        productName
-      });
-    }
-    
+
     return uniqueMedia;
   }, [primaryThumbs, collectionMedia, altTextImage1, altTextImage2, altTextImage3, altTextVideo, productName]);
 
@@ -380,12 +316,6 @@ const DetailsThumbWrapper = ({
         item.type === 'image' && item.img === mainImageUrl
       );
       if (matchingIndex !== -1 && matchingIndex !== currentSlide) {
-        console.log('🔧 Synchronizing currentSlide:', { 
-          oldSlide: currentSlide, 
-          newSlide: matchingIndex,
-          mainImageUrl,
-          matchingItem: processedImageURLs[matchingIndex]
-        });
         setCurrentSlide(matchingIndex);
       }
       
@@ -677,27 +607,12 @@ const DetailsThumbWrapper = ({
             <Image
               src={mainSrc || NO_IMG}
               alt={(() => {
-                // 🔍 ENHANCED Debug: Log everything for troubleshooting
-                if (process.env.NODE_ENV === 'development') {
-                  console.log('🔍 ENHANCED Alt Text Debug:', {
-                    currentSlide,
-                    processedImageURLsLength: processedImageURLs?.length,
-                    currentItem: processedImageURLs?.[currentSlide],
-                    mainSrc,
-                    altTextImage1,
-                    altTextImage2,
-                    altTextImage3,
-                    productName,
-                    allProcessedItems: processedImageURLs
-                  });
-                }
-                
+
                 // 🔧 DIRECT METHOD: Check if mainSrc matches any known image and use corresponding alt text
                 if (mainSrc && altTextImage1) {
                   // Try to match mainSrc with processed image1 URL
                   const image1Processed = processImageUrl(image1);
                   if (image1Processed && mainSrc === image1Processed) {
-                    console.log('🎯 DIRECT MATCH: Using altTextImage1 for image1');
                     return altTextImage1;
                   }
                 }
@@ -706,7 +621,6 @@ const DetailsThumbWrapper = ({
                   // Try to match mainSrc with processed image2 URL
                   const image2Processed = processImageUrl(image2);
                   if (image2Processed && mainSrc === image2Processed) {
-                    console.log('🎯 DIRECT MATCH: Using altTextImage2 for image2');
                     return altTextImage2;
                   }
                 }
@@ -715,7 +629,6 @@ const DetailsThumbWrapper = ({
                   // Try to match mainSrc with processed image3 URL
                   const image3Processed = processImageUrl(image3);
                   if (image3Processed && mainSrc === image3Processed) {
-                    console.log('🎯 DIRECT MATCH: Using altTextImage3 for image3');
                     return altTextImage3;
                   }
                 }
@@ -723,7 +636,6 @@ const DetailsThumbWrapper = ({
                 // Method 1: Use current slide index to get the correct alt text
                 const currentItem = processedImageURLs?.[currentSlide];
                 if (currentItem && currentItem.type === 'image' && currentItem.alt) {
-                  console.log('🔍 Method 1 - Using current item alt text:', currentItem.alt);
                   return currentItem.alt;
                 }
                 
@@ -732,20 +644,17 @@ const DetailsThumbWrapper = ({
                   item.type === 'image' && item.img === mainSrc
                 );
                 if (matchingItem && matchingItem.alt) {
-                  console.log('🔍 Method 2 - Using matching item alt text:', matchingItem.alt);
                   return matchingItem.alt;
                 }
                 
                 // Method 3: Use first available alt text from props
                 const firstAvailableAlt = altTextImage1 || altTextImage2 || altTextImage3;
                 if (firstAvailableAlt) {
-                  console.log('🔍 Method 3 - Using first available alt text:', firstAvailableAlt);
                   return firstAvailableAlt;
                 }
                 
                 // Method 4: Final fallback
                 const fallbackAlt = `${productName} main image`;
-                console.log('🔍 Method 4 - Using fallback alt text:', fallbackAlt);
                 return fallbackAlt;
               })()}
               width={imgWidth}

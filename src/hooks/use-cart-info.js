@@ -58,23 +58,6 @@ const useCartInfo = () => {
                 ? cart_products 
                 : [];
 
-    // Debug: Log cart data in development
-    if (process.env.NODE_ENV === 'development') {
-        console.log('useCartInfo Debug:', {
-            userId,
-            cartData,
-            cartItems,
-            cart_products,
-            itemsLength: cartItems.length,
-            itemsDetails: cartItems.map(item => ({
-                hasProductId: !!item?.productId,
-                productId: item?.productId?._id,
-                quantity: item?.quantity,
-                item: item
-            }))
-        });
-    }
-
     const { total, quantity } = useMemo(() => {
         // If API returns empty cart, make sure we return 0
         if (cartData && Array.isArray(cartData?.data?.items) && cartData.data.items.length === 0) {
@@ -116,15 +99,6 @@ const useCartInfo = () => {
             }
         );
     }, [cartItems, cartData]);
-
-    // Debug: Log final results in development
-    if (process.env.NODE_ENV === 'development') {
-        console.log('useCartInfo Final Results:', {
-            quantity,
-            total,
-            cartItemsCount: cartItems.length
-        });
-    }
 
     return {
         quantity,

@@ -50,8 +50,7 @@ const CartArea = () => {
       // Either rely on invalidation, or force a refetch for instant UI sync:
       refetch();
     } catch (e) {
-      console.error('Failed to clear cart:', e);
-    }
+      }
   };
 
   // ✅ Proceed only navigates – no API calls here

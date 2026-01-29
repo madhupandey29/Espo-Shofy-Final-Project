@@ -13,8 +13,7 @@ export const newProductApi = apiSlice.injectEndpoints({
         return url;
       },
       transformResponse: (res, meta, arg) => {
-        console.log('API Response:', res); // Debug log
-        
+                
         // Handle the new API response structure
         let products = [];
         let total = 0;
@@ -68,13 +67,6 @@ export const newProductApi = apiSlice.injectEndpoints({
           const startIndex = (page - 1) * limit;
           const endIndex = Math.min(startIndex + limit, allFiltered.length);
           const pageProducts = allFiltered.slice(startIndex, endIndex);
-          
-          console.log(`📄 Filtered pagination - Page ${page}:`, {
-            totalFiltered: allFiltered.length,
-            startIndex,
-            endIndex,
-            pageProducts: pageProducts.length
-          });
           
           // Merge all loaded products so far
           const currentData = currentCache?.data || [];
@@ -130,17 +122,7 @@ export const newProductApi = apiSlice.injectEndpoints({
         return `/product?limit=150`;
       },
       transformResponse: (res, meta, slug) => {
-        // 🔍 Debug: Log the raw API response to check alt text fields
-        if (process.env.NODE_ENV === 'development') {
-          console.log('🔍 getSingleNewProduct searching for slug:', slug);
-          console.log('🔍 getSingleNewProduct Raw API Response:', {
-            success: res?.success,
-            hasData: !!res?.data,
-            dataIsArray: Array.isArray(res?.data),
-            dataLength: Array.isArray(res?.data) ? res.data.length : 'N/A'
-          });
-        }
-        
+
         // Handle the new API response structure and find product by slug
         let products = [];
         if (res?.success && res?.data && Array.isArray(res.data)) {
@@ -172,16 +154,7 @@ export const newProductApi = apiSlice.injectEndpoints({
             productId === cleanSlug
           );
         });
-        
-        if (process.env.NODE_ENV === 'development') {
-          console.log('🔍 Product search result:', {
-            searchSlug: slug,
-            foundProduct: !!foundProduct,
-            productName: foundProduct?.name,
-            productSlug: foundProduct?.productslug
-          });
-        }
-        
+
         return foundProduct ? { data: foundProduct } : { data: null };
       },
     }),
@@ -189,22 +162,7 @@ export const newProductApi = apiSlice.injectEndpoints({
     getSingleNewProductById: builder.query({
       query: (id) => `/product/${id}`,
       transformResponse: (res) => {
-        // 🔍 Debug: Log the raw API response to check alt text fields
-        if (process.env.NODE_ENV === 'development') {
-          console.log('🔍 getSingleNewProductById Raw API Response:', {
-            success: res?.success,
-            hasData: !!res?.data,
-            dataType: typeof res?.data,
-            altTextFields: res?.data ? {
-              altTextImage1: res.data.altTextImage1,
-              altTextImage2: res.data.altTextImage2,
-              altTextImage3: res.data.altTextImage3,
-              altTextVideo: res.data.altTextVideo
-            } : 'No data',
-            fullResponse: res
-          });
-        }
-        
+
         if (res?.success && res?.data) {
           return { data: res.data };
         }
@@ -237,8 +195,7 @@ export const newProductApi = apiSlice.injectEndpoints({
     searchNewProduct: builder.query({
       query: (q) => `/product/search/${q}`,
       transformResponse: (res) => {
-        console.log('Search API Response:', res); // Debug log
-        
+                
         // Handle the new API response structure from espobackend.vercel.app
         if (res?.success && res?.data && Array.isArray(res.data)) {
           return {
@@ -378,16 +335,8 @@ export const newProductApi = apiSlice.injectEndpoints({
       transformResponse: (res, meta, arg) => {
         const collectionId = arg; // The collection ID passed to the query
         
-        console.log('🔍 getProductsByCollection Debug:', {
-          collectionId,
-          isNokia: collectionId === '690a0e676132664ee',
-          isMajestica: collectionId === '695f9b0b956eb958b'
-        });
-        
         if (res?.success && res?.data && Array.isArray(res.data)) {
           let products = res.data;
-          
-          console.log(`📊 Total products from API: ${products.length}`);
           
           // Filter products by collection ID if provided
           if (collectionId && collectionId.trim() !== '') {
@@ -399,28 +348,18 @@ export const newProductApi = apiSlice.injectEndpoints({
                              product.collection === collectionId ||
                              product.collection_id === collectionId;
               
-              // Debug individual product matching
-              if (collectionId === '695f9b0b956eb958b' && matches) {
-                console.log('🔍 Majestica product match:', {
-                  name: product.name,
-                  collectionId: product.collectionId,
-                  collection: product.collection
-                });
-              }
+                            if (collectionId === '695f9b0b956eb958b' && matches) {
+                }
               
               return matches;
             });
             
-            console.log(`✅ Filtered from ${originalCount} to ${products.length} products for collection ${collectionId}`);
-            
-            // Show collection distribution for debugging
-            const collectionStats = {};
+                        const collectionStats = {};
             res.data.forEach(product => {
               const collection = product.collectionId || product.collection || product.collection_id || 'No Collection';
               collectionStats[collection] = (collectionStats[collection] || 0) + 1;
             });
-            console.log('📦 Available collections:', collectionStats);
-          }
+            }
           
           const result = {
             data: products,
@@ -428,15 +367,6 @@ export const newProductApi = apiSlice.injectEndpoints({
             success: res.success,
             collectionId: collectionId
           };
-          
-          console.log('🎯 Final result:', {
-            collectionId,
-            productCount: result.data.length,
-            expectedForNokia: collectionId === '690a0e676132664ee' ? 51 : 'N/A',
-            expectedForMajestica: collectionId === '695f9b0b956eb958b' ? 67 : 'N/A',
-            isCorrect: (collectionId === '690a0e676132664ee' && result.data.length === 51) ||
-                      (collectionId === '695f9b0b956eb958b' && result.data.length === 67)
-          });
           
           return result;
         }
@@ -635,11 +565,8 @@ export const newProductApi = apiSlice.injectEndpoints({
         return `/product/?limit=50`;
       },
       transformResponse: (res, meta, arg) => {
-        console.log('🔍 Shared Products API Response:', res);
-        
         // Handle API errors gracefully
         if (!res) {
-          console.error('❌ No response from API');
           return {
             data: [],
             total: 0,
@@ -650,7 +577,6 @@ export const newProductApi = apiSlice.injectEndpoints({
         }
 
         if (res.success === false) {
-          console.error('❌ API returned error:', res.error);
           return {
             data: [],
             total: 0,
@@ -665,15 +591,11 @@ export const newProductApi = apiSlice.injectEndpoints({
         
         if (res?.success === true && res?.data && Array.isArray(res.data)) {
           products = res.data;
-          console.log(`✅ Successfully parsed ${products.length} products from API`);
-        } else if (res?.products && Array.isArray(res.products)) {
+          } else if (res?.products && Array.isArray(res.products)) {
           products = res.products;
-          console.log(`✅ Successfully parsed ${products.length} products from legacy format`);
-        } else if (Array.isArray(res)) {
+          } else if (Array.isArray(res)) {
           products = res;
-          console.log(`✅ Successfully parsed ${products.length} products from array format`);
-        } else {
-          console.error('❌ Unexpected API response format:', typeof res, res);
+          } else {
           return {
             data: [],
             total: 0,
@@ -683,19 +605,9 @@ export const newProductApi = apiSlice.injectEndpoints({
           };
         }
 
-        // Debug: Log sample product structure
-        if (products.length > 0) {
+                if (products.length > 0) {
           const sample = products[0];
-          console.log('📋 Sample product structure:', {
-            id: sample.id,
-            name: sample.name,
-            merchTags: sample.merchTags,
-            productTag: sample.productTag,
-            hasImage1CloudUrl: !!sample.image1CloudUrl,
-            hasImage2CloudUrl: !!sample.image2CloudUrl,
-            hasImage3CloudUrl: !!sample.image3CloudUrl
-          });
-        }
+          }
         
         // Return properly formatted response
         return {
@@ -706,7 +618,6 @@ export const newProductApi = apiSlice.injectEndpoints({
         };
       },
       transformErrorResponse: (response, meta, arg) => {
-        console.error('❌ Shared Products API Network Error:', response);
         return {
           status: response?.status || 500,
           data: {
@@ -724,11 +635,9 @@ export const newProductApi = apiSlice.injectEndpoints({
         return `/product/?limit=200&source=popular`;
       },
       transformResponse: (res, meta, arg) => {
-        console.log('Popular Products API Response:', res); // Debug log
-        
+                
         // Handle API errors gracefully
         if (!res || (res.success === false && res.error)) {
-          console.error('Popular Products API returned error:', res);
           return {
             data: [],
             total: 0,
@@ -753,7 +662,6 @@ export const newProductApi = apiSlice.injectEndpoints({
 
         // If no products found, return empty result but with success
         if (products.length === 0) {
-          console.log('⚠️ No products found in Popular Products API response');
           return {
             data: [],
             total: 0,
@@ -767,9 +675,6 @@ export const newProductApi = apiSlice.injectEndpoints({
         const popularTag = 'PopularFabrics';
         const catalogueTag = 'ecatalogue';
         
-        console.log(`🔍 Filtering Popular Products for tags: "${popularTag}" AND "${catalogueTag}"`);
-        console.log(`📊 Total products before filtering: ${products.length}`);
-        
         const filteredProducts = products.filter(product => {
           if (!product.merchTags || !Array.isArray(product.merchTags)) {
             return false;
@@ -782,17 +687,9 @@ export const newProductApi = apiSlice.injectEndpoints({
           return hasPopularTag && hasCatalogueTag;
         });
         
-        console.log(`📈 Popular Products filtered results: ${filteredProducts.length} products`);
         if (filteredProducts.length > 0) {
-          console.log('Popular Products found:', filteredProducts.map(p => ({ 
-            name: p.name, 
-            merchTags: p.merchTags 
-          })));
-        } else {
-          console.log('⚠️ No products found with both tags. Sample product merchTags:', 
-            products.slice(0, 3).map(p => ({ name: p.name, merchTags: p.merchTags }))
-          );
-        }
+          } else {
+          }
         
         return {
           data: filteredProducts,
@@ -803,7 +700,6 @@ export const newProductApi = apiSlice.injectEndpoints({
         };
       },
       transformErrorResponse: (response, meta, arg) => {
-        console.error('Popular Products API Error:', response);
         return {
           status: response.status,
           data: response.data || 'Backend API is currently unavailable. Please try again later.',
@@ -820,11 +716,9 @@ export const newProductApi = apiSlice.injectEndpoints({
         return `/product/?limit=200&source=toprated`;
       },
       transformResponse: (res, meta, arg) => {
-        console.log('Top Rated Products API Response:', res); // Debug log
-        
+                
         // Handle API errors gracefully
         if (!res || (res.success === false && res.error)) {
-          console.error('Top Rated Products API returned error:', res);
           return {
             data: [],
             total: 0,
@@ -849,7 +743,6 @@ export const newProductApi = apiSlice.injectEndpoints({
 
         // If no products found, return empty result but with success
         if (products.length === 0) {
-          console.log('⚠️ No products found in Top Rated Products API response');
           return {
             data: [],
             total: 0,
@@ -863,9 +756,6 @@ export const newProductApi = apiSlice.injectEndpoints({
         const topRatedTag = 'TopRatedFabrics';
         const catalogueTag = 'ecatalogue';
         
-        console.log(`🔍 Filtering Top Rated Products for tags: "${topRatedTag}" AND "${catalogueTag}"`);
-        console.log(`📊 Total products before filtering: ${products.length}`);
-        
         const filteredProducts = products.filter(product => {
           if (!product.merchTags || !Array.isArray(product.merchTags)) {
             return false;
@@ -878,17 +768,9 @@ export const newProductApi = apiSlice.injectEndpoints({
           return hasTopRatedTag && hasCatalogueTag;
         });
         
-        console.log(`📈 Top Rated Products filtered results: ${filteredProducts.length} products`);
         if (filteredProducts.length > 0) {
-          console.log('Top Rated Products found:', filteredProducts.map(p => ({ 
-            name: p.name, 
-            merchTags: p.merchTags 
-          })));
-        } else {
-          console.log('⚠️ No products found with both tags. Sample product merchTags:', 
-            products.slice(0, 3).map(p => ({ name: p.name, merchTags: p.merchTags }))
-          );
-        }
+          } else {
+          }
         
         return {
           data: filteredProducts,
@@ -899,7 +781,6 @@ export const newProductApi = apiSlice.injectEndpoints({
         };
       },
       transformErrorResponse: (response, meta, arg) => {
-        console.error('Top Rated Products API Error:', response);
         return {
           status: response.status,
           data: response.data || 'Backend API is currently unavailable. Please try again later.',

@@ -60,7 +60,6 @@ export async function POST(request) {
     return NextResponse.json(mockResponse);
 
   } catch (error) {
-    console.error('Chat API Error:', error);
     return NextResponse.json(
       { ok: false, error: 'Internal server error' },
       { status: 500 }

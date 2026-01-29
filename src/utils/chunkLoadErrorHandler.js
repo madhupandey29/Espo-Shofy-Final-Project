@@ -7,8 +7,6 @@ let retryCount = 0;
 const MAX_RETRIES = 3;
 
 export function handleChunkLoadError(error) {
-  console.error('ChunkLoadError detected:', error);
-  
   // Check if it's actually a chunk load error
   const isChunkError = error?.name === 'ChunkLoadError' || 
                       error?.message?.includes('Loading chunk') ||
@@ -21,12 +19,9 @@ export function handleChunkLoadError(error) {
   retryCount++;
   
   if (retryCount <= MAX_RETRIES) {
-    console.log(`🔄 Attempting to recover from ChunkLoadError (attempt ${retryCount}/${MAX_RETRIES})`);
-    
     // Clear caches and retry
     return clearCachesAndRetry();
   } else {
-    console.log('❌ Max retries exceeded, forcing page reload');
     // Force reload after max retries
     if (typeof window !== 'undefined') {
       window.location.reload();
@@ -58,10 +53,7 @@ async function clearCachesAndRetry() {
         }
       });
     } catch (e) {
-      console.warn('Could not clear localStorage:', e);
-    }
-    
-    console.log('✅ Caches cleared, reloading page...');
+      }
     
     // Reload the page
     setTimeout(() => {
@@ -69,7 +61,6 @@ async function clearCachesAndRetry() {
     }, 500);
     
   } catch (error) {
-    console.error('Error clearing caches:', error);
     // Fallback to simple reload
     window.location.reload();
   }

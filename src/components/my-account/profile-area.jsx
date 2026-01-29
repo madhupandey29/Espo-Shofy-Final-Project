@@ -11,7 +11,6 @@ import ChangePassword   from "./change-password";
 // import MyOrders from "./my-orders";
 // import { useGetUserOrdersQuery } from "@/redux/features/order/orderApi";
 
-
 const ProfileArea = () => {
   const router = useRouter();
   // guard

@@ -209,17 +209,9 @@ export default function PopularProducts() {
       return hasPopularTag && hasCatalogueTag;
     });
     
-    console.log(`📈 Popular Products filtered results: ${filteredProducts.length} products`);
     if (filteredProducts.length > 0) {
-      console.log('Popular Products found:', filteredProducts.map(p => ({ 
-        name: p.name, 
-        merchTags: p.merchTags 
-      })));
-    } else {
-      console.log('⚠️ No products found with both tags. Sample product merchTags:', 
-        products.slice(0, 3).map(p => ({ name: p.name, merchTags: p.merchTags }))
-      );
-    }
+      } else {
+      }
     
     return {
       ...sharedData,
@@ -230,10 +222,7 @@ export default function PopularProducts() {
     };
   }, [sharedData]);
 
-  // Debug logging
-  console.log('PopularProducts Debug:', { data, isError, isLoading, error });
-
-  useEffect(() => {
+    useEffect(() => {
     const handleResize = () => {
       if (swiperRef.current && swiperRef.current.swiper) {
         swiperRef.current.swiper.update();
@@ -246,7 +235,6 @@ export default function PopularProducts() {
   let carousel = <ErrorMsg msg="No Products found!" />;
   if (isLoading) carousel = <HomeTwoPopularPrdLoader loading />;
   if (!isLoading && isError) {
-    console.error('❌ Popular Products RTK Query Error:', error);
     carousel = (
       <div style={{ padding: '40px 20px', textAlign: 'center' }}>
         <h4 style={{ color: '#ef4444', marginBottom: '16px' }}>Unable to Load Popular Products</h4>
@@ -262,7 +250,6 @@ export default function PopularProducts() {
 
   // Check if data has an error (API returned error response but RTK Query didn't treat it as error)
   if (!isLoading && !isError && data && data.success === false) {
-    console.error('❌ Popular Products API Error Response:', data);
     carousel = (
       <div style={{ padding: '40px 20px', textAlign: 'center' }}>
         <h4 style={{ color: '#ef4444', marginBottom: '16px' }}>Unable to Load Popular Products</h4>

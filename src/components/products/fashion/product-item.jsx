@@ -142,25 +142,13 @@ const ProductItem = ({ product, index = 0 }) => {
   useEffect(() => {
     const loadCollectionMedia = async () => {
       try {
-        console.log('🔍 ProductItem: Loading collection media for product:', product?.name);
-        console.log('🔍 ProductItem: Product collection info:', {
-          collectionId: product?.collectionId,
-          collectionObject: product?.collection,
-          collection_id: product?.collection_id
-        });
-        
         const media = await getCollectionMediaForProduct(product);
-        console.log('🔍 ProductItem: Collection media result:', media);
-        
         if (media.image || media.video) {
           setCollectionMedia(media);
-          console.log('🔍 ProductItem: Collection media set successfully');
-        } else {
-          console.log('🔍 ProductItem: No collection media found');
-        }
+          } else {
+          }
       } catch (error) {
-        console.error('🔍 ProductItem: Error loading collection media:', error);
-      }
+        }
     };
 
     if (product) {
@@ -347,8 +335,7 @@ const ProductItem = ({ product, index = 0 }) => {
       dispatch(openCartMini());
       setShowActions(true);
     } catch (err) {
-      console.error('Add to cart failed:', err);
-    } finally {
+      } finally {
       setAddingCart(false);
     }
   };
@@ -370,8 +357,7 @@ const ProductItem = ({ product, index = 0 }) => {
     try {
       await dispatch(toggleWishlistItem({ userId, product: formatted })).unwrap();
     } catch (err) {
-      console.error('Wishlist toggle failed:', err);
-    }
+      }
   };
 
   const openQuickView = async (prd, e) => {
@@ -457,7 +443,6 @@ const ProductItem = ({ product, index = 0 }) => {
                   className="img-main"
                   {...(isAboveFold ? { priority: true } : { loading: 'lazy' })}
                   onError={(e) => {
-                    console.log('Image failed to load:', imageUrl);
                     e.target.onerror = null;
                     e.target.src = '/assets/img/product/default-product-img.jpg';
                   }}
@@ -616,12 +601,6 @@ const ProductItem = ({ product, index = 0 }) => {
 
             {/* Collection Media Section */}
             {(() => {
-              console.log('🔍 ProductItem Render: Checking collection media display', {
-                collectionMedia,
-                hasImage: collectionMedia?.image,
-                hasVideo: collectionMedia?.video,
-                shouldShow: collectionMedia && (collectionMedia.image || collectionMedia.video)
-              });
               return null;
             })()}
             {collectionMedia && (collectionMedia.image || collectionMedia.video) && (

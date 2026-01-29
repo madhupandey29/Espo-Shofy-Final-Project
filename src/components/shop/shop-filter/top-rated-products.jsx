@@ -10,20 +10,10 @@ import ShopTopRatedLoader from '@/components/loader/shop/top-rated-prd-loader';
 const TopRatedProducts = () => {
   const { data, isError, isLoading } = useGetTopRatedQuery();
 
-  // Debug the API response
-  console.log('Top Rated API Response:', { data, isError, isLoading });
-
-  // Helper function to get image URL with Cloudinary support
+    // Helper function to get image URL with Cloudinary support
   const getImageUrl = (item) => {
     // The item IS the product data directly from the API
     const p = item;
-    
-    console.log('Processing item for image:', {
-      itemKeys: Object.keys(item || {}),
-      image1CloudUrl: p?.image1CloudUrl,
-      image2CloudUrl: p?.image2CloudUrl,
-      image3CloudUrl: p?.image3CloudUrl
-    });
     
     // First check for Cloudinary URLs (direct URLs) - check all image fields
     const cloudinaryFields = [
@@ -36,7 +26,6 @@ const TopRatedProducts = () => {
           field !== 'null' && field !== 'undefined' && field !== '') {
         const cleanUrl = field.trim().replace(/#$/, ''); // Remove trailing hash character
         if (cleanUrl.startsWith('http')) {
-          console.log('Found Cloudinary URL:', cleanUrl);
           return cleanUrl;
         }
       }
@@ -55,18 +44,15 @@ const TopRatedProducts = () => {
           field !== 'null' && field !== 'undefined' && field !== '') {
         const cleanUrl = field.trim();
         if (cleanUrl.startsWith('http')) {
-          console.log('Found HTTP URL:', cleanUrl);
           return cleanUrl;
         }
         if (baseUrl) {
           const fullUrl = `${baseUrl}/uploads/${cleanUrl.replace(/^\/+/, '')}`;
-          console.log('Constructed URL:', fullUrl);
           return fullUrl;
         }
       }
     }
 
-    console.log('Using fallback image');
     return '/assets/img/product/default-product-img.jpg';
   };
 

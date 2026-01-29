@@ -10,8 +10,6 @@ const fs = require('fs');
 const path = require('path');
 
 function checkSEOHeaders() {
-  console.log('🔍 Checking SEO headers across your site...\n');
-  
   const results = [];
   
   // Define pages to check
@@ -94,23 +92,14 @@ function checkSEOHeaders() {
   });
   
   // Display results
-  console.log('📊 SEO Headers Analysis Results:\n');
-  console.log('─'.repeat(80));
-  
   results.forEach(result => {
     const statusIcon = result.status === 'missing' ? '❌' : 
                       result.issues[0] === 'No issues found' ? '✅' : '⚠️';
     
-    console.log(`${statusIcon} ${result.name} (${result.url})`);
-    console.log(`   File: ${result.file}`);
-    
     if (result.status !== 'missing') {
-      console.log(`   Headers: H1(${result.h1Count}) H2(${result.h2Count}) H3(${result.h3Count})`);
-    }
+      }
     
-    console.log(`   Issues: ${result.issues.join(', ')}`);
-    console.log('');
-  });
+    });
   
   // Summary
   const totalPages = results.length;
@@ -118,34 +107,15 @@ function checkSEOHeaders() {
   const pagesWithIssues = results.filter(r => r.issues[0] !== 'No issues found').length;
   const pagesWithMultipleH1 = results.filter(r => r.h1Count > 1).length;
   
-  console.log('─'.repeat(80));
-  console.log('📈 Summary:');
-  console.log(`Total pages checked: ${totalPages}`);
-  console.log(`Pages with H1 tags: ${pagesWithH1}/${totalPages}`);
-  console.log(`Pages with issues: ${pagesWithIssues}/${totalPages}`);
-  console.log(`Pages with multiple H1s: ${pagesWithMultipleH1}/${totalPages}`);
-  
   const score = Math.round(((totalPages - pagesWithIssues) / totalPages) * 100);
-  console.log(`\n🎯 SEO Score: ${score}%`);
-  
   if (score >= 90) {
-    console.log('🏆 Excellent! Your header structure is SEO-optimized.');
-  } else if (score >= 75) {
-    console.log('👍 Good! Minor improvements needed.');
-  } else if (score >= 50) {
-    console.log('⚠️ Fair. Several header issues need attention.');
-  } else {
-    console.log('❌ Poor. Header structure needs significant improvement.');
-  }
+    } else if (score >= 75) {
+    } else if (score >= 50) {
+    } else {
+    }
   
   // Recommendations
-  console.log('\n💡 SEO Recommendations:');
-  console.log('• Each page should have exactly one H1 tag');
-  console.log('• H1 should include relevant keywords for your fabric business');
-  console.log('• Use H2 tags for main sections, H3 for subsections');
-  console.log('• Keep H1 content between 10-60 characters when possible');
-  console.log('• Include "fabric", "textile", "eCatalogue" in homepage H1');
-}
+  }
 
 // Run the checker
 checkSEOHeaders();

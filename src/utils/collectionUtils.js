@@ -35,7 +35,6 @@ export const fetchCollections = async () => {
     
     return [];
   } catch (error) {
-    console.error('Error fetching collections:', error);
     return [];
   }
 };
@@ -155,8 +154,7 @@ export const useCollectionMedia = () => {
       
       setCollectionsMap(newMap);
     } catch (error) {
-      console.error('Error loading collection media:', error);
-    } finally {
+      } finally {
       setLoading(false);
     }
   };

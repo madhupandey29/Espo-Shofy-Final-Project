@@ -10,11 +10,9 @@ export const useAuthAction = () => {
           // Only use pathname to avoid encoding loops with existing redirect parameters
           const currentPath = window.location.pathname;
           const redirectUrl = `/login?redirect=${encodeURIComponent(currentPath)}`;
-          console.log('User not authenticated, redirecting to:', redirectUrl);
           window.location.href = redirectUrl;
           return false;
         } catch (error) {
-          console.error('Error during auth redirect:', error);
           window.location.href = '/login';
           return false;
         }
@@ -24,7 +22,6 @@ export const useAuthAction = () => {
         try {
           return await action(...args);
         } catch (error) {
-          console.error('Error in auth action:', error);
           throw error;
         }
       }

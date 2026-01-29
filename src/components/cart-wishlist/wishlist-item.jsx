@@ -318,7 +318,6 @@ const WishlistItem = ({ product }) => {
         toastId: `moved-${_id}`,
       });
     } catch (e) {
-      console.error('Move to cart failed', e);
       toast.error('Failed to move item to cart', {
         position: 'top-center',
         autoClose: 3000,
@@ -348,7 +347,6 @@ const WishlistItem = ({ product }) => {
       ).unwrap?.();
       dispatch(fetchWishlist(userId));
     } catch (e) {
-      console.error('Remove failed', e);
       alert('Failed to remove item from wishlist. Please try again.');
     }
   };

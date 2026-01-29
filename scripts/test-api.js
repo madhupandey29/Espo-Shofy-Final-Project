@@ -12,7 +12,6 @@ const API_BASE =
   '';
 
 if (!API_BASE) {
-  console.error('❌  NEXT_PUBLIC_API_BASE_URL is not defined');
   process.exit(1);
 }
 
@@ -35,7 +34,6 @@ if (!API_BASE) {
     }
 
   } catch (err) {
-    console.error(`❌  API test failed: ${err.message}`);
     process.exit(1);
   }
 })();

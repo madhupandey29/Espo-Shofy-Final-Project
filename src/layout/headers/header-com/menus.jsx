@@ -19,9 +19,7 @@ const Menus = () => {
   const handleCapabilityClick = (link, e) => {
     e.preventDefault();
     e.stopPropagation();
-    
-    console.log('Capability clicked:', link); // Debug log
-    
+
     // FORCE CLOSE MENU - Multiple methods to ensure it closes
     setOpenMegaMenu(null);
     
@@ -60,13 +58,10 @@ const Menus = () => {
       menu.style.visibility = 'hidden';
       menu.style.pointerEvents = 'none';
     });
-    
-    console.log('Menu should be closed now'); // Debug log
-    
+
     // Navigate after ensuring menu is closed
     setTimeout(() => {
-      console.log('Navigating to:', link); // Debug log
-      
+            
       if (link.includes('#')) {
         const [, hash] = link.split('#');
         const currentPath = window.location.pathname;

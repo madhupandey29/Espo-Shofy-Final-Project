@@ -23,7 +23,6 @@ const AuthorProfile = ({ authorId = null, showSignature = true, className = '' }
   }
 
   if (error) {
-    console.error('Error fetching authors:', error);
     return (
       <div className={`author-profile-error ${className}`}>
         <p>Unable to load author information</p>

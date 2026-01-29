@@ -9,7 +9,6 @@ import ErrorMsg from '@/components/common/error-msg';
 
 import { useGetSingleNewProductQuery, useGetSingleNewProductByIdQuery } from '@/redux/features/newProductApi';
 
-
 function mapBackendProductToFrontend(p) {
   // Handle Cloudinary image URLs - use correct API field names and remove trailing hash
   const mainImg = (p.image1CloudUrl && typeof p.image1CloudUrl === 'string' ? p.image1CloudUrl.replace(/#$/, '') : p.image1CloudUrl) || p.img || p.image || '';
@@ -127,23 +126,12 @@ function mapBackendProductToFrontend(p) {
 export default function ProductDetailsClient({ slug }) {
   // Clean the slug by removing trailing hash character
   const cleanSlug = slug ? slug.replace(/#$/, '') : slug;
-  console.log('ProductDetailsClient - original slug:', slug);
-  console.log('ProductDetailsClient - cleaned slug:', cleanSlug);
-
   // Get product by slug (now uses the fixed API that searches all products)
   const {
     data: productData,
     isLoading,
     isError,
   } = useGetSingleNewProductQuery(cleanSlug, { skip: !cleanSlug });
-
-  console.log('Product query result:', { 
-    productData, 
-    isLoading, 
-    isError,
-    hasData: !!productData?.data,
-    productName: productData?.data?.name
-  });
 
   if (isLoading) return <ProductDetailsLoader loading />;
   if (isError) return <ErrorMsg msg="There was an error loading the product" />;

@@ -27,19 +27,13 @@ function loadEnvFile() {
       }
     });
   } catch (error) {
-    console.log('No .env.local file found, using default values');
-  }
+    }
 }
 
 async function generateSitemap() {
   try {
-    console.log('🚀 Starting sitemap generation...');
-    
     // Load environment variables
     loadEnvFile();
-    
-    console.log('Base URL:', process.env.NEXT_PUBLIC_SITE_URL || 'Not set');
-    console.log('API URL:', process.env.NEXT_PUBLIC_API_BASE_URL || 'Not set');
     
     // Import the sitemap function
     const sitemapModule = await import('../src/app/sitemap.js');
@@ -47,9 +41,6 @@ async function generateSitemap() {
     
     // Generate sitemap data
     const sitemapData = await sitemap();
-    
-    console.log('\n📊 Sitemap Statistics:');
-    console.log(`Total URLs: ${sitemapData.length}`);
     
     // Group by type
     const stats = {
@@ -64,11 +55,6 @@ async function generateSitemap() {
       categories: sitemapData.filter(item => item.url.includes('category=')).length,
     };
     
-    console.log(`Static pages: ${stats.static}`);
-    console.log(`Product pages: ${stats.products}`);
-    console.log(`Blog pages: ${stats.blogs}`);
-    console.log(`Category pages: ${stats.categories}`);
-    
     // Convert to XML format
     const xmlContent = generateSitemapXML(sitemapData);
     
@@ -76,22 +62,14 @@ async function generateSitemap() {
     const outputPath = path.join(process.cwd(), 'public', 'sitemap-preview.xml');
     fs.writeFileSync(outputPath, xmlContent, 'utf8');
     
-    console.log(`\n✅ Sitemap generated successfully!`);
-    console.log(`📁 Preview saved to: ${outputPath}`);
-    console.log(`🌐 Will be available at: ${process.env.NEXT_PUBLIC_SITE_URL}/sitemap-preview.xml`);
-    
     // Show sample URLs
-    console.log('\n📋 Sample URLs:');
     sitemapData.slice(0, 10).forEach((item, index) => {
-      console.log(`${index + 1}. ${item.url} (Priority: ${item.priority})`);
-    });
+      });
     
     if (sitemapData.length > 10) {
-      console.log(`... and ${sitemapData.length - 10} more URLs`);
-    }
+      }
     
   } catch (error) {
-    console.error('❌ Error generating sitemap:', error);
     process.exit(1);
   }
 }

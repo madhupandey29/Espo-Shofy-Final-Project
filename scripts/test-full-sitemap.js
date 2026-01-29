@@ -24,22 +24,16 @@ function loadEnvFile() {
       }
     });
   } catch (error) {
-    console.log('No .env.local file found, using default values');
-  }
+    }
 }
 
 async function testFullSitemap() {
   try {
-    console.log('🚀 Testing full sitemap generation with real data...');
-    
     // Load environment variables
     loadEnvFile();
     
     const baseUrl = process.env.NEXT_PUBLIC_SITE_URL;
     const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
-    
-    console.log('Base URL:', baseUrl);
-    console.log('API URL:', apiBaseUrl);
     
     // Static pages
     const staticPages = [
@@ -63,7 +57,6 @@ async function testFullSitemap() {
     ];
     
     // Fetch products
-    console.log('\n🔍 Fetching products from API...');
     let productPages = [];
     
     try {
@@ -72,8 +65,6 @@ async function testFullSitemap() {
         const data = await response.json();
         
         if (data.success && data.data && Array.isArray(data.data)) {
-          console.log(`✅ Found ${data.data.length} products`);
-          
           productPages = data.data
             .filter(product => product.productslug || product.slug)
             .map(product => ({
@@ -83,20 +74,14 @@ async function testFullSitemap() {
               lastModified: product.updatedAt ? new Date(product.updatedAt) : new Date(),
             }));
           
-          console.log(`✅ Generated ${productPages.length} product URLs`);
-          
           // Show sample product URLs
-          console.log('\n📋 Sample product URLs:');
           productPages.slice(0, 5).forEach((item, index) => {
-            console.log(`${index + 1}. ${item.url}`);
-          });
+            });
         }
       } else {
-        console.log(`❌ Products API: ${response.status} ${response.statusText}`);
-      }
+        }
     } catch (error) {
-      console.log(`❌ Products API Error: ${error.message}`);
-    }
+      }
     
     // Mock blog pages (since we don't have the blog data file accessible here)
     const blogPages = [
@@ -121,12 +106,6 @@ async function testFullSitemap() {
       return new Date(b.lastModified || new Date()) - new Date(a.lastModified || new Date());
     });
     
-    console.log('\n📊 Full Sitemap Statistics:');
-    console.log(`Total URLs: ${allPages.length}`);
-    console.log(`Static pages: ${staticPages.length}`);
-    console.log(`Product pages: ${productPages.length}`);
-    console.log(`Blog pages: ${blogPages.length}`);
-    
     // Generate XML
     const xmlContent = generateSitemapXML(allPages);
     
@@ -134,20 +113,11 @@ async function testFullSitemap() {
     const outputPath = path.join(process.cwd(), 'public', 'sitemap-full.xml');
     fs.writeFileSync(outputPath, xmlContent, 'utf8');
     
-    console.log(`\n✅ Full sitemap generated successfully!`);
-    console.log(`📁 Saved to: ${outputPath}`);
-    console.log(`🌐 Preview URL: ${baseUrl}/sitemap-full.xml`);
-    
     // Show top URLs by priority
-    console.log('\n🏆 Top 10 URLs by priority:');
     allPages.slice(0, 10).forEach((item, index) => {
-      console.log(`${index + 1}. ${item.url} (Priority: ${item.priority})`);
-    });
+      });
     
-    console.log(`\n🎯 Your live sitemap will be available at: ${baseUrl}/sitemap.xml`);
-    
-  } catch (error) {
-    console.error('❌ Error:', error);
+    } catch (error) {
     process.exit(1);
   }
 }

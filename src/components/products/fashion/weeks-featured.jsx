@@ -224,17 +224,9 @@ const WeeksFeatured = () => {
       return hasTopRatedTag && hasCatalogueTag;
     });
     
-    console.log(`📈 Top Rated Products filtered results: ${filteredProducts.length} products`);
     if (filteredProducts.length > 0) {
-      console.log('Top Rated Products found:', filteredProducts.map(p => ({ 
-        name: p.name, 
-        merchTags: p.merchTags 
-      })));
-    } else {
-      console.log('⚠️ No products found with both tags. Sample product merchTags:', 
-        allProducts.slice(0, 3).map(p => ({ name: p.name, merchTags: p.merchTags }))
-      );
-    }
+      } else {
+      }
     
     return {
       ...sharedData,
@@ -245,10 +237,7 @@ const WeeksFeatured = () => {
     };
   }, [sharedData]);
 
-  // Debug logging
-  console.log('WeeksFeatured Debug:', { products, isError, isLoading, error });
-
-  useEffect(() => {
+    useEffect(() => {
     const handleResize = () => {
       if (swiperRef.current && swiperRef.current.swiper) {
         swiperRef.current.swiper.update();
@@ -262,7 +251,6 @@ const WeeksFeatured = () => {
   let content = null;
   if (isLoading) content = <HomeTwoFeaturedPrdLoader loading />;
   else if (isError) {
-    console.error('❌ Top Rated Products RTK Query Error:', error);
     content = (
       <div style={{ padding: '40px 20px', textAlign: 'center' }}>
         <h4 style={{ color: '#ef4444', marginBottom: '16px' }}>Unable to Load Top Rated Products</h4>
@@ -277,7 +265,6 @@ const WeeksFeatured = () => {
   }
   // Check if data has an error (API returned error response but RTK Query didn't treat it as error)
   else if (products && products.success === false) {
-    console.error('❌ Top Rated Products API Error Response:', products);
     content = (
       <div style={{ padding: '40px 20px', textAlign: 'center' }}>
         <h4 style={{ color: '#ef4444', marginBottom: '16px' }}>Unable to Load Top Rated Products</h4>
@@ -316,18 +303,7 @@ const WeeksFeatured = () => {
           const cleanSlug = slug ? String(slug).replace(/#$/, '') : slug;
           const detailsHref = `/fabric/${encodeURIComponent(cleanSlug)}`;
           
-          // Debug logging for weeks-featured
-          console.log(`Featured Product ${idx}:`, { 
-            pid, 
-            title, 
-            image1CloudUrl: p?.image1CloudUrl,
-            image2CloudUrl: p?.image2CloudUrl,
-            image3CloudUrl: p?.image3CloudUrl,
-            finalImageUrl: imageUrl,
-            slug: slug
-          });
-
-          // ✅ Top-left badge text comes from productTag[]
+                    // ✅ Top-left badge text comes from productTag[]
           const tagArr = getTagArray(p, item);
           const topLabel = pickTopLabelFromTags(tagArr);
 

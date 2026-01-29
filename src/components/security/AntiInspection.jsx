@@ -5,7 +5,6 @@ import { useEffect } from 'react';
 export default function AntiInspection() {
   useEffect(() => {
     // 🔓 COMPLETELY DISABLED - No security on localhost
-    console.log('🔓 Anti-inspection COMPLETELY DISABLED');
     return; // Exit immediately, no protections applied
   }, []);
 

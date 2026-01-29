@@ -49,7 +49,6 @@ export class SitemapManager {
       });
 
       if (!response.ok) {
-        console.warn('Failed to fetch products for sitemap');
         return [];
       }
 
@@ -69,7 +68,6 @@ export class SitemapManager {
         }));
 
     } catch (error) {
-      console.error('Error fetching products for sitemap:', error);
       return [];
     }
   }
@@ -93,7 +91,6 @@ export class SitemapManager {
       });
 
       if (!response.ok) {
-        console.warn('Failed to fetch blogs for sitemap');
         return [];
       }
 
@@ -123,7 +120,6 @@ export class SitemapManager {
         });
 
     } catch (error) {
-      console.error('Error fetching blog data for sitemap:', error);
       return [];
     }
   }
@@ -163,7 +159,6 @@ export class SitemapManager {
         }));
 
     } catch (error) {
-      console.warn('Categories API not available for sitemap');
       return [];
     }
   }

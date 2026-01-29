@@ -15,16 +15,6 @@ const ShopContent = ({
   shop_right,
   hidden_sidebar,
 }) => {
-  console.log('🛍️ ShopContent - Infinite Scroll Mode:', { 
-    allProductsLength: all_products.length, 
-    productsLength: products.length,
-    totalProducts: otherProps?.totalProducts,
-    firstProduct: products[0]?.name || 'No products',
-    shop_right,
-    hidden_sidebar,
-    shouldShowSidebar: !shop_right && !hidden_sidebar
-  });
-
   // ────── ECATALOGUE PRODUCTS FILTERING ──────
   const eCatalogueProducts = useMemo(() => {
     return all_products.filter(product => {
@@ -45,12 +35,6 @@ const ShopContent = ({
       );
     });
   }, [all_products]);
-
-  console.log('🎯 eCatalogue Products:', {
-    totalProducts: all_products.length,
-    eCatalogueProducts: eCatalogueProducts.length,
-    percentage: ((eCatalogueProducts.length / all_products.length) * 100).toFixed(1) + '%'
-  });
 
   const {
     priceFilterValues,
@@ -78,8 +62,7 @@ const ShopContent = ({
       const initialProducts = products.slice(0, INITIAL_LOAD);
       setDisplayedProducts(initialProducts);
       setHasMore(products.length > INITIAL_LOAD);
-      console.log(`📱 Initial load: ${initialProducts.length} products`);
-    } else {
+      } else {
       setDisplayedProducts([]);
       setHasMore(false);
     }
@@ -90,8 +73,6 @@ const ShopContent = ({
     if (isLoading || !hasMore) return;
 
     setIsLoading(true);
-    console.log('📱 Loading more products...');
-
     // Simulate loading delay for better UX
     setTimeout(() => {
       const currentLength = displayedProducts.length;
@@ -99,8 +80,7 @@ const ShopContent = ({
       
       if (nextProducts.length > 0) {
         setDisplayedProducts(prev => [...prev, ...nextProducts]);
-        console.log(`📱 Loaded ${nextProducts.length} more products. Total: ${currentLength + nextProducts.length}`);
-      }
+        }
       
       setHasMore(currentLength + nextProducts.length < products.length);
       setIsLoading(false);

@@ -15,7 +15,6 @@ export const officeInformationApi = apiSlice.injectEndpoints({
         const companyFilter = process.env.NEXT_PUBLIC_COMPANY_FILTER;
         
         if (!companyFilter) {
-          console.error('NEXT_PUBLIC_COMPANY_FILTER is required but not set');
           return { success: false, data: [] };
         }
 
@@ -23,7 +22,6 @@ export const officeInformationApi = apiSlice.injectEndpoints({
         const targetCompany = response.data.find(company => company.name === companyFilter);
         
         if (!targetCompany) {
-          console.error(`No company found with name: ${companyFilter}`);
           return { success: false, data: [] };
         }
 

@@ -177,30 +177,18 @@ export default function ContactForm({ onSuccess, storageKey = DEFAULT_STORAGE_KE
 
     // Final validation
     const errors = validateStep1();
-    console.log('Final validation errors:', errors);
-    console.log('Current form data:', formData);
-    
     if (Object.keys(errors).length > 0) {
-      console.log('Validation failed, not submitting');
       setValidationErrors(errors);
       setShake(true);
       setTimeout(() => setShake(false), 500);
       return;
     }
     
-    console.log('Validation passed, proceeding with submission');
-
     setIsSubmitting(true);
     try {
       // Submit to the new EspoCRM API endpoint (full URL)
       const payload = mapToBackend(formData);
-      console.log('Form data before mapping:', formData);
-      console.log('Payload being submitted:', payload);
-      
       const apiUrl = 'https://espo.egport.com/api/v1/LeadCapture/a4624c9bb58b8b755e3d94f1a25fc9be';
-      
-      console.log('API URL:', apiUrl);
-      console.log('Payload:', payload);
       
       const response = await fetch(apiUrl, {
         method: 'POST',
@@ -216,8 +204,6 @@ export default function ContactForm({ onSuccess, storageKey = DEFAULT_STORAGE_KE
       }
       
       const result = await response.json();
-      console.log('Form submitted successfully:', result);
-      
       resetAll();
       setShowSuccess(true);
       setTimeout(() => {
@@ -225,8 +211,6 @@ export default function ContactForm({ onSuccess, storageKey = DEFAULT_STORAGE_KE
         onSuccess?.();
       }, 2000);
     } catch (err) {
-      console.error('Submission error:', err);
-      
       // Show user-friendly error message
       let errorMessage = 'Failed to submit form. Please try again.';
       

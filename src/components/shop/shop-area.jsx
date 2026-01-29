@@ -30,12 +30,6 @@ export default function ShopArea({
   initialProducts = [], 
   totalProducts = 0
 }) {
-  console.log('🏪 ShopArea - Simple Mode:', { 
-    initialProductsLength: initialProducts.length, 
-    totalProducts,
-    firstProduct: initialProducts[0]?.name || 'No products'
-  });
-
   // ────── URL params ─────────────────────────
   const p = useSearchParams();
   const category = p.get('category');
@@ -121,12 +115,10 @@ export default function ShopArea({
             setIsSearchActive(true);
           }
         } else {
-          console.error('Search API error:', response.status);
           setSearchResults({ data: [], total: 0, success: false });
           setIsSearchActive(true);
         }
       } catch (error) {
-        console.error('Search error:', error);
         setSearchResults({ data: [], total: 0, success: false });
         setIsSearchActive(true);
       }

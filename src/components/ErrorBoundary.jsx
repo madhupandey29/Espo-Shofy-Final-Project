@@ -15,12 +15,8 @@ class ErrorBoundary extends React.Component {
 
   componentDidCatch(error, errorInfo) {
     // Log the error
-    console.error('ErrorBoundary caught an error:', error, errorInfo);
-    
     // Check if it's a ChunkLoadError
     if (error?.name === 'ChunkLoadError' || error?.message?.includes('Loading chunk')) {
-      console.log('🔄 ChunkLoadError detected, attempting to reload...');
-      
       // Clear any cached chunks and reload
       if (typeof window !== 'undefined') {
         // Clear service worker cache if available

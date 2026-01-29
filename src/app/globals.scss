@@ -2115,3 +2115,431 @@ img, video, iframe, embed, object {
   visibility: visible !important;
   opacity: 1 !important;
 }
+
+/* ===========================
+   ENHANCED SOCIAL SHARE BUTTONS - DESKTOP OPTIMIZED
+   =========================== */
+
+/* Force override any existing social share styles */
+#social-share-root {
+  position: fixed !important;
+  right: 24px !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  z-index: 1500 !important;
+  width: 280px !important;
+  height: 280px !important;
+  pointer-events: none !important;
+}
+
+#social-toggle {
+  pointer-events: auto !important;
+  position: absolute !important;
+  right: 0 !important;
+  top: 50% !important;
+  transform: translateY(-50%) rotate(0deg) !important;
+  width: 52px !important;
+  height: 52px !important;
+  border-radius: 50% !important;
+  border: 0 !important;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  color: #fff !important;
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4) !important;
+  cursor: pointer !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  backdrop-filter: blur(10px) !important;
+}
+
+#social-toggle:hover {
+  transform: translateY(-50%) scale(1.1) !important;
+  box-shadow: 0 12px 35px rgba(102, 126, 234, 0.5) !important;
+  background: linear-gradient(135deg, #764ba2 0%, #667eea 100%) !important;
+}
+
+#social-toggle.open {
+  background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%) !important;
+  color: #fff !important;
+  transform: translateY(-50%) rotate(135deg) scale(1.05) !important;
+  box-shadow: 0 15px 40px rgba(96, 165, 250, 0.6) !important;
+}
+
+.social-items {
+  pointer-events: auto !important;
+  list-style: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  position: absolute !important;
+  right: 26px !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+.social-items li {
+  position: absolute !important;
+  width: 50px !important;
+  height: 50px !important;
+  border-radius: 50% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  color: #fff !important;
+  border: 3px solid rgba(255, 255, 255, 0.9) !important;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2) !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  transform: translate(0, 0) scale(0.3) !important;
+  transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55) !important;
+  backdrop-filter: blur(10px) !important;
+}
+
+.social-items li a {
+  width: 100% !important;
+  height: 100% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 50% !important;
+  color: #fff !important;
+  text-decoration: none !important;
+  line-height: 1 !important;
+  transition: all 0.2s ease !important;
+}
+
+.social-items li svg {
+  font-size: 22px !important;
+  width: 22px !important;
+  height: 22px !important;
+  color: #fff !important;
+  fill: #fff !important;
+  transition: all 0.2s ease !important;
+}
+
+.social-items li:hover {
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.3) !important;
+  border-color: #fff !important;
+}
+
+.social-items li:hover a {
+  transform: scale(1.1) !important;
+}
+
+.social-items li:hover svg {
+  transform: scale(1.1) !important;
+}
+
+/* Show animation */
+.social-items.show li {
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+.social-items.show li:nth-child(1) {
+  transition-delay: 50ms !important;
+  transform: translate(-130px, -110px) scale(1) !important;
+}
+
+.social-items.show li:nth-child(2) {
+  transition-delay: 100ms !important;
+  transform: translate(-170px, -55px) scale(1) !important;
+}
+
+.social-items.show li:nth-child(3) {
+  transition-delay: 150ms !important;
+  transform: translate(-190px, 0px) scale(1) !important;
+}
+
+.social-items.show li:nth-child(4) {
+  transition-delay: 200ms !important;
+  transform: translate(-170px, 55px) scale(1) !important;
+}
+
+.social-items.show li:nth-child(5) {
+  transition-delay: 250ms !important;
+  transform: translate(-130px, 110px) scale(1) !important;
+}
+
+/* Hover effects for opened state */
+.social-items.show li:hover:nth-child(1) {
+  transform: translate(-130px, -110px) scale(1.15) !important;
+}
+
+.social-items.show li:hover:nth-child(2) {
+  transform: translate(-170px, -55px) scale(1.15) !important;
+}
+
+.social-items.show li:hover:nth-child(3) {
+  transform: translate(-190px, 0px) scale(1.15) !important;
+}
+
+.social-items.show li:hover:nth-child(4) {
+  transform: translate(-170px, 55px) scale(1.15) !important;
+}
+
+.social-items.show li:hover:nth-child(5) {
+  transform: translate(-130px, 110px) scale(1.15) !important;
+}
+
+/* ===== Mobile Responsive Adjustments ===== */
+@media (max-width: 768px) {
+  #social-share-root {
+    right: 16px !important;
+    width: 240px !important;
+    height: 240px !important;
+  }
+
+  #social-toggle {
+    width: 46px !important;
+    height: 46px !important;
+  }
+
+  .social-items {
+    right: 23px !important;
+  }
+
+  .social-items li {
+    width: 42px !important;
+    height: 42px !important;
+    border: 2px solid rgba(255, 255, 255, 0.9) !important;
+  }
+
+  .social-items li svg {
+    font-size: 18px !important;
+    width: 18px !important;
+    height: 18px !important;
+  }
+
+  .social-items.show li:nth-child(1) {
+    transform: translate(-100px, -85px) scale(1) !important;
+  }
+
+  .social-items.show li:nth-child(2) {
+    transform: translate(-135px, -42px) scale(1) !important;
+  }
+
+  .social-items.show li:nth-child(3) {
+    transform: translate(-150px, 0px) scale(1) !important;
+  }
+
+  .social-items.show li:nth-child(4) {
+    transform: translate(-135px, 42px) scale(1) !important;
+  }
+
+  .social-items.show li:nth-child(5) {
+    transform: translate(-100px, 85px) scale(1) !important;
+  }
+
+  .social-items.show li:hover:nth-child(1) {
+    transform: translate(-100px, -85px) scale(1.1) !important;
+  }
+
+  .social-items.show li:hover:nth-child(2) {
+    transform: translate(-135px, -42px) scale(1.1) !important;
+  }
+
+  .social-items.show li:hover:nth-child(3) {
+    transform: translate(-150px, 0px) scale(1.1) !important;
+  }
+
+  .social-items.show li:hover:nth-child(4) {
+    transform: translate(-135px, 42px) scale(1.1) !important;
+  }
+
+  .social-items.show li:hover:nth-child(5) {
+    transform: translate(-100px, 85px) scale(1.1) !important;
+  }
+}
+
+@media (max-width: 480px) {
+  #social-share-root {
+    right: 12px !important;
+    width: 220px !important;
+    height: 220px !important;
+  }
+
+  #social-toggle {
+    width: 44px !important;
+    height: 44px !important;
+  }
+
+  .social-items {
+    right: 22px !important;
+  }
+
+  .social-items li {
+    width: 38px !important;
+    height: 38px !important;
+    border: 2px solid rgba(255, 255, 255, 0.9) !important;
+  }
+
+  .social-items li svg {
+    font-size: 16px !important;
+    width: 16px !important;
+    height: 16px !important;
+  }
+
+  .social-items.show li:nth-child(1) {
+    transform: translate(-90px, -75px) scale(1) !important;
+  }
+
+  .social-items.show li:nth-child(2) {
+    transform: translate(-120px, -38px) scale(1) !important;
+  }
+
+  .social-items.show li:nth-child(3) {
+    transform: translate(-135px, 0px) scale(1) !important;
+  }
+
+  .social-items.show li:nth-child(4) {
+    transform: translate(-120px, 38px) scale(1) !important;
+  }
+
+  .social-items.show li:nth-child(5) {
+    transform: translate(-90px, 75px) scale(1) !important;
+  }
+
+  .social-items.show li:hover:nth-child(1) {
+    transform: translate(-90px, -75px) scale(1.1) !important;
+  }
+
+  .social-items.show li:hover:nth-child(2) {
+    transform: translate(-120px, -38px) scale(1.1) !important;
+  }
+
+  .social-items.show li:hover:nth-child(3) {
+    transform: translate(-135px, 0px) scale(1.1) !important;
+  }
+
+  .social-items.show li:hover:nth-child(4) {
+    transform: translate(-120px, 38px) scale(1.1) !important;
+  }
+
+  .social-items.show li:hover:nth-child(5) {
+    transform: translate(-90px, 75px) scale(1.1) !important;
+  }
+}
+/* ===== AGE Floating Social Share (unique names to avoid theme conflicts) ===== */
+.age-social-root{
+  position: fixed;
+  right: 22px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 99999;
+}
+
+.age-social-toggle{
+  width: 52px;
+  height: 52px;
+  border-radius: 999px;
+  border: 0;
+  background: #111827;
+  color: #fff;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  box-shadow: 0 14px 35px rgba(0,0,0,.22);
+}
+
+.age-social-toggle svg{
+  transition: transform .22s cubic-bezier(.2,1,.3,1);
+}
+
+.age-social-toggle.is-open svg{
+  transform: rotate(18deg) scale(1.05);
+}
+
+.age-social-items{
+  list-style: none;
+  margin: 0;
+  padding: 0;
+
+  position: absolute;
+  right: 0;
+  top: 50%;
+
+  transform: translate(calc(-100% - 14px), -50%);
+
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  opacity: 0;
+  pointer-events: none;
+}
+
+.age-social-items.show{
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* base state hidden */
+.age-social-items .age-social-item{
+  width: 46px;
+  height: 46px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 12px 28px rgba(0,0,0,.18);
+
+  opacity: 0;
+  transform: translateX(18px) scale(.2);
+  will-change: transform, opacity;
+}
+
+/* when open -> animate pop in */
+.age-social-items.show .age-social-item{
+  animation: ageSocialPopIn .34s cubic-bezier(.16,1,.3,1) both !important;
+  animation-delay: var(--d, 0ms);
+}
+
+.age-social-item a{
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  font-size: 18px;
+  text-decoration: none;
+  transition: transform .15s ease;
+}
+
+.age-social-items.show .age-social-item:hover{
+  transform: translateX(0) scale(1.06);
+}
+
+.age-social-items.show .age-social-item:hover a{
+  transform: scale(1.06);
+}
+
+@keyframes ageSocialPopIn{
+  0%{
+    opacity: 0;
+    transform: translateX(18px) scale(.2);
+  }
+  65%{
+    opacity: 1;
+    transform: translateX(-4px) scale(1.12);
+  }
+  100%{
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+@media (max-width: 768px){
+  .age-social-root{ right: 14px; }
+  .age-social-toggle{ width: 48px; height: 48px; }
+  .age-social-items .age-social-item{ width: 44px; height: 44px; }
+}
+
+@media (prefers-reduced-motion: reduce){
+  .age-social-items.show .age-social-item{
+    animation: none !important;
+    opacity: 1;
+    transform: none;
+  }
+}

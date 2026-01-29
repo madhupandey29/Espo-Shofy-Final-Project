@@ -428,7 +428,6 @@ const OrderArea = ({ orderId, userId: userIdProp }) => {
       window.open(url, '_blank', 'noopener,noreferrer');
       setTimeout(() => URL.revokeObjectURL(url), 30000);
     } catch (e) {
-      console.error('PDF generation failed, falling back to browser print.', e);
       window.print();
     }
   }, [order, fullName]);

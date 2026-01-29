@@ -86,63 +86,45 @@ const HeaderTwo = ({ style_2 = false }) => {
 
   const [isOffCanvasOpen, setIsCanvasOpen] = useState(false);
 
-  // ===== SIMPLIFIED SEARCH (No dropdown suggestions) =====
+  // ===== SEARCH =====
   const [searchQuery, setSearchQuery] = useState('');
-  const [mobileSearchOpen, setMobileSearchOpen] = useState(false); // New state for mobile search
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
 
-  const searchWrapRef = useRef(null);
+  const desktopSearchWrapRef = useRef(null);
+  const mobileSearchWrapRef = useRef(null);
   const searchInputRef = useRef(null);
   const searchParams = useSearchParams();
 
-  // Sync search input with URL parameters globally
+  // Sync search input with URL parameters
   useEffect(() => {
     const urlQuery = searchParams.get('q') || searchParams.get('searchText') || '';
-    // Only update if the URL query is different from current search query
-    // This prevents the double-clear issue
-    if (urlQuery !== searchQuery) {
-      setSearchQuery(urlQuery);
-    }
-  }, [pathname, searchParams]); // Removed searchQuery dependency to prevent race condition
+    if (urlQuery !== searchQuery) setSearchQuery(urlQuery);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pathname, searchParams]);
 
   const clearSearch = () => {
-    // Clear the search query immediately
     setSearchQuery('');
     setMobileSearchOpen(false);
-    
-    // Always redirect to fabric page when clearing search
     router.push('/fabric');
   };
 
   const goToPage = (href) => {
-    try { window.scrollTo?.(0, 0); } catch (err) {}
+    try { window.scrollTo?.(0, 0); } catch {}
     router.push(href);
   };
 
   const onSearchSubmit = (e) => {
     e.preventDefault();
     const q = searchQuery.trim();
-
-    if (!q) {
-      return;
-    }
-
-    // Don't close mobile search - keep it open so user can see how to clear
-    // setMobileSearchOpen(false); // Removed this line
-
-    // Go to fabric with search query
-    const searchUrl = `/fabric?q=${encodeURIComponent(q)}`;
-    goToPage(searchUrl);
+    if (!q) return;
+    goToPage(`/fabric?q=${encodeURIComponent(q)}`);
   };
 
   const onSearchKeyDown = (e) => {
-    // Only handle Enter key for form submission
-    // Let all other keys (including Backspace) work normally
     if (e.key === 'Enter') {
       e.preventDefault();
       onSearchSubmit(e);
-      return;
     }
-    // Don't prevent default for other keys - let them work normally
   };
 
   // ===== Session & user dropdown =====
@@ -244,7 +226,6 @@ const HeaderTwo = ({ style_2 = false }) => {
   const currentUrl = useMemo(() => {
     if (typeof window === 'undefined') return '/';
     const url = new URL(window.location.href);
-    // Only use pathname to avoid encoding loops with existing redirect parameters
     return url.pathname;
   }, []);
 
@@ -295,18 +276,15 @@ const HeaderTwo = ({ style_2 = false }) => {
 
                   {/* Right side */}
                   <div className="col-6 col-sm-8 col-md-8 col-lg-9 col-xl-5">
-                    <div className="tp-header-bottom-right d-flex align-items-center justify-content-end">
+                    <div className="tp-header-bottom-right d-flex align-items-center justify-content-end header-right">
 
                       {/* ======= DESKTOP SEARCH ======= */}
-                      <div className="tp-header-search-2 d-none d-md-block me-3 search-wrap" ref={searchWrapRef}>
+                      <div className="tp-header-search-2 d-none d-md-block me-3 search-wrap" ref={desktopSearchWrapRef}>
                         <form onSubmit={onSearchSubmit} className="search-form">
                           <input
                             ref={searchInputRef}
                             value={searchQuery}
-                            onChange={(e) => {
-                              const value = e.target.value;
-                              setSearchQuery(value);
-                            }}
+                            onChange={(e) => setSearchQuery(e.target.value)}
                             onKeyDown={onSearchKeyDown}
                             type="text"
                             placeholder="Search for Products..."
@@ -346,15 +324,12 @@ const HeaderTwo = ({ style_2 = false }) => {
                       </div>
 
                       {/* ======= MOBILE SEARCH BAR (EXPANDABLE) ======= */}
-                      <div className={`tp-header-search-mobile d-md-none ${mobileSearchOpen ? 'expanded' : ''}`} ref={searchWrapRef}>
+                      <div className={`tp-header-search-mobile d-md-none ${mobileSearchOpen ? 'expanded' : ''}`} ref={mobileSearchWrapRef}>
                         {mobileSearchOpen && (
                           <form onSubmit={onSearchSubmit} className="mobile-search-form">
                             <input
                               value={searchQuery}
-                              onChange={(e) => {
-                                const value = e.target.value;
-                                setSearchQuery(value);
-                              }}
+                              onChange={(e) => setSearchQuery(e.target.value)}
                               onKeyDown={onSearchKeyDown}
                               type="text"
                               placeholder="Search products..."
@@ -371,27 +346,24 @@ const HeaderTwo = ({ style_2 = false }) => {
                               type="button"
                               className="mobile-search-close"
                               onClick={() => {
-                                // Clear search and update URL
                                 clearSearch();
                                 setMobileSearchOpen(false);
                               }}
                               aria-label="Close search"
                             >
-                              Clear Search
+                              Clear
                             </button>
                           </form>
                         )}
                       </div>
 
                       {/* Actions */}
-                      <div className="tp-header-action d-flex align-items-center">
-                        
+                      <div className="tp-header-action d-flex align-items-center header-actions">
+
                         {/* ======= MOBILE SEARCH ICON ======= */}
                         <div className="tp-header-action-item d-md-none me-2">
                           <button
-                            onClick={() => {
-                              setMobileSearchOpen(!mobileSearchOpen);
-                            }}
+                            onClick={() => setMobileSearchOpen(!mobileSearchOpen)}
                             className="tp-header-action-btn"
                             aria-label="Toggle search"
                             type="button"
@@ -399,6 +371,7 @@ const HeaderTwo = ({ style_2 = false }) => {
                             <Search />
                           </button>
                         </div>
+
                         {/* User / Auth */}
                         <div className="tp-header-action-item me-2 position-relative" style={{ overflow: 'visible' }}>
                           {hasSession ? (
@@ -418,12 +391,12 @@ const HeaderTwo = ({ style_2 = false }) => {
                                     <Image
                                       src={userImage}
                                       alt="Profile"
-                                      width={32}
-                                      height={32}
+                                      width={36}
+                                      height={36}
                                       quality={85}
                                       style={{
-                                        width: '32px',
-                                        height: '32px',
+                                        width: '36px',
+                                        height: '36px',
                                         objectFit: 'cover',
                                         borderRadius: '50%',
                                         border: '1px solid rgba(0,0,0,0.1)',
@@ -470,7 +443,8 @@ const HeaderTwo = ({ style_2 = false }) => {
                         {/* Wishlist */}
                         <div className="tp-header-action-item d-none d-lg-block me-2">
                           <Link href="/wishlist" className="tp-header-action-btn" aria-label="Wishlist" prefetch>
-                            <FaHeart /><span className="tp-header-action-badge">{wishlistCount}</span>
+                            <FaHeart />
+                            <span className="tp-header-action-badge">{wishlistCount}</span>
                           </Link>
                         </div>
 
@@ -506,20 +480,119 @@ const HeaderTwo = ({ style_2 = false }) => {
       <OffCanvas isOffCanvasOpen={isOffCanvasOpen} setIsCanvasOpen={setIsCanvasOpen} categoryType="fashion" />
 
       <style jsx>{`
-        .search-wrap { 
-          position: relative; 
+        /* ---------------------------
+           Header layout responsiveness
+        ---------------------------- */
+        #header-sticky{
+          z-index: 1020; /* above page content, below typical modal */
+        }
+
+        .header-right{
+          gap: 10px;
+          flex-wrap: nowrap;
+        }
+
+        .header-actions{
+          gap: 6px;
+          flex: 0 0 auto;
+        }
+
+        /* If your modal library adds body.modal-open (Bootstrap),
+           keep header under modal/backdrop and disable clicks behind modal */
+        :global(body.modal-open) #header-sticky{
+          z-index: 1 !important;
+          pointer-events: none;
+        }
+        :global(body.modal-open) .tp-header-search-mobile{
+          z-index: 1 !important;
+          pointer-events: none;
+        }
+        :global(body.modal-open) .user-menu-dropdown{
+          z-index: 1 !important;
+          pointer-events: none;
+        }
+
+        /* ---------------------------
+           Action icon sizing (desktop)
+        ---------------------------- */
+        .tp-header-action-btn{
+          position: relative; /* IMPORTANT for badge positioning */
+          width: 44px;
+          height: 44px;
+          border-radius: 12px;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 20px; /* makes FaUser/FaHeart bigger */
+          line-height: 1;
+        }
+
+        /* keep template hover styles, only improve feel */
+        .tp-header-action-btn:active{ transform: translateY(1px); }
+
+        .tp-header-action-btn :global(svg){
+          width: 20px;
+          height: 20px;
+        }
+
+        @media (max-width: 575px){
+          .tp-header-action-btn{
+            width: 40px;
+            height: 40px;
+            font-size: 18px;
+            border-radius: 10px;
+          }
+          .tp-header-action-btn :global(svg){
+            width: 18px;
+            height: 18px;
+          }
+        }
+
+        /* Badge fix (0 / counts) */
+        .tp-header-action-badge{
+          position: absolute;
+          top: -6px;
+          right: -6px;
+          min-width: 18px;
+          height: 18px;
+          padding: 0 5px;
+          border-radius: 999px;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 11px;
+          font-weight: 700;
+          line-height: 1;
+          background: #ef4444;
+          color: #fff;
+          pointer-events: none;
+        }
+        @media (max-width: 575px){
+          .tp-header-action-badge{
+            top: -5px;
+            right: -5px;
+            min-width: 16px;
+            height: 16px;
+            font-size: 10px;
+          }
+        }
+
+        /* ---------------------------
+           Desktop search (responsive)
+        ---------------------------- */
+        .search-wrap{
+          position: relative;
           z-index: 10;
+          flex: 1 1 auto;
+          min-width: 220px;
         }
 
         .search-form{
           position: relative;
-          width: 480px;
-          max-width: 52vw;
+          width: clamp(240px, 36vw, 560px);
+          max-width: 100%;
           z-index: 10;
         }
-        @media (max-width: 1199px){ .search-form{ width: 440px; } }
-        @media (max-width: 991px){ .search-form{ width: 360px; max-width: 56vw; } }
-        @media (max-width: 767px){ .search-form{ width: 320px; max-width: 60vw; } }
 
         .search-input{
           width: 100%;
@@ -529,20 +602,14 @@ const HeaderTwo = ({ style_2 = false }) => {
           background: #fff;
           color: #0f172a;
           font-size: 14px;
-          padding: 0 120px 0 14px;
+          padding: 0 120px 0 14px; /* space for clear + search */
           outline: none;
-          pointer-events: auto;
-          user-select: text;
-          -webkit-user-select: text;
-          -moz-user-select: text;
-          -ms-user-select: text;
           cursor: text;
-          z-index: 1;
           position: relative;
         }
         .search-input:focus{
           border-color: #3b82f6;
-          box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+          box-shadow: 0 0 0 3px rgba(59,130,246,.12);
         }
         .search-input::placeholder{ color: #6b7280; }
 
@@ -574,66 +641,73 @@ const HeaderTwo = ({ style_2 = false }) => {
           background: #f8fafc;
           cursor: pointer;
           font-size: 12px;
-          font-weight: 500;
+          font-weight: 600;
           line-height: 1;
           color: #6b7280;
           display: inline-flex;
           align-items: center;
           justify-content: center;
-          border-radius: 6px;
+          border-radius: 8px;
           z-index: 2;
           white-space: nowrap;
-          transition: all 0.2s ease;
+          transition: all .2s ease;
         }
-        .search-clear:hover{ 
-          color: #111827; 
-          background: #e5e7eb; 
+        .search-clear:hover{
+          color: #111827;
+          background: #e5e7eb;
           border-color: #d1d5db;
         }
 
-        /* Mobile Search Styles */
-        .tp-header-search-mobile {
+        /* On smaller screens, keep search usable */
+        @media (max-width: 991px){
+          .search-form{ width: clamp(220px, 44vw, 520px); }
+        }
+        @media (max-width: 767px){
+          .search-form{ width: 100%; }
+        }
+
+        /* ---------------------------
+           Mobile search bar (z-index fixed)
+        ---------------------------- */
+        .tp-header-search-mobile{
           position: fixed;
           top: 0;
           left: 0;
           right: 0;
           background: #fff;
-          z-index: 9999;
+          z-index: 1030; /* BELOW typical modal (1050+) */
           transform: translateY(-100%);
-          transition: transform 0.3s ease;
-          box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+          transition: transform .3s ease;
+          box-shadow: 0 2px 10px rgba(0,0,0,.1);
         }
-
-        .tp-header-search-mobile.expanded {
+        .tp-header-search-mobile.expanded{
           transform: translateY(0);
         }
 
-        .mobile-search-form {
+        .mobile-search-form{
           display: flex;
           align-items: center;
-          padding: 15px 20px;
-          gap: 15px;
-          position: relative;
+          padding: 15px 16px;
+          gap: 10px;
         }
 
-        .mobile-search-input {
+        .mobile-search-input{
           flex: 1;
           height: 50px;
           border: 2px solid #e5e7eb;
           border-radius: 25px;
-          padding: 0 20px;
+          padding: 0 18px;
           font-size: 16px;
           color: #111827;
           background: #fff;
           outline: none;
         }
-
-        .mobile-search-input:focus {
+        .mobile-search-input:focus{
           border-color: var(--tp-theme-primary);
         }
 
-        .mobile-search-close {
-          min-width: 80px;
+        .mobile-search-close{
+          min-width: 72px;
           height: 50px;
           border: 2px solid #e5e7eb;
           background: #f8fafc;
@@ -644,50 +718,74 @@ const HeaderTwo = ({ style_2 = false }) => {
           justify-content: center;
           cursor: pointer;
           font-size: 14px;
-          font-weight: 500;
+          font-weight: 600;
           flex-shrink: 0;
-          transition: all 0.2s ease;
+          transition: all .2s ease;
         }
-        .mobile-search-close:hover {
+        .mobile-search-close:hover{
           background: #e5e7eb;
           border-color: #d1d5db;
           color: #111827;
         }
 
-        /* Dropdown (account) */
+        /* ---------------------------
+           Dropdown (account) - z-index fixed
+        ---------------------------- */
         .user-menu-dropdown{
-          position:absolute;
-          right:0;
-          top:calc(100% + 12px);
-          z-index:10000;
+          position: absolute;
+          right: 0;
+          top: calc(100% + 12px);
+          z-index: 1035; /* below typical modal, above page */
           min-width: 230px;
-          background:#fff;
-          border-radius:12px;
+          background: #fff;
+          border-radius: 12px;
           box-shadow: 0 18px 40px rgba(0,0,0,.14), 0 2px 6px rgba(0,0,0,.06);
-          overflow:hidden;
-          animation:menuPop .14s ease-out both;
+          overflow: hidden;
+          animation: menuPop .14s ease-out both;
         }
         .user-menu-dropdown::before{
           content:"";
           position:absolute;
           right:18px;
           top:-7px;
-          width:14px;height:14px;
+          width:14px;
+          height:14px;
           background:#fff;
           transform:rotate(45deg);
           box-shadow:-2px -2px 6px rgba(0,0,0,.05);
         }
-        .user-menu-inner{ display:flex; flex-direction:column; gap:6px; padding:8px; }
+        .user-menu-inner{
+          display:flex;
+          flex-direction:column;
+          gap:6px;
+          padding:8px;
+        }
         .user-item{
-          display:block !important; width:100%; padding:10px 14px; border-radius:8px;
-          font-size:14px; line-height:1.25; color:#111827; background:transparent; border:0; text-align:left;
+          display:block !important;
+          width:100%;
+          padding:10px 14px;
+          border-radius:8px;
+          font-size:14px;
+          line-height:1.25;
+          color:#111827;
+          background:transparent;
+          border:0;
+          text-align:left;
           cursor:pointer;
         }
         .user-item:hover{ background:#f3f4f6; }
         .user-item.danger{ color:#b91c1c; }
         .user-item.danger:hover{ background:#fee2e2; }
-        .user-divider{ height:1px; background:#e5e7eb; margin:2px 6px; border-radius:1px; }
-        @keyframes menuPop{ from{ transform:translateY(-4px); opacity:0; } to{ transform:translateY(0); opacity:1; } }
+        .user-divider{
+          height:1px;
+          background:#e5e7eb;
+          margin:2px 6px;
+          border-radius:1px;
+        }
+        @keyframes menuPop{
+          from{ transform:translateY(-4px); opacity:0; }
+          to{ transform:translateY(0); opacity:1; }
+        }
       `}</style>
     </>
   );

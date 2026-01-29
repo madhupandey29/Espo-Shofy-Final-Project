@@ -77,8 +77,7 @@ const processImageUrl = (url) => {
 const RelatedProducts = ({ collectionId }) => {
   const shouldSkip = !collectionId || String(collectionId).trim() === '';
 
-  // Add debugging for Majestica issue
-  if (collectionId) {
+    if (collectionId) {
     const isNokia = collectionId === '690a0e676132664ee';
     const isMajestica = collectionId === '695f9b0b956eb958b';
   }
@@ -92,8 +91,7 @@ const RelatedProducts = ({ collectionId }) => {
     isSuccess: relSuccess,
   } = useGetProductsByCollectionQuery(shouldSkip ? '' : collectionId, { skip: shouldSkip });
 
-  // Add debugging for the query result
-  if (relData && collectionId) {
+    if (relData && collectionId) {
     // Query result available
   }
 

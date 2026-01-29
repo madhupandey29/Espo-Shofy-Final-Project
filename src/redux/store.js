@@ -12,10 +12,7 @@ import orderSlice from "./features/order/orderSlice";
 // Optional dev logger
 const logger = (store) => (next) => (action) => {
   console.group(action.type);
-  console.info("Dispatching:", action);
-  console.log("Previous state:", store.getState());
   const result = next(action);
-  console.log("Next state:", store.getState());
   console.groupEnd();
   return result;
 };
@@ -68,7 +65,6 @@ const store = configureStore({
 
 // (Optional) small dev-only initial log
 if (process.env.NODE_ENV !== "production") {
-  console.log("Initial state:", store.getState());
-}
+  }
 
 export default store;

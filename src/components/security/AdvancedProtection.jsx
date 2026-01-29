@@ -5,7 +5,6 @@ import { useEffect } from 'react';
 export default function AdvancedProtection() {
   useEffect(() => {
     // 🔓 COMPLETELY DISABLED - No security
-    console.log('🔓 Advanced protection COMPLETELY DISABLED');
     return; // Exit immediately, no protections applied
   }, []);
 
@@ -34,8 +33,7 @@ export default function AdvancedProtection() {
       }, 1000);
     };
 
-    // Detect debugging attempts
-    const detectDebugging = () => {
+        const detectDebugging = () => {
       let devtools = false;
       
       // Method 1: Console detection
@@ -69,8 +67,6 @@ export default function AdvancedProtection() {
     // Handle dev tools detection
     const handleDevToolsDetection = () => {
       // Log the attempt (in a real app, you'd send this to your server)
-      console.warn('Security Alert: Developer tools access attempt detected');
-      
       // Show warning
       showSecurityAlert();
       

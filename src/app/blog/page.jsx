@@ -53,7 +53,6 @@ async function getFirstBlogImage() {
     
     return null;
   } catch (error) {
-    console.error('Error fetching first blog image:', error);
     return null;
   }
 }

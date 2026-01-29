@@ -71,7 +71,6 @@ const RegisterArea: React.FC<Props> = ({ onClose, onSwitchToLogin }) => {
   </div>
 </div>
 
-
           {/* Right form (scrolls on small screens) */}
           <div className={styles.rightPanel}>
             <div className={styles.header}>

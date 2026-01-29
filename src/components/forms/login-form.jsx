@@ -38,8 +38,7 @@ export default function LoginForm() {
         return decoded;
       }
     } catch (e) {
-      console.warn('Invalid redirect parameter:', redirectParam);
-    }
+      }
     
     return '/';
   };

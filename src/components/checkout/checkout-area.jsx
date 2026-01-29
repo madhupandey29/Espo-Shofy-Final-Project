@@ -27,7 +27,7 @@ const getLocalUserId = () => {
       const id = localStorage.getItem('userId');
       return id && id.trim() ? id.trim() : null;
     }
-  } catch(err) {console.log("err:",err)}
+  } catch(err) {}
   return null;
 };
 
@@ -52,11 +52,9 @@ const clearCartOnServer = async (uid) => {
     }
     if (!res.ok) {
       const t = await res.text().catch(() => '');
-      console.warn('Clear cart failed:', res.status, t);
-    }
+      }
   } catch (err) {
-    console.warn('Clear cart request error:', err);
-  }
+    }
 };
 
 const CheckoutArea = () => {
@@ -161,7 +159,6 @@ const CheckoutArea = () => {
           organisation: user.organisation || 'Not provided'
         }));
       } catch (e) {
-        console.error('Failed to prefill profile:', e);
         toast.error('Could not load profile details.');
       }
     })();
@@ -292,7 +289,6 @@ const CheckoutArea = () => {
           router.push(`/order-confirmation?userId=${userId}`);
         }
       } catch (err) {
-        console.error('Order submission failed:', err);
         toast.error('Failed to place order. Please try again.');
       }
     },

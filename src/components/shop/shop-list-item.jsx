@@ -42,8 +42,7 @@ const openLoginModal = () => {
   try {
     window.dispatchEvent(new CustomEvent("auth:open", { detail: { mode: "login" } }));
   } catch (err) {
-    console.log("auth:open event error", err);
-  }
+    }
 };
 
 const ShopListItem = ({ product }) => {

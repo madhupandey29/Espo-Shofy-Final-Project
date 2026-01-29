@@ -207,7 +207,6 @@ const Footer = () => {
       setNewsletterEmail("");
       toast.success("Subscribed! 🎉 We’ll keep you updated.");
     } catch (err) {
-      console.error("Subscribe error:", err);
       const msg =
         err?.data?.message || err?.error || "Could not subscribe right now. Please try again.";
       toast.error(msg);

@@ -33,23 +33,18 @@ export default function FashionBanner() {
           controls={false}
           preload="auto"
           onLoadedData={() => {
-            console.log('Video loaded successfully');
             setVideoLoaded(true);
           }}
           onCanPlay={() => {
-            console.log('Video can play');
             setVideoLoaded(true);
           }}
           onError={(e) => {
-            console.error('Video loading error:', e);
-            console.error('Video error details:', e.currentTarget.error);
             // hide video, fallback will show
             e.currentTarget.style.display = 'none';
           }}
         >
           <source src={HERO_VIDEO} type="video/mp4" />
         </video>
-
 
         <div className="bg-overlay primary-overlay" />
         <div className="bg-overlay accent-overlay" />
@@ -136,7 +131,7 @@ export default function FashionBanner() {
           inset: 0;
           width: 100%;
           height: 100%;
-          object-fit: cover; /* IMPORTANT: cover for mobile */
+          object-fit: none; /* IMPORTANT: cover for mobile */
           object-position: center;
           opacity: 0;
           transition: opacity 0.9s ease;

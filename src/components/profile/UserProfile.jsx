@@ -308,8 +308,7 @@ export default function UserProfile() {
         // also refresh cookie so the header/avatar elsewhere stays in sync
         writeUserInfoCookiePreserving(nu);
       } catch (error) {
-        console.error('Error fetching user data:', error);
-      }
+        }
     };
     fetchUserData();
   }, [userId]);
@@ -554,7 +553,6 @@ export default function UserProfile() {
         updatedResp = await updateProfile({ id: userId, ...changed }).unwrap();
       }
     } catch (error) {
-      console.error('Update error:', error);
       notifyError(error.message || 'Failed to update profile');
       return;
     }

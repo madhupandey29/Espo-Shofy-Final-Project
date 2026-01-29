@@ -17,14 +17,7 @@ export const useCartDebug = () => {
   });
 
   useEffect(() => {
-    console.log('=== CART DEBUG INFO ===');
-    console.log('User ID:', userId);
-    console.log('API Loading:', isLoading);
-    console.log('API Error:', error);
-    console.log('API Data:', cartData);
-    console.log('Redux Cart Products:', reduxCartProducts);
-    console.log('========================');
-  }, [userId, isLoading, error, cartData, reduxCartProducts]);
+    }, [userId, isLoading, error, cartData, reduxCartProducts]);
 
   return {
     userId,
