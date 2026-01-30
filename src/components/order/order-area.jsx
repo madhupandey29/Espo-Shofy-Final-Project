@@ -3,15 +3,6 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import dayjs from 'dayjs';
 import { FaPrint } from 'react-icons/fa';
-import {
-  pdf as pdfRenderer,
-  Document as PDFDocument,
-  Page as PDFPage,
-  Text as PDFText,
-  View as PDFView,
-  StyleSheet as PDFStyleSheet,
-  Image as PDFImage,
-} from '@react-pdf/renderer';
 
 import ErrorMsg from '@/components/common/error-msg';
 import PrdDetailsLoader from '@/components/loader/prd-details-loader';
@@ -408,30 +399,10 @@ const OrderArea = ({ orderId, userId: userIdProp }) => {
     price: (order?.price || [])[i] ?? 0,
   }));
 
-  /* ----------------------- PRINT -> PDF (A4, header/footer) ----------------------- */
-  const handlePrint = useCallback(async () => {
-    try {
-      const instance = pdfRenderer(
-        <InvoicePDF order={order} fullName={fullName} logoSrc={RESOLVED_LOGO_URL} />
-      );
-      const blob = await instance.toBlob();
-      const url = URL.createObjectURL(blob);
-
-      // download
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `Invoice_${(order && order._id) || dayjs().format('YYYYMMDD_HHmmss')}.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-
-      // preview tab (optional)
-      window.open(url, '_blank', 'noopener,noreferrer');
-      setTimeout(() => URL.revokeObjectURL(url), 30000);
-    } catch (e) {
-      window.print();
-    }
-  }, [order, fullName]);
+  /* ----------------------- Simple Print Function ----------------------- */
+  const handlePrint = useCallback(() => {
+    window.print();
+  }, []);
 
   /* ------------------------------ UI states ------------------------------ */
   if (!userId) return <ErrorMsg msg="No user detected. Please sign in first." />;

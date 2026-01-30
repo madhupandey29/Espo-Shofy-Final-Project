@@ -8,15 +8,6 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import * as Yup from 'yup';
 import { FaEdit, FaTrash } from 'react-icons/fa';
 import dayjs from 'dayjs';
-import {
-  pdf as pdfRenderer,
-  Document as PDFDocument,
-  Page as PDFPage,
-  Text as PDFText,
-  View as PDFView,
-  StyleSheet as PDFStyleSheet,
-  Image as PDFImage,
-} from '@react-pdf/renderer';
 
 import {
   useGetSessionInfoQuery,
@@ -141,33 +132,6 @@ const redirectToLogin = () => {
     window.location.href = '/login';
   }
 };
-
-/* ---------------- PDF styles (react-pdf) ---------------- */
-const pdfStyles = PDFStyleSheet.create({
-  page: { paddingTop: 28, paddingBottom: 28, paddingHorizontal: 36, fontSize: 10, color: '#1F2A44' },
-  tiny: { fontSize: 8, color: '#6B7280' },
-  h1: { fontSize: 14, textAlign: 'center', marginBottom: 12, fontWeight: 700 },
-  bar: { height: 2, backgroundColor: '#D6A74B', marginVertical: 8 },
-  sectionCard: { border: 1, borderColor: '#E5E7EB', borderRadius: 6, padding: 10 },
-  row: { flexDirection: 'row', gap: 10 },
-  col: { flex: 1 },
-  label: { fontSize: 8, color: '#6B7280', marginBottom: 2 },
-  value: { fontSize: 10, color: '#111827' },
-  badgeTitle: { textAlign: 'center', fontSize: 12, fontWeight: 700, marginVertical: 8 },
-  metaRow: { flexDirection: 'row', gap: 10, marginTop: 10 },
-  metaItem: { flex: 1, border: 1, borderColor: '#E5E7EB', borderRadius: 6, padding: 8 },
-  table: { marginTop: 12, borderRadius: 6, border: 1, borderColor: '#E5E7EB' },
-  thead: { backgroundColor: '#F3F4F6', flexDirection: 'row' },
-  th: { flex: 1, padding: 8, fontWeight: 700, fontSize: 9 },
-  tdRow: { flexDirection: 'row', borderTop: 1, borderColor: '#E5E7EB' },
-  td: { flex: 1, padding: 8, fontSize: 9 },
-  totalsBox: { marginTop: 12, width: 240, alignSelf: 'flex-end', border: 1, borderColor: '#E5E7EB', borderRadius: 6 },
-  totalsRow: { flexDirection: 'row', borderTop: 1, borderColor: '#E5E7EB' },
-  totalsCellL: { flex: 1, padding: 6, fontSize: 9 },
-  totalsCellR: { width: 80, padding: 6, fontSize: 9, textAlign: 'right' },
-  totalsHead: { backgroundColor: '#EEF2FF', fontWeight: 700 },
-  footer: { marginTop: 22, textAlign: 'center', fontSize: 8, color: '#6B7280' },
-});
 
 /* =============================== Component =============================== */
 export default function UserProfile() {
@@ -632,155 +596,6 @@ export default function UserProfile() {
     setValue('city', '', { shouldDirty: true });
   };
 
-  /* ---------------- PDF generator (your implementation kept) ---------------- */
-  const generateInvoicePdf = async (order) => {
-    const LOGO_URL = '/assets/img/logo/my_logo.png';
-    const fmtINR = (n) => {
-      const val = Number(n || 0);
-      return `₹${val.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-    };
-    const sum = (xs) => xs.reduce((a, b) => a + (Number(b) || 0), 0);
-
-    const lines = (order?.productId || []).map((p, idx) => {
-      const qty = Array.isArray(order.quantity) ? (Number(order.quantity[idx]) || 0) : 0;
-      const price = Array.isArray(order.price) ? (Number(order.price[idx]) || 0) : 0;
-      const amount = qty * price;
-      return {
-        name: p?.name || '—',
-        qty,
-        price,
-        amount,
-        _id: p?._id || String(idx),
-      };
-    });
-
-    const calcSubtotal = sum(lines.map(l => l.amount));
-    const shipping = Number(order?.shippingCost || 0);
-    const discount = Number(order?.discount || 0);
-    const grandTotal = calcSubtotal + shipping - discount;
-
-    const company = {
-      name: 'AMRITA GLOBAL ENTERPRISES',
-      tagline: 'Textiles & Fabrics • B2B',
-      addr1: '4th Floor, Safal Prelude, 404 Corporate Road, Near YMCA Club,',
-      addr2: 'Prahlad Nagar, Ahmedabad, Gujarat, India - 380015',
-      email: 'info@amritafashions.com',
-      phone: '+91 98240 03484'
-    };
-
-    const billTo = {
-      name: `${order?.firstName || ''} ${order?.lastName || ''}`.trim() || order?.userId?.name || '',
-      phone: order?.phone || order?.userId?.phone || '',
-      email: order?.email || order?.userId?.email || '',
-      address: order?.streetAddress || order?.userId?.address || '',
-      city: order?.city || order?.userId?.city || '',
-      postcode: order?.postcode || order?.userId?.pincode || '',
-      country: order?.country || order?.userId?.country || ''
-    };
-
-    const created = dayjs(order?.createdAt).format('MMMM DD, YYYY');
-    const orderNo = String(order?._id || '');
-
-    const BLUE = '#2C4C97';
-    const GOLD = '#D6A74B';
-    const TEXT = '#1F2A44';
-    const MUTED = '#6B7280';
-    const BORDER = '#E5E7EB';
-
-    const HEADER_H = 70;
-    const FOOTER_H = 70;
-
-    const S = PDFStyleSheet.create({
-      page: { paddingTop: HEADER_H + 12, paddingBottom: FOOTER_H + 8, paddingHorizontal: 36, fontSize: 10, color: TEXT },
-      headerWrap: { position: 'absolute', left: 0, right: 0, top: 0, height: HEADER_H, paddingHorizontal: 36 },
-      headerCanvas: { position: 'absolute', left: 0, right: 0, top: 8, height: 2 },
-      headerGoldLine: { position: 'absolute', left: 0, right: 0, top: 8, height: 2, backgroundColor: GOLD },
-      headerRow: { position: 'absolute', top: 16, left: 36, right: 36, height: 44, flexDirection: 'row', alignItems: 'center' },
-      logoBox: { width: 140, height: 44, borderRadius: 6, overflow: 'hidden', backgroundColor: '#ffffff', justifyContent: 'center', alignItems: 'center' },
-      logoContain: { width: 'auto', height: 'auto', maxWidth: 140, maxHeight: 44, objectFit: 'contain' },
-      brandTextWrap: { marginLeft: 12 },
-      headerBrand: { fontSize: 16, fontWeight: 700, color: BLUE },
-      headerTag: { fontSize: 9, color: MUTED, marginTop: 2 },
-      title: { textAlign: 'center', fontSize: 20, fontWeight: 700, color: BLUE, marginBottom: 10 },
-      row: { flexDirection: 'row', gap: 10 },
-      col: { flex: 1 },
-      card: {
-        backgroundColor: '#F8FAFC',
-        borderWidth: 1, borderColor: BORDER, borderStyle: 'solid',
-        borderRadius: 8, padding: 10
-      },
-      label: { fontSize: 8, color: MUTED, marginBottom: 2, letterSpacing: 0.2 },
-      value: { fontSize: 10, color: TEXT, lineHeight: 1.25 },
-      metaItem: {
-        flex: 1, backgroundColor: '#F8FAFC',
-        borderWidth: 1, borderColor: BORDER, borderStyle: 'solid',
-        borderRadius: 8, padding: 8
-      },
-      metaVal: { fontSize: 10, fontWeight: 700, color: TEXT },
-      tableWrap: {
-        marginTop: 12,
-        borderWidth: 1, borderColor: BORDER, borderStyle: 'solid',
-        borderRadius: 8, overflow: 'hidden'
-      },
-      thead: { backgroundColor: '#F3F4F6', flexDirection: 'row' },
-      th: { padding: 8, fontSize: 9, fontWeight: 700 },
-      cellNum: { width: 24, textAlign: 'left' },
-      cellName: { flex: 1 },
-      cellQty: { width: 50, textAlign: 'right' },
-      cellPrice: { width: 70, textAlign: 'right' },
-      cellAmt: { width: 80, textAlign: 'right' },
-      tr: { flexDirection: 'row', borderTopWidth: 1, borderTopColor: BORDER, borderTopStyle: 'solid', backgroundColor: '#FFFFFF' },
-      td: { padding: 8, fontSize: 9 },
-      nameText: { fontSize: 9, lineHeight: 1.2 },
-      footerWrap: { position: 'absolute', left: 0, right: 0, bottom: 0, height: FOOTER_H, paddingHorizontal: 36 },
-      footerGold: { position: 'absolute', left: 0, right: 0, bottom: 0, height: 2, backgroundColor: GOLD },
-      footerText: { position: 'absolute', left: 36, right: 36, bottom: 10, textAlign: 'center', fontSize: 8, color: MUTED, lineHeight: 1.3 },
-    });
-
-    const doc = (
-      <PDFDocument>
-        <PDFPage size="A4" style={S.page}>
-          <PDFView style={S.headerWrap} fixed>
-            <PDFView style={S.headerCanvas}>
-              <PDFView style={S.headerGoldLine} />
-            </PDFView>
-            <PDFView style={S.headerRow}>
-              <PDFView style={S.logoBox}>
-                <PDFImage src={LOGO_URL} style={S.logoContain} />
-              </PDFView>
-              <PDFView style={S.brandTextWrap}>
-                <PDFText style={S.headerBrand}>{company.name}</PDFText>
-                <PDFText style={S.headerTag}>{company.tagline}</PDFText>
-              </PDFView>
-            </PDFView>
-          </PDFView>
-
-          <PDFText style={S.title}>INVOICE</PDFText>
-
-          {/* ... your PDF remains unchanged ... */}
-          <PDFView style={S.footerWrap} fixed>
-            <PDFView style={S.footerGold} />
-            <PDFText style={S.footerText}>
-              404, Safal Prelude, Corporate Rd, Prahlad Nagar, Ahmedabad, Gujarat 380015 • {company.email} • amrita-fashions.com • {company.phone}
-            </PDFText>
-          </PDFView>
-        </PDFPage>
-      </PDFDocument>
-    );
-
-    const blob = await pdfRenderer(doc).toBlob();
-    const fname = `AGE-Invoice-${orderNo}.pdf`;
-    const url = URL.createObjectURL(blob);
-    window.open(url, '_blank');
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = fname;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 5000);
-  };
-
   /* ---------------- UI ---------------- */
   return (
     <div className={`${styles.scope} ${styles.page}`}>
@@ -1087,28 +902,17 @@ export default function UserProfile() {
                       {orders.map((o) => (
                         <tr key={o._id} style={{ borderTop: '1px solid #E5E7EB' }}>
                           <td style={{ padding: '12px 14px' }}>
-                            <a
-                              href="#"
-                              onClick={(e) => { e.preventDefault(); generateInvoicePdf(o); }}
-                              style={{ color: '#2C4C97', textDecoration: 'underline' }}
-                              title="Open & download PDF"
-                            >
+                            <span style={{ color: '#2C4C97' }}>
                               {o._id}
-                            </a>
+                            </span>
                           </td>
                           <td style={{ padding: '12px 14px' }}>
                             {dayjs(o.createdAt).format('MMMM DD, YYYY')}
                           </td>
                           <td style={{ padding: '12px 14px' }}>
-                            <button
-                              type="button"
-                              onClick={() => generateInvoicePdf(o)}
-                              title="Download PDF"
-                              className={styles.btn}
-                              style={{ padding: '6px 12px' }}
-                            >
-                              📄 PDF
-                            </button>
+                            <span style={{ color: '#6B7280', fontSize: '14px' }}>
+                              Order Details
+                            </span>
                           </td>
                         </tr>
                       ))}

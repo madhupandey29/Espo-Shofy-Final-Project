@@ -1,5 +1,4 @@
 // PDF Generation Utility for Product Details
-import { jsPDF } from "jspdf";
 // @ts-ignore - QRCode module doesn't have TypeScript definitions
 import QRCode from "qrcode";
 
@@ -741,6 +740,9 @@ export async function downloadProductPdf(product, options = {}) {
   } = options;
 
   try {
+    // ✅ Dynamic import of jsPDF - only loads when user clicks download
+    const { jsPDF } = await import("jspdf");
+    
     // Fetch company information and collection data
     const collectionId = product?.collectionId || product?.collection?.id || product?.collection?._id || product?.collection;
     
