@@ -1,40 +1,64 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, memo } from 'react';
 import { FiPhoneCall } from 'react-icons/fi';
 import { FaWhatsapp } from 'react-icons/fa';
 import styles from './FloatingButtons.module.scss';
 
-const FloatingButtons = () => {
+const FloatingButtons = memo(() => {
   const [office, setOffice] = useState(null);
+  const [isLoaded, setIsLoaded] = useState(false);
 
-  // Fetch office info for contact numbers
+  // Fetch office info for contact numbers with caching
   useEffect(() => {
     const fetchOfficeInfo = async () => {
       try {
+        // Check cache first
+        const cached = sessionStorage.getItem('office-info');
+        if (cached) {
+          const { data, timestamp } = JSON.parse(cached);
+          // Cache for 1 hour
+          if (Date.now() - timestamp < 3600000) {
+            setOffice(data);
+            setIsLoaded(true);
+            return;
+          }
+        }
+
         const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL;
         const response = await fetch(`${API_BASE}/companyinformation`);
         if (response.ok) {
           const data = await response.json();
           if (data.success && data.data && data.data.length > 0) {
-            // Get filter value from environment variable
             const companyFilter = process.env.NEXT_PUBLIC_COMPANY_FILTER;
             
-            if (companyFilter) {
-              // Find exact match
-              const targetCompany = data.data.find(company => company.name === companyFilter);
-              setOffice(targetCompany || data.data[0]);
-            } else {
-              setOffice(data.data[0]);
-            }
+            const targetCompany = companyFilter 
+              ? data.data.find(company => company.name === companyFilter) || data.data[0]
+              : data.data[0];
+            
+            setOffice(targetCompany);
+            
+            // Cache the result
+            sessionStorage.setItem('office-info', JSON.stringify({
+              data: targetCompany,
+              timestamp: Date.now()
+            }));
           }
         }
       } catch (error) {
-        }
+        // Silent fail
+      } finally {
+        setIsLoaded(true);
+      }
     };
 
-    fetchOfficeInfo();
+    // Delay loading to not block initial render
+    const timer = setTimeout(fetchOfficeInfo, 1000);
+    return () => clearTimeout(timer);
   }, []);
+
+  // Don't render until loaded to avoid layout shift
+  if (!isLoaded) return null;
 
   // Helper function to extract digits only
   const digitsOnly = (v) => String(v || "").replace(/[^\d]/g, "");
@@ -69,6 +93,8 @@ const FloatingButtons = () => {
       </a>
     </>
   );
-};
+});
+
+FloatingButtons.displayName = 'FloatingButtons';
 
 export default FloatingButtons;

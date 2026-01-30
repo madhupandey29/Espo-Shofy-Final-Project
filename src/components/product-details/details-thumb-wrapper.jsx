@@ -118,6 +118,14 @@ const DetailsThumbWrapper = ({
   videoId = false,
   status,
 }) => {
+  // Debug logging to see what data we're receiving
+  console.log('🔍 DetailsThumbWrapper Debug:', {
+    img, image1, image2, image3,
+    videourl, video,
+    altTextImage1, altTextImage2, altTextImage3, altTextVideo,
+    apiImages: apiImages ? 'present' : 'missing',
+    groupCodeData: groupCodeData ? 'present' : 'missing'
+  });
   const [isVideoActive, setIsVideoActive] = useState(false);
   const [currentVideoUrl, setCurrentVideoUrl] = useState(null);
   const [showImageModal, setShowImageModal] = useState(false);
@@ -130,6 +138,12 @@ const DetailsThumbWrapper = ({
   const primaryThumbs = useMemo(() => {
     const list = [];
     const productData = apiImages || {};
+
+    console.log('🔍 Building primaryThumbs with:', {
+      image1, image2, image3,
+      videourl, video,
+      productData: productData ? Object.keys(productData) : 'empty'
+    });
 
     const isImageUrl = (field) => {
       if (!field || typeof field !== 'string') return false;
@@ -290,6 +304,19 @@ const DetailsThumbWrapper = ({
     // Put collection media AFTER product media (5th position)
     const finalMedia = [...primaryThumbs, ...collectionMedia];
     const uniqueMedia = uniqueByUrl(finalMedia);
+
+    console.log('🔍 Final processedImageURLs:', {
+      primaryThumbsCount: primaryThumbs.length,
+      collectionMediaCount: collectionMedia.length,
+      finalMediaCount: finalMedia.length,
+      uniqueMediaCount: uniqueMedia.length,
+      uniqueMedia: uniqueMedia.map(item => ({
+        type: item.type,
+        hasImg: !!item.img,
+        hasVideo: !!item.video,
+        source: item.source
+      }))
+    });
 
     return uniqueMedia;
   }, [primaryThumbs, collectionMedia, altTextImage1, altTextImage2, altTextImage3, altTextVideo, productName]);

@@ -137,7 +137,7 @@ const nextConfig = {
   productionBrowserSourceMaps: false, // Disable source maps in production for smaller builds
   compress: true, // Enable gzip compression
   
-  // ✅ Optimize bundle size
+  // ✅ Performance optimizations
   experimental: {
     optimizePackageImports: [
       'react-icons/fa',
@@ -146,13 +146,15 @@ const nextConfig = {
       'react-icons/ai',
       'react-icons/bs',
       'react-icons/cg',
-      'react-icons/tb'
+      'react-icons/tb',
+      'framer-motion',
+      'react-toastify'
     ],
     // Disable aggressive optimizations that can cause chunk issues
     missingSuspenseWithCSRBailout: false,
     serverComponentsExternalPackages: [],
-    // Reduce build complexity
-    optimizeCss: false, // Disable CSS optimization that can cause chunk issues
+    // Enable CSS optimization (supported in Next.js 14)
+    optimizeCss: true,
   },
   
   // ✅ Ignore build errors in production

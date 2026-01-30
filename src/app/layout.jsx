@@ -5,16 +5,17 @@ import Providers from '@/components/provider';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import GoogleAnalytics from '@/components/analytics/GoogleAnalytics';
 import MicrosoftClarity from '@/components/analytics/MicrosoftClarity';
-// import AntiInspection from '@/components/security/AntiInspection';
-// import AdvancedProtection from '@/components/security/AdvancedProtection';
 import Script from 'next/script';
 import { Inter, Poppins } from 'next/font/google';
+import dynamic from 'next/dynamic';
 
-// ⚠️ REMOVED: Font Awesome CSS is 513 KB and render-blocking
-// import '/public/assets/css/font-awesome-pro.css';
-// We'll load it asynchronously below
+// Dynamic imports for non-critical components
+const LazyFloatingButtons = dynamic(() => import('@/components/common/FloatingButtons'), {
+  ssr: false,
+  loading: () => null
+});
 
-// ✅ Optimize Google Fonts with next/font (self-hosted, no render blocking)
+// Optimize Google Fonts with next/font (self-hosted, no render blocking)
 // Reduced font weights for better performance (only keep commonly used weights)
 const inter = Inter({
   subsets: ['latin'],
@@ -232,6 +233,9 @@ export default async function RootLayout({ children }) {
         <ErrorBoundary>
           <Providers>{children}</Providers>
         </ErrorBoundary>
+
+        {/* Non-critical components loaded after main content */}
+        <LazyFloatingButtons />
       </body>
     </html>
   );

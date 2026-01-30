@@ -135,6 +135,25 @@ const redirectToLogin = () => {
 
 /* =============================== Component =============================== */
 export default function UserProfile() {
+  // Performance optimization: Preload critical resources
+  useEffect(() => {
+    // DNS prefetch for external APIs
+    if (typeof window !== 'undefined') {
+      const prefetchDomains = [
+        'https://restcountries.com',
+        'https://countriesnow.space',
+        'https://test.amrita-fashions.com'
+      ];
+      
+      prefetchDomains.forEach(domain => {
+        const link = document.createElement('link');
+        link.rel = 'dns-prefetch';
+        link.href = domain;
+        document.head.appendChild(link);
+      });
+    }
+  }, []);
+
   /* Guard: if no session, redirect */
   useEffect(() => {
     const sid = getClientSessionId();
@@ -181,42 +200,44 @@ export default function UserProfile() {
 
   /* Countries + dial codes */
   const [countries, setCountries] = useState([]);
+  const [countriesLoaded, setCountriesLoaded] = useState(false);
   const [dialSelected, setDialSelected] = useState(''); // +91
   const [phoneLocal, setPhoneLocal] = useState('');     // digits only
 
-  /* Dependent state/city */
-  const [countryName, setCountryName] = useState('');
-  const [states, setStates] = useState([]);
-  const [stateName, setStateName] = useState('');
-  const [cities, setCities] = useState([]);
-  const [cityName, setCityName] = useState('');
-
-  /* -------------------- Orders (My Orders tab) -------------------- */
+  /* -------------------- Orders (My Orders tab) - lazy load -------------------- */
   const [orders, setOrders] = useState([]);
   const [ordersLoading, setOrdersLoading] = useState(false);
   const [ordersErr, setOrdersErr] = useState(null);
+  const [ordersLoaded, setOrdersLoaded] = useState(false);
 
+  const fetchOrders = useCallback(async () => {
+    if (!userId || ordersLoaded) return;
+    
+    setOrdersLoading(true);
+    setOrdersErr(null);
+    
+    try {
+      const res = await fetch(`https://test.amrita-fashions.com/shopy/orders/user/${userId}`, {
+        headers: { Accept: 'application/json' },
+        cache: 'no-store',
+      });
+      const json = await res.json();
+      const list = json?.data?.orders || json?.orders || [];
+      setOrders(Array.isArray(list) ? list : []);
+      setOrdersLoaded(true);
+    } catch (e) {
+      setOrdersErr('Failed to load orders');
+    } finally {
+      setOrdersLoading(false);
+    }
+  }, [userId, ordersLoaded]);
+
+  // Load orders only when booking tab is active
   useEffect(() => {
-    const fetchOrders = async () => {
-      if (!userId) return;
-      setOrdersLoading(true);
-      setOrdersErr(null);
-      try {
-        const res = await fetch(`https://test.amrita-fashions.com/shopy/orders/user/${userId}`, {
-          headers: { Accept: 'application/json' },
-          cache: 'no-store',
-        });
-        const json = await res.json();
-        const list = json?.data?.orders || json?.orders || [];
-        setOrders(Array.isArray(list) ? list : []);
-      } catch (e) {
-        setOrdersErr('Failed to load orders');
-      } finally {
-        setOrdersLoading(false);
-      }
-    };
-    if (active === 'booking') fetchOrders();
-  }, [active, userId]);
+    if (active === 'booking' && !ordersLoaded) {
+      fetchOrders();
+    }
+  }, [active, fetchOrders, ordersLoaded]);
 
   /* -------------------- react-hook-form -------------------- */
   const {
@@ -256,26 +277,54 @@ export default function UserProfile() {
     };
   };
 
-  // Fetch user data when component mounts or userId changes
-  useEffect(() => {
-    const fetchUserData = async () => {
-      if (!userId) return;
-      try {
-        const response = await fetch(`https://test.amrita-fashions.com/shopy/users/${userId}`, {
-          headers: { Accept: 'application/json' },
-          cache: 'no-store',
-        });
-        if (!response.ok) throw new Error('Failed to fetch user data');
-        const raw = await response.json();
-        const nu = normalizeUserPayload(raw);
-        setLocalUser(prev => ({ ...(prev || {}), ...nu }));
-        // also refresh cookie so the header/avatar elsewhere stays in sync
-        writeUserInfoCookiePreserving(nu);
-      } catch (error) {
+  // Fetch user data with caching optimization
+  const [userDataLoaded, setUserDataLoaded] = useState(false);
+  
+  const fetchUserData = useCallback(async () => {
+    if (!userId || userDataLoaded) return;
+    
+    try {
+      // Check cache first
+      const cacheKey = `user-${userId}`;
+      const cached = sessionStorage.getItem(cacheKey);
+      if (cached) {
+        const { data, timestamp } = JSON.parse(cached);
+        // Cache for 5 minutes
+        if (Date.now() - timestamp < 300000) {
+          const nu = normalizeUserPayload(data);
+          setLocalUser(prev => ({ ...(prev || {}), ...nu }));
+          writeUserInfoCookiePreserving(nu);
+          setUserDataLoaded(true);
+          return;
         }
-    };
+      }
+
+      const response = await fetch(`https://test.amrita-fashions.com/shopy/users/${userId}`, {
+        headers: { Accept: 'application/json' },
+        cache: 'no-store',
+      });
+      if (!response.ok) throw new Error('Failed to fetch user data');
+      const raw = await response.json();
+      
+      // Cache the result
+      sessionStorage.setItem(cacheKey, JSON.stringify({
+        data: raw,
+        timestamp: Date.now()
+      }));
+      
+      const nu = normalizeUserPayload(raw);
+      setLocalUser(prev => ({ ...(prev || {}), ...nu }));
+      writeUserInfoCookiePreserving(nu);
+      setUserDataLoaded(true);
+    } catch (error) {
+      console.warn('Failed to fetch user data:', error);
+      setUserDataLoaded(true);
+    }
+  }, [userId, userDataLoaded]);
+
+  useEffect(() => {
     fetchUserData();
-  }, [userId]);
+  }, [fetchUserData]);
 
   /* Initialize form when user changes */
   useEffect(() => {
@@ -305,34 +354,60 @@ export default function UserProfile() {
     setAvatarPreview(img);
   }, [user, reset]);
 
-  /* countries list */
-  useEffect(() => {
-    let mounted = true;
-    (async () => {
-      try {
-        const res = await fetch('https://restcountries.com/v3.1/all?fields=name,idd,cca2,flags');
-        const raw = await res.json();
-        const list = (raw || [])
-          .map((r) => {
-            const root = r?.idd?.root || '';
-            const suffixes = r?.idd?.suffixes || [];
-            const dial = root && suffixes && suffixes.length ? `${root}${suffixes[0]}` : root || '';
-            return {
-              cca2: r?.cca2 || '',
-              name: r?.name?.common || '',
-              dial: dial || '',
-              flagPng: r?.flags?.png || '',
-            };
-          })
-          .filter((x) => x.cca2 && x.name && x.dial && x.flagPng)
-          .sort((a, b) => a.name.localeCompare(b.name));
-        if (mounted) setCountries(list);
-      } catch {
-        setCountries([]);
+  // Load countries only when needed (edit tab)
+  const loadCountries = useCallback(async () => {
+    if (countriesLoaded || countries.length > 0) return;
+    
+    try {
+      // Check cache first
+      const cached = sessionStorage.getItem('countries-cache');
+      if (cached) {
+        const { data, timestamp } = JSON.parse(cached);
+        // Cache for 1 hour
+        if (Date.now() - timestamp < 3600000) {
+          setCountries(data);
+          setCountriesLoaded(true);
+          return;
+        }
       }
-    })();
-    return () => { mounted = false; };
-  }, []);
+
+      const res = await fetch('https://restcountries.com/v3.1/all?fields=name,idd,cca2,flags');
+      const raw = await res.json();
+      const list = (raw || [])
+        .map((r) => {
+          const root = r?.idd?.root || '';
+          const suffixes = r?.idd?.suffixes || [];
+          const dial = root && suffixes && suffixes.length ? `${root}${suffixes[0]}` : root || '';
+          return {
+            cca2: r?.cca2 || '',
+            name: r?.name?.common || '',
+            dial: dial || '',
+            flagPng: r?.flags?.png || '',
+          };
+        })
+        .filter((x) => x.cca2 && x.name && x.dial && x.flagPng)
+        .sort((a, b) => a.name.localeCompare(b.name));
+      
+      // Cache the result
+      sessionStorage.setItem('countries-cache', JSON.stringify({
+        data: list,
+        timestamp: Date.now()
+      }));
+      
+      setCountries(list);
+      setCountriesLoaded(true);
+    } catch {
+      setCountries([]);
+      setCountriesLoaded(true);
+    }
+  }, [countriesLoaded, countries.length]);
+
+  // Load countries only when edit tab is active
+  useEffect(() => {
+    if (active === 'edit' && !countriesLoaded) {
+      loadCountries();
+    }
+  }, [active, loadCountries, countriesLoaded]);
 
   /* derive dial + local from current phone once countries are ready */
   useEffect(() => {
@@ -364,59 +439,131 @@ export default function UserProfile() {
     setValue('phone', composed, { shouldValidate: false, shouldDirty: true });
   }, [dialSelected, phoneLocal, setValue, user?.phone]);
 
-  /* dependent states */
-  useEffect(() => {
-    let abort = false;
-    (async () => {
-      if (!countryName) { setStates([]); setStateName(''); setCities([]); setCityName(''); setValue('country', ''); return; }
-      try {
-        const res = await fetch('https://countriesnow.space/api/v0.1/countries/states', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ country: countryName }),
-        });
-        const json = await res.json();
-        const list = json?.data?.states || [];
-        if (!abort) {
-          setStates(list);
-          setValue('country', countryName, { shouldDirty: true });
-          if (!list.find((s) => s.name === stateName)) {
-            setStateName(''); setValue('state', '', { shouldDirty: true });
-            setCities([]); setCityName(''); setValue('city', '', { shouldDirty: true });
-          }
-        }
-      } catch {
-        if (!abort) {
-          setStates([]); setStateName(''); setCities([]); setCityName('');
-          setValue('state', ''); setValue('city', '');
-        }
+  /* Dependent state/city - optimized with caching and debouncing */
+  const [countryName, setCountryName] = useState('');
+  const [states, setStates] = useState([]);
+  const [stateName, setStateName] = useState('');
+  const [cities, setCities] = useState([]);
+  const [cityName, setCityName] = useState('');
+  const [statesCache] = useState(new Map());
+  const [citiesCache] = useState(new Map());
+
+  // Debounced state loading
+  const loadStates = useCallback(async (countryName) => {
+    if (!countryName) {
+      setStates([]);
+      setStateName('');
+      setCities([]);
+      setCityName('');
+      setValue('country', '');
+      return;
+    }
+
+    // Check cache first
+    if (statesCache.has(countryName)) {
+      const cachedStates = statesCache.get(countryName);
+      setStates(cachedStates);
+      setValue('country', countryName, { shouldDirty: true });
+      if (!cachedStates.find((s) => s.name === stateName)) {
+        setStateName('');
+        setValue('state', '', { shouldDirty: true });
+        setCities([]);
+        setCityName('');
+        setValue('city', '', { shouldDirty: true });
       }
-    })();
-    return () => { abort = true; };
-  }, [countryName, stateName, setValue]);
+      return;
+    }
+
+    try {
+      const res = await fetch('https://countriesnow.space/api/v0.1/countries/states', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ country: countryName }),
+      });
+      const json = await res.json();
+      const list = json?.data?.states || [];
+      
+      // Cache the result
+      statesCache.set(countryName, list);
+      
+      setStates(list);
+      setValue('country', countryName, { shouldDirty: true });
+      if (!list.find((s) => s.name === stateName)) {
+        setStateName('');
+        setValue('state', '', { shouldDirty: true });
+        setCities([]);
+        setCityName('');
+        setValue('city', '', { shouldDirty: true });
+      }
+    } catch {
+      setStates([]);
+      setStateName('');
+      setCities([]);
+      setCityName('');
+      setValue('state', '');
+      setValue('city', '');
+    }
+  }, [setValue, stateName, statesCache]);
+
+  const loadCities = useCallback(async (countryName, stateName) => {
+    if (!countryName || !stateName) {
+      setCities([]);
+      setCityName('');
+      setValue('city', '');
+      return;
+    }
+
+    const cacheKey = `${countryName}-${stateName}`;
+    
+    // Check cache first
+    if (citiesCache.has(cacheKey)) {
+      const cachedCities = citiesCache.get(cacheKey);
+      setCities(cachedCities);
+      if (!cachedCities.includes(cityName)) {
+        setCityName('');
+        setValue('city', '', { shouldDirty: true });
+      }
+      return;
+    }
+
+    try {
+      const res = await fetch('https://countriesnow.space/api/v0.1/countries/state/cities', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ country: countryName, state: stateName }),
+      });
+      const json = await res.json();
+      const list = json?.data || [];
+      
+      // Cache the result
+      citiesCache.set(cacheKey, list);
+      
+      setCities(list);
+      if (!list.includes(cityName)) {
+        setCityName('');
+        setValue('city', '', { shouldDirty: true });
+      }
+    } catch {
+      setCities([]);
+      setCityName('');
+      setValue('city', '');
+    }
+  }, [setValue, cityName, citiesCache]);
+
+  // Debounced loading with 300ms delay
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      loadStates(countryName);
+    }, 300);
+    return () => clearTimeout(timeoutId);
+  }, [countryName, loadStates]);
 
   useEffect(() => {
-    let abort = false;
-    (async () => {
-      if (!countryName || !stateName) { setCities([]); setCityName(''); setValue('city', ''); return; }
-      try {
-        const res = await fetch('https://countriesnow.space/api/v0.1/countries/state/cities', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ country: countryName, state: stateName }),
-        });
-        const json = await res.json();
-        const list = json?.data || [];
-        if (!abort) {
-          setCities(list);
-          if (!list.includes(cityName)) { setCityName(''); setValue('city', '', { shouldDirty: true }); }
-        }
-      } catch {
-        if (!abort) { setCities([]); setCityName(''); setValue('city', ''); }
-      }
-    })();
-    return () => { abort = true; };
-  }, [countryName, stateName, setValue]);
+    const timeoutId = setTimeout(() => {
+      loadCities(countryName, stateName);
+    }, 300);
+    return () => clearTimeout(timeoutId);
+  }, [countryName, stateName, loadCities]);
 
   /* ---------------- Avatar pick ---------------- */
   const [selectedFile, setSelectedFile] = useState(null);
@@ -808,8 +955,11 @@ export default function UserProfile() {
                   className={styles.input}
                   value={countryName}
                   onChange={handleCountryChange}
+                  disabled={!countriesLoaded}
                 >
-                  <option value="">Select country</option>
+                  <option value="">
+                    {!countriesLoaded ? 'Loading countries...' : 'Select country'}
+                  </option>
                   {countries.map(c => (
                     <option key={c.cca2} value={c.name}>{c.name}</option>
                   ))}

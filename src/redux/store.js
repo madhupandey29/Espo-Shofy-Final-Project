@@ -9,14 +9,6 @@ import shopFilterSlice from "./features/shop-filter-slice";
 import wishlistSlice from "./features/wishlist-slice";
 import orderSlice from "./features/order/orderSlice";
 
-// Optional dev logger
-const logger = (store) => (next) => (action) => {
-  console.group(action.type);
-  const result = next(action);
-  console.groupEnd();
-  return result;
-};
-
 const store = configureStore({
   reducer: {
     [apiSlice.reducerPath]: apiSlice.reducer,
@@ -32,12 +24,9 @@ const store = configureStore({
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
       serializableCheck: {
-        // these are yours — kept as-is
         ignoredActions: [
           "cart/add_cart_product",
           "wishlist/add_to_wishlist",
-
-          // RTK Query async actions (by reducerPath = "api")
           "api/executeQuery/fulfilled",
           "api/executeQuery/rejected",
           "api/executeMutation/fulfilled",
@@ -46,25 +35,22 @@ const store = configureStore({
         ignoredActionPaths: [
           "payload.product",
           "payload.prd",
-
-          // ✅ ignore the entire non-serializable meta branch from RTK Query
-          "meta.baseQueryMeta",           // <— important
-          "meta.arg.originalArgs",        // (often contains complex objects)
+          "meta.baseQueryMeta",
+          "meta.arg.originalArgs",
         ],
         ignoredPaths: [
           "cart.cart_products",
           "wishlist.wishlist",
-
-          // if any response meta leaks into state (rare), ignore it too
           "meta.baseQueryMeta",
         ],
+        // Optimize for production
+        warnAfter: process.env.NODE_ENV === 'development' ? 32 : Infinity,
       },
-    }).concat([apiSlice.middleware, userApi.middleware, logger]),
-  devTools: process.env.NODE_ENV !== "production",
+      immutableCheck: {
+        warnAfter: process.env.NODE_ENV === 'development' ? 32 : Infinity,
+      },
+    }).concat([apiSlice.middleware, userApi.middleware]),
+  devTools: process.env.NODE_ENV === 'development',
 });
-
-// (Optional) small dev-only initial log
-if (process.env.NODE_ENV !== "production") {
-  }
 
 export default store;

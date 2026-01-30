@@ -209,19 +209,17 @@ export default function ProductDetailsContent({ productItem }) {
                 imgHeight={480}
                 videourl={videourl}
                 status={status}
-                images={{
-                  img: img,
-                  image1: image1,
-                  image2: image2,
-                  image3: image3,
-                  videoThumbnail: videoThumbnail
-                }}
-                altTexts={{
-                  altTextImage1: altTextImage1,
-                  altTextImage2: altTextImage2,
-                  altTextImage3: altTextImage3,
-                  altTextVideo: altTextVideo
-                }}
+                img={img}
+                image1={image1}
+                image2={image2}
+                image3={image3}
+                videoThumbnail={videoThumbnail}
+                altTextImage1={altTextImage1}
+                altTextImage2={altTextImage2}
+                altTextImage3={altTextImage3}
+                altTextVideo={altTextVideo}
+                apiImages={p}
+                groupCodeData={collectionData}
               />
             </div>
             <div className="col-lg-5 col-md-12">
