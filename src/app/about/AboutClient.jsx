@@ -2,6 +2,20 @@
 import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { 
+  FaSeedling, 
+  FaRocket, 
+  FaCogs, 
+  FaTrophy, 
+  FaLeaf, 
+  FaGlobe, 
+  FaStar,
+  FaAward,
+  FaHandshake,
+  FaLightbulb,
+  FaLinkedinIn
+} from 'react-icons/fa';
+import { FaComputer } from 'react-icons/fa6';
 import { useGetAuthorsQuery } from '@/redux/api/apiSlice';
 import { useGetOfficeInformationQuery } from '@/redux/features/officeInformationApi';
 import styles from './About.module.scss';
@@ -82,7 +96,7 @@ const AboutClient = () => {
               <div className={styles.journeyCard}>
                 <div className={styles.cardYear}>1990</div>
                 <div className={styles.cardIcon}>
-                  <i className="fas fa-seedling"></i>
+                  <FaSeedling />
                 </div>
                 <h4>The Beginning</h4>
                 <p>Started with a small team focused on traditional craftsmanship and quality textiles.</p>
@@ -91,7 +105,7 @@ const AboutClient = () => {
               <div className={styles.journeyCard}>
                 <div className={styles.cardYear}>1995</div>
                 <div className={styles.cardIcon}>
-                  <i className="fas fa-rocket"></i>
+                  <FaRocket />
                 </div>
                 <h4>First Breakthrough</h4>
                 <p>Launched innovative fabric solutions that revolutionized local textile industry.</p>
@@ -100,7 +114,7 @@ const AboutClient = () => {
               <div className={styles.journeyCard}>
                 <div className={styles.cardYear}>2000</div>
                 <div className={styles.cardIcon}>
-                  <i className="fas fa-cogs"></i>
+                  <FaCogs />
                 </div>
                 <h4>Technology Integration</h4>
                 <p>Integrated advanced weaving technology while maintaining traditional craftsmanship values.</p>
@@ -109,7 +123,7 @@ const AboutClient = () => {
               <div className={styles.journeyCard}>
                 <div className={styles.cardYear}>2005</div>
                 <div className={styles.cardIcon}>
-                  <i className="fas fa-trophy"></i>
+                  <FaTrophy />
                 </div>
                 <h4>Industry Recognition</h4>
                 <p>Received prestigious awards and expanded to international markets successfully.</p>
@@ -118,7 +132,7 @@ const AboutClient = () => {
               <div className={styles.journeyCard}>
                 <div className={styles.cardYear}>2010</div>
                 <div className={styles.cardIcon}>
-                  <i className="fas fa-leaf"></i>
+                  <FaLeaf />
                 </div>
                 <h4>Sustainability Focus</h4>
                 <p>Pioneered eco-friendly fabric production and sustainable manufacturing processes.</p>
@@ -127,7 +141,7 @@ const AboutClient = () => {
               <div className={styles.journeyCard}>
                 <div className={styles.cardYear}>2015</div>
                 <div className={styles.cardIcon}>
-                  <i className="fas fa-globe"></i>
+                  <FaGlobe />
                 </div>
                 <h4>Global Expansion</h4>
                 <p>Opened offices worldwide and launched sustainability initiatives across operations.</p>
@@ -136,7 +150,7 @@ const AboutClient = () => {
               <div className={styles.journeyCard}>
                 <div className={styles.cardYear}>2020</div>
                 <div className={styles.cardIcon}>
-                  <i className="fas fa-digital-tachograph"></i>
+                  <FaComputer />
                 </div>
                 <h4>Digital Innovation</h4>
                 <p>Embraced digital transformation with AI-powered design tools and smart manufacturing.</p>
@@ -145,7 +159,7 @@ const AboutClient = () => {
               <div className={styles.journeyCard}>
                 <div className={styles.cardYear}>{currentYear}</div>
                 <div className={styles.cardIcon}>
-                  <i className="fas fa-star"></i>
+                  <FaStar />
                 </div>
                 <h4>Present Day</h4>
                 <p>Leading the industry with 500+ employees and commitment to excellence and innovation.</p>
@@ -194,7 +208,7 @@ const AboutClient = () => {
                         rel="noopener noreferrer"
                         className={styles.linkedinBtn}
                       >
-                        <i className="fab fa-linkedin-in"></i>
+                        <FaLinkedinIn />
                         Connect on LinkedIn
                       </a>
                     </div>
@@ -249,28 +263,28 @@ const AboutClient = () => {
           <div className={styles.valuesGrid}>
             <div className={styles.valueCard}>
               <div className={styles.valueIcon}>
-                <i className="fas fa-leaf"></i>
+                <FaLeaf />
               </div>
               <h4>Sustainable Craft</h4>
               <p>We source eco-friendly materials and implement zero-waste production methods to minimize our environmental footprint.</p>
             </div>
             <div className={styles.valueCard}>
               <div className={styles.valueIcon}>
-                <i className="fas fa-award"></i>
+                <FaAward />
               </div>
               <h4>Artisan Excellence</h4>
               <p>Each fabric is crafted by skilled artisans who bring generations of knowledge to every weave, stitch, and pattern.</p>
             </div>
             <div className={styles.valueCard}>
               <div className={styles.valueIcon}>
-                <i className="fas fa-handshake"></i>
+                <FaHandshake />
               </div>
               <h4>Ethical Partnership</h4>
               <p>We maintain fair-trade practices, ensuring our artisans receive fair compensation and work in safe environments.</p>
             </div>
             <div className={styles.valueCard}>
               <div className={styles.valueIcon}>
-                <i className="fas fa-lightbulb"></i>
+                <FaLightbulb />
               </div>
               <h4>Timeless Innovation</h4>
               <p>While honoring tradition, we continuously innovate with new techniques and sustainable fabric technologies.</p>

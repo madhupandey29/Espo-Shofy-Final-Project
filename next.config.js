@@ -137,9 +137,17 @@ const nextConfig = {
   productionBrowserSourceMaps: false, // Disable source maps in production for smaller builds
   compress: true, // Enable gzip compression
   
-  // ✅ CHUNK LOADING FIX: Reduce chunk complexity
+  // ✅ Optimize bundle size
   experimental: {
-    optimizePackageImports: ['react-icons'],
+    optimizePackageImports: [
+      'react-icons/fa',
+      'react-icons/fi', 
+      'react-icons/fa6',
+      'react-icons/ai',
+      'react-icons/bs',
+      'react-icons/cg',
+      'react-icons/tb'
+    ],
     // Disable aggressive optimizations that can cause chunk issues
     missingSuspenseWithCSRBailout: false,
     serverComponentsExternalPackages: [],
@@ -161,11 +169,26 @@ const nextConfig = {
     'react-icons': {
       transform: 'react-icons/{{member}}',
     },
-    '@fortawesome/free-brands-svg-icons': {
-      transform: '@fortawesome/free-brands-svg-icons/{{member}}',
+    'react-icons/fa': {
+      transform: 'react-icons/fa/{{member}}',
     },
-    'lucide-react': {
-      transform: 'lucide-react/dist/esm/icons/{{kebabCase member}}',
+    'react-icons/fi': {
+      transform: 'react-icons/fi/{{member}}',
+    },
+    'react-icons/fa6': {
+      transform: 'react-icons/fa6/{{member}}',
+    },
+    'react-icons/ai': {
+      transform: 'react-icons/ai/{{member}}',
+    },
+    'react-icons/bs': {
+      transform: 'react-icons/bs/{{member}}',
+    },
+    'react-icons/cg': {
+      transform: 'react-icons/cg/{{member}}',
+    },
+    'react-icons/tb': {
+      transform: 'react-icons/tb/{{member}}',
     },
   },
 
@@ -192,12 +215,13 @@ const nextConfig = {
         ...config.optimization,
         usedExports: true, // Tree-shaking: remove unused exports
         minimize: true, // Minification enabled
+        sideEffects: false, // Enable more aggressive tree shaking
         splitChunks: {
           chunks: 'all',
-          maxInitialRequests: 8, // Reduced from 10 to prevent too many chunks
-          maxAsyncRequests: 8,   // Limit async chunks
-          minSize: 40000,        // Increased minimum chunk size
-          maxSize: 200000,       // Set maximum chunk size to prevent huge chunks
+          maxInitialRequests: 5, // Further reduced
+          maxAsyncRequests: 5,   
+          minSize: 60000,        // Increased minimum chunk size
+          maxSize: 120000,       // Smaller maximum chunk size for better distribution
           cacheGroups: {
             default: false,
             vendors: false,
@@ -205,46 +229,97 @@ const nextConfig = {
             framework: {
               name: 'framework',
               test: /[\\/]node_modules[\\/](react|react-dom|scheduler|next)[\\/]/,
-              priority: 40,
+              priority: 50,
+              enforce: true,
+              chunks: 'all',
+              maxSize: 100000, // Limit framework chunk size
+            },
+            // PDF libraries - separate chunk for better caching
+            pdf: {
+              name: 'pdf-libs',
+              test: /[\\/]node_modules[\\/](jspdf|html2canvas|@react-pdf|pdfkit)[\\/]/,
+              priority: 45,
               enforce: true,
               chunks: 'all',
             },
-            // Vendor chunk for other node_modules - more conservative
-            vendor: {
-              name: 'vendor',
-              test: /[\\/]node_modules[\\/]/,
-              priority: 20,
-              minChunks: 3, // Increased from 2 to reduce chunk count
+            // Large libraries that should be separate
+            swiper: {
+              name: 'swiper',
+              test: /[\\/]node_modules[\\/](swiper)[\\/]/,
+              priority: 40,
+              enforce: true,
               chunks: 'all',
             },
             // Redux chunk
             redux: {
               name: 'redux',
               test: /[\\/]node_modules[\\/](@reduxjs|react-redux|redux)[\\/]/,
+              priority: 35,
+              enforce: true,
+              chunks: 'all',
+            },
+            // Form libraries
+            forms: {
+              name: 'forms',
+              test: /[\\/]node_modules[\\/](react-hook-form|yup|@hookform)[\\/]/,
               priority: 30,
               enforce: true,
               chunks: 'all',
             },
-            // Common chunk for shared code - more conservative
-            common: {
-              name: 'common',
-              minChunks: 4, // Increased from 3
-              priority: 10,
-              reuseExistingChunk: true,
+            // UI libraries chunk - split further
+            icons: {
+              name: 'icons',
+              test: /[\\/]node_modules[\\/](react-icons)[\\/]/,
+              priority: 28,
               enforce: true,
               chunks: 'all',
+            },
+            // Animation libraries
+            animations: {
+              name: 'animations',
+              test: /[\\/]node_modules[\\/](framer-motion)[\\/]/,
+              priority: 26,
+              enforce: true,
+              chunks: 'all',
+            },
+            // Vendor chunk for remaining node_modules - much smaller now
+            vendor: {
+              name: 'vendor',
+              test: /[\\/]node_modules[\\/]/,
+              priority: 20,
+              minChunks: 2,
+              chunks: 'all',
+              maxSize: 80000, // Limit vendor chunk size
+            },
+            // Common chunk for shared code
+            common: {
+              name: 'common',
+              minChunks: 3,
+              priority: 10,
+              reuseExistingChunk: true,
+              chunks: 'all',
+              maxSize: 60000,
             },
           },
         },
       };
     }
     
-    // Add fallbacks for Node.js modules
+    // Add fallbacks for Node.js modules - more restrictive
     config.resolve.fallback = {
       ...config.resolve.fallback,
       fs: false,
       net: false,
       tls: false,
+      crypto: false,
+      stream: false,
+      url: false,
+      zlib: false,
+      http: false,
+      https: false,
+      assert: false,
+      os: false,
+      path: false,
     };
     
     return config;

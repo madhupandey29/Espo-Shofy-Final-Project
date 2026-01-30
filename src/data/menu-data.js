@@ -181,7 +181,6 @@ export const mobile_menu = [
     sub_menus: [
       { title: 'Shopping Cart', link: '/cart' },
       { title: 'Wishlist', link: '/wishlist' },
-      { title: 'Checkout', link: '/checkout' },
       { title: 'My account', link: '/profile' },
     ],
   },

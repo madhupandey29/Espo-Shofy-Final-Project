@@ -27,7 +27,7 @@ export function logSitemapStats(sitemapData) {
     total: sitemapData.length,
     static: sitemapData.filter(item => {
       const path = item.url.split('/').pop() || '/';
-      return ['/', 'shop', 'blog', 'cart', 'wishlist', 'login', 'contact', 'register', 'checkout', 'compare', 'search', 'profile', 'coupon', 'forgot'].includes(path) ||
+      return ['/', 'shop', 'blog', 'cart', 'wishlist', 'login', 'contact', 'register', 'compare', 'search', 'profile', 'coupon', 'forgot'].includes(path) ||
              item.url.includes('/fabric-') ||
              item.url.includes('/blog');
     }).length,

@@ -22,7 +22,7 @@ export class SitemapManager {
       { path: '/contact', priority: 0.7, changeFreq: 'monthly' },
       { path: '/about', priority: 0.6, changeFreq: 'monthly' },
       // ❌ REMOVED: /shop-category, /shop-right-sidebar, /shop-hidden-sidebar, /blog-grid (not in use)
-      // Excluded from sitemap: /cart, /wishlist, /login, /checkout, /profile, /search, /register, /forgot, /compare
+      // Excluded from sitemap: /cart, /wishlist, /login, /profile, /search, /register, /forgot, /compare
     ];
 
     return staticRoutes.map(route => ({

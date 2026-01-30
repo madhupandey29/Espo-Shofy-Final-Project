@@ -1,4 +1,4 @@
-/* 'use client';
+'use client';
 import React from "react";
 import Image from "next/image";
 import { GoogleLogin } from "@react-oauth/google";
@@ -18,7 +18,7 @@ const GoogleSignUp = () => {
       signUpProvider(user?.credential).then((res) => {
         if (res?.data) {
           notifySuccess("Login success!");
-          router.push('/checkout');
+          router.push('/profile');
         } else {
           notifyError(res.error?.message);
         }
@@ -47,4 +47,3 @@ const GoogleSignUp = () => {
 };
 
 export default GoogleSignUp;
- */

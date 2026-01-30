@@ -119,10 +119,19 @@ const RelatedProducts = ({ collectionId }) => {
   if (wantTopRated && (topLoading || topFetching)) return <HomeNewArrivalPrdLoader loading />;
 
   // 5) If falling back to Top Rated
-  const renderGrid = (list) => (
-    <div className="tp-related-grid">
-      <div className="row g-3 g-md-4">
-        {list.map((p) => {
+  const renderGrid = (list, title = "Mix and Match") => (
+    <div className="tp-related-products-section">
+      <div className="container">
+        <div className="row">
+          <div className="col-12">
+            <div className="tp-section-title-wrapper text-center mb-40">
+              <h3 className="tp-section-title">{title}</h3>
+            </div>
+          </div>
+        </div>
+        <div className="tp-related-grid">
+          <div className="row g-3 g-md-4">
+            {list.map((p) => {
           const cleanSlug = p?.slug ? String(p.slug).replace(/#$/, '') : p?.slug;
           const href = cleanSlug ? `/fabric/${cleanSlug}` : '#';
 
@@ -173,9 +182,40 @@ const RelatedProducts = ({ collectionId }) => {
             </div>
           );
         })}
+        </div>
       </div>
+    </div>
 
       <style jsx>{`
+        .tp-related-products-section {
+          padding: 60px 0;
+          background: #f8f9fa;
+        }
+        
+        .tp-section-title-wrapper {
+          margin-bottom: 40px;
+        }
+        
+        .tp-section-title {
+          font-size: 32px;
+          font-weight: 700;
+          color: #0b1620;
+          margin: 0;
+          position: relative;
+        }
+        
+        .tp-section-title::after {
+          content: '';
+          position: absolute;
+          bottom: -8px;
+          left: 50%;
+          transform: translateX(-50%);
+          width: 60px;
+          height: 3px;
+          background: #0989ff;
+          border-radius: 2px;
+        }
+
         .card-mini {
           --radius: 14px;
           --shadow: 0 1px 6px rgba(0, 0, 0, 0.08);
@@ -264,6 +304,16 @@ const RelatedProducts = ({ collectionId }) => {
           margin-left: 0;
           margin-right: 0;
         }
+        
+        @media (max-width: 768px) {
+          .tp-section-title {
+            font-size: 24px;
+          }
+          
+          .tp-related-products-section {
+            padding: 40px 0;
+          }
+        }
       `}</style>
     </div>
   );
@@ -271,11 +321,11 @@ const RelatedProducts = ({ collectionId }) => {
   if (wantTopRated) {
     if (topError) return <ErrorMsg msg="Couldn’t load products right now." />;
     if (!topSuccess || topList.length === 0) return <ErrorMsg msg="No Products found!" />;
-    return renderGrid(topList);
+    return renderGrid(topList, "Mix and Match");
   }
 
   if (!relSuccess || relList.length === 0) return <ErrorMsg msg="No Products found!" />;
-  return renderGrid(relList);
+  return renderGrid(relList, "Mix and Match");
 };
 
 export default RelatedProducts;

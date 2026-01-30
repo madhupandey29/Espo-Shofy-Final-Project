@@ -2,7 +2,6 @@ import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
   shipping_info: {},
-  stripe_client_secret: "",
   last_order: null,
 };
 
@@ -17,9 +16,6 @@ export const orderSlice = createSlice({
       if (typeof window === "undefined") return;
       const data = localStorage.getItem("shipping_info");
       state.shipping_info = data ? JSON.parse(data) : {};
-    },
-    set_client_secret: (state, { payload }) => {
-      state.stripe_client_secret = payload;
     },
     set_last_order: (state, { payload }) => {
       state.last_order = payload || null;
@@ -40,7 +36,6 @@ export const orderSlice = createSlice({
 export const {
   get_shipping,
   set_shipping,
-  set_client_secret,
   set_last_order,
   clear_last_order,
 } = orderSlice.actions;

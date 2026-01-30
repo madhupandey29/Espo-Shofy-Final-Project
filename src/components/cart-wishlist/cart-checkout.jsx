@@ -32,8 +32,8 @@ const CartCheckout = () => {
     else setShipCost(Number(value));
   };
 
-  const handleProceed = () => {
-    router.push("/checkout");
+  const handleContactUs = () => {
+    router.push("/contact");
   };
 
   return (
@@ -77,9 +77,9 @@ const CartCheckout = () => {
           <button
             type="button"
             className="btn-ghost-invert w-100"
-            onClick={handleProceed}
+            onClick={handleContactUs}
           >
-            Proceed to Checkout
+            Contact Us for Order
           </button>
         </div>
       </div>
@@ -126,7 +126,7 @@ const CartCheckout = () => {
           font-weight: 500;
         }
 
-        /* === Proceed to Checkout — ghost-invert, square === */
+        /* === Contact Us button — ghost-invert, square === */
         .btn-ghost-invert {
           --navy: #0b1620;
 
