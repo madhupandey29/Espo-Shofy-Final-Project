@@ -3,7 +3,6 @@ import React, { useEffect, useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import AuthorProfile from '../author/AuthorProfile';
-import PostboxDetailsNav from './postbox-details-nav';
 import styles from './BlogDetails.module.scss';
 
 const fmt = (iso) => {
@@ -202,11 +201,6 @@ const BlogDetailsArea = ({ blog }) => {
               "Quality is not an act, it is a habit. Excellence in textile manufacturing 
               comes from consistent dedication to superior materials and processes."
               <br />— {author}
-            </div>
-
-            {/* Navigation */}
-            <div className={styles.navigation}>
-              <PostboxDetailsNav currentId={blog?.id || blog?._id} />
             </div>
           </div>
 
