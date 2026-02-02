@@ -207,6 +207,7 @@ export const apiSlice = createApi({
     "ProductBySlug",
     "Authors",
     "Author",
+    "ChatHistory",
   ],
 });
 

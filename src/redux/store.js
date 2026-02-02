@@ -1,3 +1,5 @@
+
+
 import { configureStore } from "@reduxjs/toolkit";
 import { apiSlice } from "./api/apiSlice";
 import { userApi } from "./features/userApi";
@@ -8,6 +10,25 @@ import productModalSlice from "./features/productModalSlice";
 import shopFilterSlice from "./features/shop-filter-slice";
 import wishlistSlice from "./features/wishlist-slice";
 import orderSlice from "./features/order/orderSlice";
+import chatbotSlice from "./features/chatbotSlice";
+
+// Chatbot message structure helper
+export const createChatbotMessage = (message, additionalData = {}) => {
+  return {
+    message: message || "",
+    pageUrl: typeof window !== 'undefined' ? window.location.href : '',
+    userAgent: typeof window !== 'undefined' ? navigator.userAgent : '',
+    timestamp: new Date().toISOString(),
+    sessionId: typeof window !== 'undefined' ? 
+      (sessionStorage.getItem('chatSessionId') || 
+       (() => {
+         const id = `session_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
+         sessionStorage.setItem('chatSessionId', id);
+         return id;
+       })()) : null,
+    ...additionalData
+  };
+};
 
 const store = configureStore({
   reducer: {
@@ -20,6 +41,7 @@ const store = configureStore({
     wishlist: wishlistSlice,
     compare: compareSlice,
     order: orderSlice,
+    chatbot: chatbotSlice,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

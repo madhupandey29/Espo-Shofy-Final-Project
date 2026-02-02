@@ -1,8 +1,8 @@
 /* Floating Chat Button */
 .floating-chat-button {
   position: fixed;
-  bottom: 90px; /* Position above WhatsApp button */
-  left: 18px; /* Move to left side */
+  bottom: 160px; /* Position above WhatsApp button */
+  left: 18px; /* Keep on left side */
   width: 56px; /* Match other buttons */
   height: 56px;
   background: linear-gradient(135deg, var(--tp-theme-primary) 0%, #3a5ba0 100%);
@@ -119,26 +119,35 @@
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 
   @media (max-width: 768px) {
-    width: calc(100vw - 20px); /* More screen usage */
-    height: calc(100vh - 100px); /* Better height for mobile */
-    bottom: 10px;
-    right: 10px;
-    left: 10px; /* Center on mobile */
-    border-radius: 20px; /* Larger radius for modern look */
-    max-height: calc(100vh - 100px);
+    width: calc(100vw - 24px); /* Better screen usage */
+    height: calc(100vh - 140px); /* Optimized height for mobile */
+    bottom: 12px;
+    left: 50%; /* Center horizontally */
+    transform: translateX(-50%); /* Perfect centering */
+    right: auto; /* Remove right positioning */
+    border-radius: 24px; /* Larger radius for modern look */
+    max-height: calc(100vh - 140px);
     box-shadow: 
-      0 20px 60px rgba(var(--tp-theme-primary-rgb), 0.2),
-      0 8px 30px rgba(0, 0, 0, 0.15);
+      0 20px 60px rgba(var(--tp-theme-primary-rgb), 0.25),
+      0 8px 30px rgba(0, 0, 0, 0.2);
   }
 
   @media (max-width: 480px) {
+    width: calc(100vw - 20px);
+    height: calc(100vh - 120px);
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-radius: 20px;
+    max-height: calc(100vh - 120px);
+  }
+
+  @media (max-width: 375px) {
     width: calc(100vw - 16px);
-    height: calc(100vh - 90px);
+    height: calc(100vh - 110px);
     bottom: 8px;
-    right: 8px;
-    left: 8px;
     border-radius: 18px;
-    max-height: calc(100vh - 90px);
+    max-height: calc(100vh - 110px);
   }
 }
 
@@ -170,13 +179,21 @@
   }
 
   @media (max-width: 768px) {
-    padding: 24px 24px; /* More generous mobile padding */
-    border-radius: 20px 20px 0 0; /* Match window radius */
+    padding: 20px 24px; /* Optimized mobile padding */
+    border-radius: 24px 24px 0 0; /* Match window radius */
+    min-height: 80px; /* Ensure adequate height */
   }
 
   @media (max-width: 480px) {
-    padding: 20px 20px;
+    padding: 18px 20px;
+    border-radius: 20px 20px 0 0;
+    min-height: 76px;
+  }
+
+  @media (max-width: 375px) {
+    padding: 16px 18px;
     border-radius: 18px 18px 0 0;
+    min-height: 72px;
   }
 }
 
@@ -701,12 +718,17 @@
   background: var(--tp-common-white);
 
   @media (max-width: 768px) {
-    padding: 24px 20px; /* Better mobile padding */
-    border-radius: 0 0 20px 20px; /* Match window radius */
+    padding: 20px 24px; /* Better mobile padding */
+    border-radius: 0 0 24px 24px; /* Match window radius */
   }
 
   @media (max-width: 480px) {
-    padding: 20px 18px;
+    padding: 18px 20px;
+    border-radius: 0 0 20px 20px;
+  }
+
+  @media (max-width: 375px) {
+    padding: 16px 18px;
     border-radius: 0 0 18px 18px;
   }
 }
@@ -824,12 +846,37 @@
 /* Mobile Responsive Adjustments */
 @media (max-width: 768px) {
   .floating-chat-button {
-    bottom: 80px; /* Position above WhatsApp button on mobile */
-    left: 16px;
-    width: 52px;
-    height: 52px;
+    bottom: 150px; /* Position above WhatsApp button on mobile */
+    left: 20px; /* Keep on left side for consistency */
+    right: auto; /* Remove right positioning */
+    width: 56px;
+    height: 56px;
     z-index: 1400;
     border-width: 2px;
+    
+    .chat-icon svg {
+      width: 24px;
+      height: 24px;
+    }
+    
+    &::after {
+      width: 12px;
+      height: 12px;
+      top: 4px;
+      right: 4px;
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .floating-chat-button {
+    bottom: 140px; /* Ensure it's well above WhatsApp button */
+    left: 18px; /* Keep on left side */
+    right: auto;
+    width: 52px;
+    height: 52px;
+    border-width: 2px;
+    z-index: 1400;
     
     .chat-icon svg {
       width: 22px;
@@ -839,20 +886,18 @@
     &::after {
       width: 10px;
       height: 10px;
-      top: 6px;
-      right: 6px;
+      top: 4px;
+      right: 4px;
     }
   }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 375px) {
   .floating-chat-button {
-    bottom: 75px; /* Ensure it's well above WhatsApp button */
-    left: 14px;
+    bottom: 135px;
+    left: 16px; /* Keep on left side */
     width: 48px;
     height: 48px;
-    border-width: 2px;
-    z-index: 1400;
     
     .chat-icon svg {
       width: 20px;
@@ -862,8 +907,38 @@
     &::after {
       width: 8px;
       height: 8px;
-      top: 5px;
-      right: 5px;
+      top: 3px;
+      right: 3px;
     }
+  }
+}
+
+/* Message Suggestions */
+.message-suggestions {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.suggestion-btn {
+  background: rgba(var(--tp-theme-primary-rgb), 0.1);
+  border: 1px solid rgba(var(--tp-theme-primary-rgb), 0.2);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 13px;
+  color: var(--tp-theme-primary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+  
+  &:hover {
+    background: rgba(var(--tp-theme-primary-rgb), 0.15);
+    border-color: rgba(var(--tp-theme-primary-rgb), 0.3);
+    transform: translateY(-1px);
+  }
+  
+  &:active {
+    transform: translateY(0);
   }
 }

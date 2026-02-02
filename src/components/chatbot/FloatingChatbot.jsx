@@ -1,27 +1,12 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef } from "react";
+import { useChatbot } from "../../hooks/useChatbot";
 import "./FloatingChatbot.scss";
-
-const LS_SESSION = "age_chat_session_v1";
-const LS_MESSAGES = "age_chat_messages_v1";
 
 function nowTime() {
   const d = new Date();
   return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-}
-
-function safeJsonParse(s, fallback) {
-  try {
-    return JSON.parse(s);
-  } catch {
-    return fallback;
-  }
-}
-
-function genSessionId() {
-  if (typeof crypto !== "undefined" && crypto.randomUUID) return crypto.randomUUID();
-  return "sess_" + Math.random().toString(16).slice(2) + "_" + Date.now().toString(16);
 }
 
 function linkify(text) {
@@ -49,150 +34,59 @@ function linkify(text) {
   });
 }
 
-async function postJson(url, body, signal) {
-  const r = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-    signal,
-  });
-  const j = await r.json().catch(() => ({}));
-  return { ok: r.ok, status: r.status, json: j };
-}
-
 export default function FloatingChatbot() {
-  const [isOpen, setIsOpen] = useState(false);
-  const [sessionId, setSessionId] = useState("");
-  const [messages, setMessages] = useState([]);
-  const [input, setInput] = useState("");
-  const [sending, setSending] = useState(false);
-  const [error, setError] = useState("");
+  const {
+    messages,
+    isOpen,
+    isTyping,
+    sendMessage,
+    toggleChatbot,
+    openChatbot,
+    closeChatbot,
+    clearChat,
+    userContext
+  } = useChatbot();
 
+  const [input, setInput] = React.useState("");
   const listRef = useRef(null);
-  const abortRef = useRef(null);
-
-  // Initialize from localStorage
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    
-    const sid = localStorage.getItem(LS_SESSION) || genSessionId();
-    localStorage.setItem(LS_SESSION, sid);
-    setSessionId(sid);
-
-    const msgs = safeJsonParse(localStorage.getItem(LS_MESSAGES) || "[]", []);
-    setMessages(Array.isArray(msgs) ? msgs : []);
-  }, []);
 
   // Scroll to bottom on new messages
   useEffect(() => {
     const el = listRef.current;
     if (!el) return;
     el.scrollTop = el.scrollHeight;
-  }, [messages.length, sending]);
-
-  function persist(nextMsgs) {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem(LS_MESSAGES, JSON.stringify(nextMsgs || []));
-    }
-  }
-
-  function addMsg(role, text) {
-    const m = { 
-      id: `${Date.now()}_${Math.random().toString(16).slice(2)}`, 
-      role, 
-      text, 
-      t: nowTime() 
-    };
-    setMessages((prev) => {
-      const next = [...prev, m];
-      persist(next);
-      return next;
-    });
-  }
-
-  async function sendMessage(text) {
-    const msg = String(text || "").trim();
-    if (!msg || sending) return;
-
-    setError("");
-    setSending(true);
-    addMsg("user", msg);
-
-    if (abortRef.current) abortRef.current.abort();
-    const ac = new AbortController();
-    abortRef.current = ac;
-
-    const body = {
-      message: msg,
-      sessionId,
-    };
-
-    const chatUrl = process.env.NEXT_PUBLIC_CHAT_MESSAGE_URL || "/api/chat/message";
-
-    try {
-      const { ok, status, json } = await postJson(chatUrl, body, ac.signal);
-
-      if (ok && json?.replyText) {
-        setMessages((prev) => {
-          const botMsg = {
-            id: `${Date.now()}_${Math.random().toString(16).slice(2)}`,
-            role: "assistant",
-            text: json.replyText,
-            t: nowTime(),
-          };
-          const next = [...prev, botMsg];
-          persist(next);
-          return next;
-        });
-      } else {
-        throw new Error(json?.error || `API Error: ${status}`);
-      }
-    } catch (e) {
-      if (e?.name === "AbortError") return;
-      setError(String(e?.message || e));
-      setMessages((prev) => {
-        const botMsg = {
-          id: `${Date.now()}_${Math.random().toString(16).slice(2)}`,
-          role: "assistant",
-          text: "Sorry, I'm having trouble connecting right now. Please try again.",
-          t: nowTime(),
-        };
-        const next = [...prev, botMsg];
-        persist(next);
-        return next;
-      });
-    } finally {
-      setSending(false);
-      abortRef.current = null;
-    }
-  }
+  }, [messages.length, isTyping]);
 
   function onSubmit(e) {
     e.preventDefault();
-    sendMessage(input);
+    const msg = input.trim();
+    if (!msg || isTyping) return;
+    
+    // Include current page context
+    const context = {
+      pageUrl: userContext.pageUrl,
+      userAgent: userContext.userAgent,
+      timestamp: new Date().toISOString()
+    };
+    
+    sendMessage(msg, context);
     setInput("");
   }
 
-  function clearChat() {
-    if (typeof window === 'undefined') return;
-    localStorage.removeItem(LS_MESSAGES);
-    setMessages([]);
-    setError("");
-  }
-
-  const toggleChat = () => {
-    setIsOpen(!isOpen);
-  };
-
-  const closeChat = () => {
-    setIsOpen(false);
+  const handleQuickMessage = (message) => {
+    const context = {
+      pageUrl: userContext.pageUrl,
+      userAgent: userContext.userAgent,
+      timestamp: new Date().toISOString()
+    };
+    sendMessage(message, context);
   };
 
   return (
     <>
       {/* Floating Button */}
       {!isOpen && (
-        <div className="floating-chat-button" onClick={toggleChat}>
+        <div className="floating-chat-button" onClick={toggleChatbot}>
           <div className="chat-icon">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M20 2H4C2.9 2 2 2.9 2 4V22L6 18H20C21.1 18 22 17.1 22 16V4C22 2.9 21.1 2 20 2ZM20 16H5.17L4 17.17V4H20V16Z" fill="currentColor"/>
@@ -223,7 +117,7 @@ export default function FloatingChatbot() {
                   <path d="M3 6H5H21M8 6V4C8 3.46957 8.21071 2.96086 8.58579 2.58579C8.96086 2.21071 9.46957 2 10 2H14C14.5304 2 15.0391 2.21071 15.4142 2.58579C15.7893 2.96086 16 3.46957 16 4V6M19 6V20C19 20.5304 18.7893 21.0391 18.4142 21.4142C18.0391 21.7893 17.5304 22 17 22H7C6.46957 22 5.96086 21.7893 5.58579 21.4142C5.21071 21.0391 5 20.5304 5 20V6H19Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
               </button>
-              <button className="close-btn" onClick={closeChat}>
+              <button className="close-btn" onClick={closeChatbot}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
                   <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
@@ -247,13 +141,13 @@ export default function FloatingChatbot() {
                     <li>Product recommendations</li>
                   </ul>
                   <div className="quick-questions">
-                    <button onClick={() => sendMessage("Show me cotton fabrics")}>
+                    <button onClick={() => handleQuickMessage("Show me cotton fabrics")}>
                       Cotton Fabrics
                     </button>
-                    <button onClick={() => sendMessage("What GSM options do you have?")}>
+                    <button onClick={() => handleQuickMessage("What GSM options do you have?")}>
                       GSM Options
                     </button>
-                    <button onClick={() => sendMessage("Tell me about Nokia collection")}>
+                    <button onClick={() => handleQuickMessage("Tell me about Nokia collection")}>
                       Nokia Collection
                     </button>
                   </div>
@@ -261,19 +155,32 @@ export default function FloatingChatbot() {
               ) : null}
               
               {messages.map((m) => (
-                <div key={m.id} className={`message ${m.role}`}>
+                <div key={m.id} className={`message ${m.type}`}>
                   <div className="message-bubble">
-                    {linkify(m.text)}
+                    {linkify(m.content)}
+                    {m.suggestions && m.suggestions.length > 0 && (
+                      <div className="message-suggestions">
+                        {m.suggestions.map((suggestion) => (
+                          <button
+                            key={suggestion.id}
+                            className="suggestion-btn"
+                            onClick={() => handleQuickMessage(`Tell me more about ${suggestion.label} (${suggestion.fabricCode})`)}
+                          >
+                            {suggestion.label} - {suggestion.fabricCode}
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
                   <div className="message-meta">
-                    <span>{m.role === "user" ? "You" : "AGE Assistant"}</span>
-                    <span>{m.t}</span>
+                    <span>{m.type === "user" ? "You" : "AGE Assistant"}</span>
+                    <span>{nowTime()}</span>
                   </div>
                 </div>
               ))}
               
-              {sending && (
-                <div className="message assistant">
+              {isTyping && (
+                <div className="message bot">
                   <div className="message-bubble typing">
                     <div className="typing-indicator">
                       <span></span>
@@ -285,14 +192,6 @@ export default function FloatingChatbot() {
               )}
             </div>
 
-            {/* Error Message */}
-            {error && (
-              <div className="error-banner">
-                <span>⚠️ {error}</span>
-                <button onClick={() => setError("")}>×</button>
-              </div>
-            )}
-
             {/* Input Form */}
             <form className="chat-input-form" onSubmit={onSubmit}>
               <div className="input-wrapper">
@@ -301,14 +200,14 @@ export default function FloatingChatbot() {
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   placeholder="Ask about fabric availability, specs, GSM, colors..."
-                  disabled={sending}
+                  disabled={isTyping}
                 />
                 <button 
                   className="send-btn" 
                   type="submit" 
-                  disabled={sending || !input.trim()}
+                  disabled={isTyping || !input.trim()}
                 >
-                  {sending ? (
+                  {isTyping ? (
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
                       <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/>
                       <path d="M12 6V12L16 14" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>

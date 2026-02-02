@@ -38,9 +38,9 @@ const getSecurityHeaders = () => {
       key: 'Content-Security-Policy',
       value: [
         "default-src 'self'",
-        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com https://www.clarity.ms https://accounts.google.com https://vercel.live",
+        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com https://www.clarity.ms https://accounts.google.com https://vercel.live https://*.vercel.app https://vercel.com",
         "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-        "font-src 'self' https://fonts.gstatic.com",
+        "font-src 'self' https://fonts.gstatic.com data:",
         "img-src 'self' data: blob: https://res.cloudinary.com https://i.ibb.co https://lh3.googleusercontent.com https://img.youtube.com  https://amritafashions.com https://test.amrita-fashions.com",
         "media-src 'self' data: blob:",
         `connect-src 'self' ${apiDomain} https://www.google-analytics.com https://vitals.vercel-insights.com https://www.clarity.ms https://scripts.clarity.ms https://accounts.google.com https://www.youtube-nocookie.com`,
@@ -49,7 +49,8 @@ const getSecurityHeaders = () => {
         "base-uri 'self'",
         "form-action 'self'",
         "frame-ancestors 'self'",
-        "upgrade-insecure-requests"
+        "upgrade-insecure-requests",
+        "report-uri /api/csp-report"
       ].join('; '),
     },
   ];
