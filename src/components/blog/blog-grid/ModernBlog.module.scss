@@ -113,27 +113,46 @@
     z-index: 1;
     padding-left: 15px;
     padding-right: 15px;
+    
+    // Adjust container for better spacing with 4-card grid
+    @media (min-width: 1200px) {
+      max-width: 1320px; // Slightly wider for 4 cards
+    }
   }
 }
 
-// Modern Blog Grid Layout - 3 Cards Per Row
+// Modern Blog Grid Layout - Responsive: 4 on large, 3 on medium, 2 on tablet, 1 on mobile
 .modernBlogGrid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr); // 4 cards on large screens
   gap: 30px;
   margin-bottom: 50px;
   width: 100%;
   max-width: 100%;
   overflow: hidden; // Prevent any overflow
 
-  @media (max-width: 768px) {
-    grid-template-columns: 1fr;
-    gap: 20px;
+  // Large screens (1200px+) - 4 cards
+  @media (min-width: 1200px) {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 30px;
   }
 
-  @media (min-width: 769px) and (max-width: 1024px) {
+  // Medium screens (992px - 1199px) - 3 cards  
+  @media (min-width: 992px) and (max-width: 1199px) {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 25px;
+  }
+
+  // Tablet screens (768px - 991px) - 2 cards
+  @media (min-width: 768px) and (max-width: 991px) {
     grid-template-columns: repeat(2, 1fr);
     gap: 25px;
+  }
+
+  // Mobile screens (below 768px) - 1 card
+  @media (max-width: 767px) {
+    grid-template-columns: 1fr;
+    gap: 20px;
   }
 }
 

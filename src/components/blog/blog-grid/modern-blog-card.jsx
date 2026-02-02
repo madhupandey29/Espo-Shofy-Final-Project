@@ -82,8 +82,8 @@ const ModernBlogCard = ({ blog, index = 0 }) => {
   // Category display
   const category = blog?.category || 'Blog';
 
-  // First 6 cards are usually above the fold in a 4-card grid
-  const isAboveFold = index < 6;
+  // First 8 cards are usually above the fold in a 4-card grid
+  const isAboveFold = index < 8;
 
   return (
     <article className={styles.modernBlogCard}>

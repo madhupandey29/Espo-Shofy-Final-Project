@@ -1,7 +1,6 @@
 'use client';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import ModernBlogCard from './modern-blog-card';
-import Pagination from '@/ui/Pagination';
 import styles from './ModernBlog.module.scss';
 
 const API_BASE = (process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000').replace(/\/+$/,'');
@@ -16,10 +15,6 @@ const fetchBlogs = async () => {
 
 const BlogGridArea = () => {
   const [allBlogs, setAllBlogs] = useState([]);
-  const [filteredRows, setFilteredRows] = useState([]);
-  const [currPage, setCurrPage] = useState(1);
-  const [pageStart, setPageStart] = useState(0);
-  const [countOfPage, setCountOfPage] = useState(3); // Show 3 blogs per page
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState('');
 
@@ -32,7 +27,6 @@ const BlogGridArea = () => {
         const data = await fetchBlogs();
         if (!alive) return;
         setAllBlogs(data);
-        setFilteredRows(data);
       } catch (e) {
         if (alive) setErr(e?.message || 'Error loading blogs');
       } finally {
@@ -41,17 +35,6 @@ const BlogGridArea = () => {
     })();
     return () => { alive = false; };
   }, []);
-
-  const paginatedData = (items, startPage, pageCount) => {
-    setFilteredRows(items);
-    setPageStart(startPage);
-    setCountOfPage(pageCount);
-  };
-
-  const pageSlice = useMemo(
-    () => filteredRows.slice(pageStart, pageStart + countOfPage),
-    [filteredRows, pageStart, countOfPage]
-  );
 
   if (loading) {
     return (
@@ -85,10 +68,10 @@ const BlogGridArea = () => {
 
   return (
     <section className={`${styles.modernBlogArea} py-5`}>
-      <div className="container"> {/* Changed from container-fluid to container */}
-        {/* Modern Blog Grid - Show only 3 blogs */}
+      <div className="container">
+        {/* Modern Blog Grid - Show all blogs */}
         <div className={styles.modernBlogGrid}>
-          {pageSlice.slice(0, 3).map((blog, idx) => (
+          {allBlogs.map((blog, idx) => (
             <ModernBlogCard 
               key={blog._id || blog.id || idx} 
               blog={blog} 
@@ -97,20 +80,10 @@ const BlogGridArea = () => {
           ))}
         </div>
 
-        {/* Pagination - Only show if more than 3 blogs */}
-        {filteredRows.length > 3 && (
-          <div className="row mt-5">
-            <div className="col-12">
-              <div className="d-flex justify-content-center">
-                <Pagination
-                  items={allBlogs}
-                  countOfPage={3} // Show 3 per page
-                  paginatedData={paginatedData}
-                  currPage={currPage}
-                  setCurrPage={setCurrPage}
-                />
-              </div>
-            </div>
+        {/* Show message if no blogs found */}
+        {allBlogs.length === 0 && !loading && !err && (
+          <div className="text-center py-5">
+            <p className="text-muted">No blog posts found.</p>
           </div>
         )}
       </div>
