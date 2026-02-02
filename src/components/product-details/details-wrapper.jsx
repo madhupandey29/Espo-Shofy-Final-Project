@@ -8,6 +8,7 @@ import { useSearchParams } from 'next/navigation';
 import { useDispatch, useSelector } from 'react-redux';
 import { FaStar, FaStarHalfAlt, FaFileAlt, FaCommentDots, FaHeart } from 'react-icons/fa';
 import { AiOutlineStar, AiOutlineHeart } from 'react-icons/ai';
+import Link from 'next/link';
 
 import { useGetDesignByIdQuery } from '@/redux/features/designApi';
 import { useGetMotifSizeByIdQuery } from '@/redux/features/motifSizeApi';
@@ -196,17 +197,7 @@ const DetailsWrapper = ({ productItem = {} }) => {
   const productId = pick(_id, id);
   const slugValue = pick(slug, productslug);
   
-    let finalProductTitle = productTitle;
-  if (!finalProductTitle && typeof window !== 'undefined') {
-    // Try to get the productTitle from the raw API response if it's available
-    // This is a fallback in case the mapping/normalization is losing the field
-    const rawApiData = window.__PRODUCT_API_DATA__;
-    if (rawApiData?.productTitle) {
-      finalProductTitle = rawApiData.productTitle;
-      }
-  }
-  
-  const titleValue = pick(finalProductTitle, title, name);
+  const titleValue = productTitle || title || name;
 
   /* Fetch full product (slug) for reliable fields */
   const [productFull, setProductFull] = useState(null);
@@ -235,6 +226,35 @@ const DetailsWrapper = ({ productItem = {} }) => {
     'In Stock'
   );
 
+  // Clean up supply model display - remove dashes and format properly
+  const cleanSupplyModelDisplay = useMemo(() => {
+    if (!supplyModelDisplay) return 'In Stock';
+    
+    const cleaned = String(supplyModelDisplay)
+      .replace(/-/g, ' ') // Replace all dashes with spaces
+      .replace(/\s+/g, ' ') // Replace multiple spaces with single space
+      .trim(); // Remove leading/trailing spaces
+    
+    // Ensure proper capitalization - first letter uppercase, rest lowercase except for proper nouns
+    const words = cleaned.split(' ');
+    const capitalizedWords = words.map((word, index) => {
+      if (index === 0) {
+        // First word should always be capitalized
+        return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+      } else {
+        // Other words should be lowercase unless they're specific terms
+        const lowerWord = word.toLowerCase();
+        // Keep certain words capitalized if needed
+        if (['stock', 'order', 'out', 'of', 'in'].includes(lowerWord)) {
+          return lowerWord;
+        }
+        return lowerWord;
+      }
+    });
+    
+    return capitalizedWords.join(' ');
+  }, [supplyModelDisplay]);
+
   const shortDescHtml = pick(
     shortProductDescription,
     productFull?.shortProductDescription,
@@ -251,7 +271,7 @@ const DetailsWrapper = ({ productItem = {} }) => {
   const isInWishlist = wishlist?.some((prd) => pick(prd?._id, prd?.id) === productId);
   const toggleWishlist = () => dispatch(add_to_wishlist(productItem));
 
-  // Request Sample Handler with PDF generation
+  // Download Catalogue Handler with PDF generation
   const handleRequestSample = async () => {
     try {
       // Show loading state
@@ -286,7 +306,7 @@ const DetailsWrapper = ({ productItem = {} }) => {
       if (button) {
         button.disabled = false;
         const btnText = button.querySelector('.btn-text');
-        if (btnText) btnText.textContent = 'Request Sample';
+        if (btnText) btnText.textContent = 'Download Catalogue';
       }
     }
   };
@@ -329,7 +349,7 @@ const DetailsWrapper = ({ productItem = {} }) => {
     return nonEmpty(c) ? String(c) : 'N/A';
   }, [category, newCategoryId, category]);
 
-  // ✅ Finish display: compact tags/chips format
+  // ✅ Finish display: compact tags/chips format with cleaned values
   const finishDisplay = useMemo(() => {
     const raw = pick(finish, productFull?.finish);
     if (!raw) return null;
@@ -347,7 +367,20 @@ const DetailsWrapper = ({ productItem = {} }) => {
         .filter(Boolean);
     }
     
-    return finishArray;
+    // Clean up finish values by removing "Chemical -" and "Mechanical -" prefixes
+    const cleanedFinishArray = finishArray.map(finish => {
+      let cleaned = finish.trim();
+      
+      // Remove "Chemical - " prefix (case insensitive)
+      cleaned = cleaned.replace(/^Chemical\s*-\s*/i, '');
+      
+      // Remove "Mechanical - " prefix (case insensitive)  
+      cleaned = cleaned.replace(/^Mechanical\s*-\s*/i, '');
+      
+      return cleaned;
+    }).filter(Boolean); // Remove any empty strings after cleaning
+    
+    return cleanedFinishArray;
   }, [finish, productFull?.finish]);
 
   return (
@@ -356,7 +389,7 @@ const DetailsWrapper = ({ productItem = {} }) => {
       <div className="product-header">
         <div className="product-category">
           <span className="category-badge">{categoryBadge}</span>
-          <span className="stock-badge">{supplyModelDisplay}</span>
+          <span className="stock-badge">{cleanSupplyModelDisplay}</span>
           {nonEmpty(fabricCodeDisplay) && fabricCodeDisplay !== 'N/A' && (
             <span className="fabric-code-badge">{fabricCodeDisplay}</span>
           )}
@@ -435,13 +468,15 @@ const DetailsWrapper = ({ productItem = {} }) => {
             onClick={handleRequestSample}
           >
             <FaFileAlt />
-            <span className="btn-text">Request Sample</span>
+            <span className="btn-text">Download Catalogue</span>
           </button>
 
-          <button className="action-btn secondary" type="button">
-            <FaCommentDots />
-            <span className="btn-text">Request Quote</span>
-          </button>
+          <Link href="/contact" style={{ flex: 1, textDecoration: 'none' }}>
+            <button className="action-btn secondary" type="button" style={{ width: '100%' }}>
+              <FaCommentDots />
+              <span className="btn-text">Request Quote</span>
+            </button>
+          </Link>
 
           <button
             type="button"
@@ -492,7 +527,7 @@ const DetailsWrapper = ({ productItem = {} }) => {
           color: var(--tp-common-white);
           font-size: 11px;
           font-weight: 700;
-          text-transform: lowercase;
+          text-transform: none;
           border-radius: 999px;
           font-family: var(--tp-ff-jost);
         }
@@ -627,6 +662,10 @@ const DetailsWrapper = ({ productItem = {} }) => {
         .fact-item-finish {
           grid-column: 1 / -1;
           grid-template-columns: minmax(90px, 1fr) minmax(0, 3fr);
+        }
+        
+        .fact-item-finish .fact-value {
+          text-align: left;
         }
 
         .rating-inline {
@@ -881,6 +920,10 @@ const DetailsWrapper = ({ productItem = {} }) => {
           .fact-item-finish {
             grid-template-columns: minmax(80px, 1fr) minmax(0, 2fr);
           }
+          
+          .fact-item-finish .fact-value {
+            text-align: left;
+          }
 
           .fact-label {
             font-size: 11px;
@@ -973,6 +1016,10 @@ const DetailsWrapper = ({ productItem = {} }) => {
           .fact-item-finish {
             grid-template-columns: minmax(70px, 1fr) minmax(0, 2fr);
           }
+          
+          .fact-item-finish .fact-value {
+            text-align: left;
+          }
 
           .fact-label {
             font-size: 10px;
@@ -1024,6 +1071,10 @@ const DetailsWrapper = ({ productItem = {} }) => {
 
           .fact-item-finish {
             grid-template-columns: minmax(60px, 1fr) minmax(0, 2fr);
+          }
+          
+          .fact-item-finish .fact-value {
+            text-align: left;
           }
 
           .fact-label {

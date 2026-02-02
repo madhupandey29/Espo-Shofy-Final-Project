@@ -173,7 +173,7 @@ class ErrorBoundary extends React.Component {
                   color: '#e53e3e'
                 }}>
                   {this.state.error && this.state.error.toString()}
-                  {this.state.errorInfo.componentStack}
+                  {this.state.errorInfo && this.state.errorInfo.componentStack}
                 </pre>
               </details>
             )}

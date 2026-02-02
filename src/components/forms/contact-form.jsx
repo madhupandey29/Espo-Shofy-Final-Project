@@ -195,7 +195,9 @@ export default function ContactForm({ onSuccess, storageKey = DEFAULT_STORAGE_KE
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(payload),
+        mode: 'cors', // Explicitly set CORS mode
+        credentials: 'omit' // Don't send credentials for external API
       });
       
       if (!response.ok) {
@@ -218,11 +220,14 @@ export default function ContactForm({ onSuccess, storageKey = DEFAULT_STORAGE_KE
         errorMessage = 'Submission endpoint not found. Please contact support.';
       } else if (err?.message?.includes('500')) {
         errorMessage = 'Server error. Please try again later.';
+      } else if (err?.message?.includes('CORS') || err?.message?.includes('fetch')) {
+        errorMessage = 'Network error. Please check your connection and try again.';
       } else if (err?.message) {
         errorMessage = err.message;
       }
       
       alert(errorMessage);
+      console.error('Form submission error:', err);
     } finally {
       setIsSubmitting(false);
     }

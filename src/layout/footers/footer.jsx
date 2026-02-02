@@ -17,7 +17,6 @@ import { FaXTwitter } from "react-icons/fa6";
 import { toast } from "react-toastify";
 
 import { useGetOfficeInformationQuery } from "@/redux/features/officeInformationApi";
-import { useAddContactMutation } from "@/redux/features/contactsApi";
 
 /* ---- brand palette ---- */
 const BG_TOP = "#112338";
@@ -65,13 +64,19 @@ const digitsOnly = (s) => cleanStr(s).replace(/[^\d]/g, "");
 const mapLink = (address) =>
   `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
 
-/** ✅ Mailto link (replaces Gmail compose) */
+/** ✅ Mailto link with proper encoding */
 const mailTo = (to, subject = "", body = "") => {
   const email = cleanStr(to);
-  const params = new URLSearchParams();
-  if (subject) params.set("subject", subject);
-  if (body) params.set("body", body);
-  const qs = params.toString();
+  const parts = [];
+  
+  if (subject) {
+    parts.push(`subject=${encodeURIComponent(subject)}`);
+  }
+  if (body) {
+    parts.push(`body=${encodeURIComponent(body)}`);
+  }
+  
+  const qs = parts.join('&');
   return `mailto:${email}${qs ? `?${qs}` : ""}`;
 };
 
@@ -101,7 +106,7 @@ const splitLines = (address) => {
 
 const Footer = () => {
   const { data } = useGetOfficeInformationQuery();
-  const [addContact, { isLoading: isSubscribing }] = useAddContactMutation();
+  const [isSubscribing, setIsSubscribing] = React.useState(false);
 
   const [newsletterEmail, setNewsletterEmail] = React.useState("");
 
@@ -190,26 +195,61 @@ const Footer = () => {
     }
 
     try {
-      await addContact({
-        companyName: office?.name || office?.legalName || "Company",
-        contactPerson: "Newsletter Subscriber",
-        email: em,
+      setIsSubscribing(true);
+      
+      // Use the same API endpoint as the contact form
+      const payload = {
+        salutationName: "",
+        firstName: "Newsletter",
+        lastName: "Subscriber",
+        middleName: "",
+        emailAddress: em,
         phoneNumber: "",
-        businessType: "newsletter",
-        annualFabricVolume: "",
-        primaryMarkets: "",
-        fabricTypesOfInterest: [],
-        specificationsRequirements: "",
-        timeline: "",
-        additionalMessage: "Subscribed from footer newsletter",
-      }).unwrap();
+        accountName: office?.name || office?.legalName || "Newsletter Subscription",
+        addressStreet: "",
+        addressCity: "",
+        addressState: "",
+        addressCountry: "",
+        addressPostalCode: "",
+        opportunityAmountCurrency: "USD",
+        opportunityAmount: null,
+        cBusinessType: ["newsletter"],
+        cFabricCategory: [],
+        description: "Subscribed to newsletter from website footer",
+      };
+
+      const apiUrl = 'https://espo.egport.com/api/v1/LeadCapture/a4624c9bb58b8b755e3d94f1a25fc9be';
+      
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload)
+      });
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`HTTP ${response.status}: ${response.statusText} - ${errorText}`);
+      }
 
       setNewsletterEmail("");
       toast.success("Subscribed! 🎉 We’ll keep you updated.");
     } catch (err) {
-      const msg =
-        err?.data?.message || err?.error || "Could not subscribe right now. Please try again.";
-      toast.error(msg);
+      console.error('Newsletter subscription error:', err);
+      let errorMessage = 'Could not subscribe right now. Please try again.';
+      
+      if (err?.message?.includes('404')) {
+        errorMessage = 'Subscription service not found. Please contact support.';
+      } else if (err?.message?.includes('500')) {
+        errorMessage = 'Server error. Please try again later.';
+      } else if (err?.message) {
+        errorMessage = err.message;
+      }
+      
+      toast.error(errorMessage);
+    } finally {
+      setIsSubscribing(false);
     }
   };
 

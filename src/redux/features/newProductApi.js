@@ -122,7 +122,6 @@ export const newProductApi = apiSlice.injectEndpoints({
         return `/product?limit=150`;
       },
       transformResponse: (res, meta, slug) => {
-
         // Handle the new API response structure and find product by slug
         let products = [];
         if (res?.success && res?.data && Array.isArray(res.data)) {

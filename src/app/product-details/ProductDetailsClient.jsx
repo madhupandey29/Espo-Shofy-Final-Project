@@ -30,7 +30,6 @@ function mapBackendProductToFrontend(p) {
   const mappedProduct = {
     _id: p.id || p._id,
     slug: p.productslug || p.slug,
-    title: p.productTitle || p.shortProductDescription || p.name || p.title,
     name: p.name,
     productTitle: p.productTitle,
     productTagline: p.productTagline,

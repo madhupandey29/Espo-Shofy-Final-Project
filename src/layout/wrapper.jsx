@@ -46,7 +46,7 @@ const Wrapper = ({ children }) => {
       {children}
       <BackToTopCom />
       <FloatingButtons />
-      <ToastContainer position="top-right" autoClose={3000} />
+      <ToastContainer position="bottom-center" autoClose={3000} />
       {productItem && <ProductModal />}
     </div>
   );

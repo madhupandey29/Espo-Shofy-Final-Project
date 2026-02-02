@@ -15,6 +15,11 @@ const LazyFloatingButtons = dynamic(() => import('@/components/common/FloatingBu
   loading: () => null
 });
 
+const LazyFloatingChatbot = dynamic(() => import('@/components/chatbot/FloatingChatbot'), {
+  ssr: false,
+  loading: () => null
+});
+
 // Optimize Google Fonts with next/font (self-hosted, no render blocking)
 // Reduced font weights for better performance (only keep commonly used weights)
 const inter = Inter({
@@ -231,7 +236,11 @@ export default async function RootLayout({ children }) {
         )}
 
         <ErrorBoundary>
-          <Providers>{children}</Providers>
+          <Providers>
+            {children}
+            {/* Move chatbot inside Providers so it has access to Redux */}
+            <LazyFloatingChatbot />
+          </Providers>
         </ErrorBoundary>
 
         {/* Non-critical components loaded after main content */}

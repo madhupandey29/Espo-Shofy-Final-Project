@@ -1,9 +1,11 @@
 'use client';
-import React from 'react';
+import React, { useState } from 'react';
 
 const ContactMap = () => {
+  const [mapError, setMapError] = useState(false);
+  
   const gmapSrc =
-    'https://www.google.com/maps?q=4TH+FLOOR,+Safal+Prelude,+404,+Corporate+Rd,+near+YMCA+CLUB,+Prahlad+Nagar,+Ahmedabad,+Gujarat+380015&output=embed';
+    'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3671.7267!2d72.5198!3d23.0225!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMjPCsDAxJzIxLjAiTiA3MsKwMzEnMTEuMyJF!5e0!3m2!1sen!2sin!4v1234567890123!5m2!1sen!2sin';
 
   const directionsLink =
     'https://www.google.com/maps/dir/?api=1&destination=4TH+FLOOR,+Safal+Prelude,+404,+Corporate+Rd,+near+YMCA+CLUB,+Prahlad+Nagar,+Ahmedabad,+Gujarat+380015';
@@ -11,21 +13,43 @@ const ContactMap = () => {
   const viewLink =
     'https://www.google.com/maps/place/4TH+FLOOR,+Safal+Prelude,+404,+Corporate+Rd,+near+YMCA+CLUB,+Prahlad+Nagar,+Ahmedabad,+Gujarat+380015';
 
+  const handleMapError = () => {
+    setMapError(true);
+  };
+
   return (
     <section className="map-block">
       <div className="wrap">
         {/* Map */}
         <div className="frame" role="region" aria-label="Office location on Google Maps">
-          <iframe
-            src={gmapSrc}
-            width="100%"
-            height="100%"
-            style={{ border: 0 }}
-            loading="lazy"
-            allowFullScreen
-            referrerPolicy="no-referrer-when-downgrade"
-            title="Amrita Global – Safal Prelude"
-          />
+          {!mapError ? (
+            <iframe
+              src={gmapSrc}
+              width="100%"
+              height="100%"
+              style={{ border: 0 }}
+              loading="lazy"
+              allowFullScreen
+              referrerPolicy="no-referrer-when-downgrade"
+              title="Amrita Global – Safal Prelude"
+              onError={handleMapError}
+            />
+          ) : (
+            <div className="map-fallback">
+              <div className="fallback-content">
+                <h4>Map Temporarily Unavailable</h4>
+                <p>We're experiencing technical difficulties with the map display.</p>
+                <div className="fallback-links">
+                  <a href={viewLink} target="_blank" rel="noopener noreferrer" className="fallback-btn">
+                    View on Google Maps
+                  </a>
+                  <a href={directionsLink} target="_blank" rel="noopener noreferrer" className="fallback-btn">
+                    Get Directions
+                  </a>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Info-window style card */}
@@ -65,6 +89,58 @@ const ContactMap = () => {
           overflow: hidden;
           background: #fff;
           box-shadow: 0 10px 30px rgba(15, 34, 53, 0.12);
+        }
+
+        /* Map fallback styles */
+        .map-fallback {
+          width: 100%;
+          height: 100%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+          border: 2px dashed #cbd5e1;
+        }
+        
+        .fallback-content {
+          text-align: center;
+          padding: 40px 20px;
+        }
+        
+        .fallback-content h4 {
+          color: #475569;
+          font-size: 18px;
+          font-weight: 600;
+          margin: 0 0 8px;
+        }
+        
+        .fallback-content p {
+          color: #64748b;
+          font-size: 14px;
+          margin: 0 0 20px;
+        }
+        
+        .fallback-links {
+          display: flex;
+          gap: 12px;
+          justify-content: center;
+          flex-wrap: wrap;
+        }
+        
+        .fallback-btn {
+          background: #2C4C97;
+          color: white;
+          padding: 10px 16px;
+          border-radius: 6px;
+          text-decoration: none;
+          font-size: 13px;
+          font-weight: 500;
+          transition: all 0.2s ease;
+        }
+        
+        .fallback-btn:hover {
+          background: #1f3f80;
+          transform: translateY(-1px);
         }
 
         /* --- Info window (Google style) --- */
@@ -118,6 +194,10 @@ const ContactMap = () => {
             top: 16px;
             left: 16px;
             width: calc(100% - 32px);
+          }
+          .fallback-links {
+            flex-direction: column;
+            align-items: center;
           }
         }
         @media (max-width: 480px) {

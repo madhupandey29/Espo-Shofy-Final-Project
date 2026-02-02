@@ -8,6 +8,8 @@ const withBundleAnalyzer = require('@next/bundle-analyzer')({
 const getSecurityHeaders = () => {
   const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
   const apiDomain = new URL(apiBaseUrl).origin;
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+  const siteDomain = siteUrl ? new URL(siteUrl).origin : '';
   
   return [
     {
@@ -38,16 +40,16 @@ const getSecurityHeaders = () => {
       key: 'Content-Security-Policy',
       value: [
         "default-src 'self'",
-        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com https://www.clarity.ms https://accounts.google.com https://vercel.live https://*.vercel.app https://vercel.com",
-        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-        "font-src 'self' https://fonts.gstatic.com data:",
-        "img-src 'self' data: blob: https://res.cloudinary.com https://i.ibb.co https://lh3.googleusercontent.com https://img.youtube.com  https://amritafashions.com https://test.amrita-fashions.com",
+        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com https://www.clarity.ms https://accounts.google.com https://vercel.live https://*.vercel.app https://vercel.com https://maps.googleapis.com https://maps.gstatic.com" + (siteDomain ? ` ${siteDomain}` : ''),
+        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://maps.googleapis.com",
+        "font-src 'self' https://fonts.gstatic.com https://maps.gstatic.com data:",
+        "img-src 'self' data: blob: https://res.cloudinary.com https://i.ibb.co https://lh3.googleusercontent.com https://img.youtube.com https://amritafashions.com https://test.amrita-fashions.com https://maps.googleapis.com https://maps.gstatic.com https://*.googleapis.com https://*.gstatic.com",
         "media-src 'self' data: blob:",
-        `connect-src 'self' ${apiDomain} https://www.google-analytics.com https://vitals.vercel-insights.com https://www.clarity.ms https://scripts.clarity.ms https://accounts.google.com https://www.youtube-nocookie.com`,
-        "frame-src 'self' https://www.youtube.com https://youtube.com https://www.youtube-nocookie.com https://accounts.google.com",
+        `connect-src 'self' ${apiDomain} https://www.google-analytics.com https://vitals.vercel-insights.com https://www.clarity.ms https://scripts.clarity.ms https://accounts.google.com https://www.youtube-nocookie.com https://maps.googleapis.com https://espo.egport.com` + (siteDomain ? ` ${siteDomain}` : ''),
+        "frame-src 'self' https://www.youtube.com https://youtube.com https://www.youtube-nocookie.com https://accounts.google.com https://www.google.com https://maps.google.com",
         "object-src 'none'",
         "base-uri 'self'",
-        "form-action 'self'",
+        "form-action 'self' https://espo.egport.com",
         "frame-ancestors 'self'",
         "upgrade-insecure-requests",
         "report-uri /api/csp-report"
@@ -91,6 +93,24 @@ const nextConfig = {
           {
             key: 'Content-Type',
             value: 'text/css',
+          },
+        ],
+      },
+      {
+        source: '/_next/static/css/:path*',
+        headers: [
+          {
+            key: 'Content-Type',
+            value: 'text/css',
+          },
+        ],
+      },
+      {
+        source: '/_next/static/js/:path*',
+        headers: [
+          {
+            key: 'Content-Type',
+            value: 'application/javascript',
           },
         ],
       },

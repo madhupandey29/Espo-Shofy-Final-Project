@@ -3,8 +3,8 @@ import { SitemapManager } from '@/utils/sitemap-manager';
 import { logSitemapStats, validateSitemapData } from '@/utils/sitemap-utils';
 
 export default async function sitemap() {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL;
-  const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://amrita-fashions.com';
+  const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://espobackend.vercel.app/api';
   
   try {
     // Initialize sitemap manager
@@ -20,6 +20,8 @@ export default async function sitemap() {
     return allPages;
     
   } catch (error) {
+    console.error('Sitemap generation error:', error);
+    
     // Fallback to basic static pages (only active routes)
     const fallbackPages = [
       {
@@ -33,6 +35,12 @@ export default async function sitemap() {
         lastModified: new Date(),
         changeFrequency: 'daily',
         priority: 0.9,
+      },
+      {
+        url: `${baseUrl}/capabilities`,
+        lastModified: new Date(),
+        changeFrequency: 'monthly',
+        priority: 0.8,
       },
       {
         url: `${baseUrl}/blog`,

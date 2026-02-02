@@ -5,8 +5,11 @@
 
 export class SitemapManager {
   constructor(baseUrl, apiBaseUrl) {
-    this.baseUrl = baseUrl || process.env.NEXT_PUBLIC_SITE_URL;
-    this.apiBaseUrl = apiBaseUrl || process.env.NEXT_PUBLIC_API_BASE_URL;
+    this.baseUrl = baseUrl || process.env.NEXT_PUBLIC_SITE_URL || 'https://amrita-fashions.com';
+    this.apiBaseUrl = apiBaseUrl || process.env.NEXT_PUBLIC_API_BASE_URL || 'https://espobackend.vercel.app/api';
+    
+    // Ensure baseUrl doesn't end with slash
+    this.baseUrl = this.baseUrl.replace(/\/$/, '');
   }
 
   /**
@@ -18,6 +21,7 @@ export class SitemapManager {
     const staticRoutes = [
       { path: '/', priority: 1.0, changeFreq: 'daily' },
       { path: '/fabric', priority: 0.9, changeFreq: 'daily' }, // Main shop page
+      { path: '/capabilities', priority: 0.8, changeFreq: 'monthly' }, // Capabilities page
       { path: '/blog', priority: 0.8, changeFreq: 'weekly' }, // Main blog page
       { path: '/contact', priority: 0.7, changeFreq: 'monthly' },
       { path: '/about', priority: 0.6, changeFreq: 'monthly' },
@@ -227,7 +231,7 @@ export class SitemapManager {
    */
   isStaticPage(url) {
     const path = url.replace(this.baseUrl, '');
-    const staticPaths = ['/', '/fabric', '/blog', '/contact', '/about'];
+    const staticPaths = ['/', '/fabric', '/capabilities', '/blog', '/contact', '/about'];
     
     return staticPaths.includes(path) || 
            path.startsWith('/fabric-') || 

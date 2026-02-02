@@ -14,11 +14,19 @@ const CTA = { href: '/fabric', label: 'Discover Now' };
 
 export default function FashionBanner() {
   const [videoLoaded, setVideoLoaded] = useState(false);
+  const [videoError, setVideoError] = useState(false);
 
   useEffect(() => {
     const t = setTimeout(() => setVideoLoaded(true), 400);
     return () => clearTimeout(t);
   }, []);
+
+  const handleVideoError = (e) => {
+    console.warn('Video failed to load:', e);
+    setVideoError(true);
+    // Hide video element on error
+    e.currentTarget.style.display = 'none';
+  };
 
   return (
     <section className="fashion-hero" role="banner" aria-label="Hero Banner">
@@ -31,19 +39,14 @@ export default function FashionBanner() {
           loop
           playsInline
           controls={false}
-          preload="auto"
-          onLoadedData={() => {
-            setVideoLoaded(true);
-          }}
-          onCanPlay={() => {
-            setVideoLoaded(true);
-          }}
-          onError={(e) => {
-            // hide video, fallback will show
-            e.currentTarget.style.display = 'none';
-          }}
+          preload="metadata"
+          onLoadedData={() => setVideoLoaded(true)}
+          onCanPlay={() => setVideoLoaded(true)}
+          onError={handleVideoError}
+          style={{ display: videoError ? 'none' : 'block' }}
         >
           <source src={HERO_VIDEO} type="video/mp4" />
+          Your browser does not support the video tag.
         </video>
 
         <div className="bg-overlay primary-overlay" />

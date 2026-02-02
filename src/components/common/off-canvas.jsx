@@ -64,6 +64,7 @@ const OffCanvas = ({ isOffCanvasOpen, setIsCanvasOpen = () => {} }) => {
   // Enhanced menu items with capabilities dropdown
   const mainMenuItems = [
     { title: "Home", link: "/" },
+    { title: "About", link: "/about" },
     { 
       title: "Capabilities", 
       link: "/capabilities",
