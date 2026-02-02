@@ -5,24 +5,41 @@ import React, { useState, useRef } from 'react';
 const DEFAULT_STORAGE_KEY = 'fabricpro_contact_form';
 
 function mapToBackend(f) {
+  // More robust phone number cleaning and formatting
+  let formattedPhone = '';
+  if (f.phone && f.phone.trim()) {
+    // Remove all non-digit characters except +
+    let cleanPhone = f.phone.replace(/[^\d+]/g, '');
+    
+    // Handle different phone formats
+    if (cleanPhone.length >= 7) {
+      // If it doesn't start with +, add country code
+      if (!cleanPhone.startsWith('+')) {
+        // Default to +1 for US/Canada, adjust as needed
+        cleanPhone = '+1' + cleanPhone;
+      }
+      formattedPhone = cleanPhone;
+    }
+  }
+
   return {
-    salutationName: f.salutation,
-    firstName: f.firstName,
-    lastName: f.lastName,
-    middleName: f.middleName,
-    emailAddress: f.email,
-    phoneNumber: f.phone,
-    accountName: f.companyName,
-    addressStreet: f.addressStreet,
-    addressCity: f.addressCity,
-    addressState: f.addressState,
-    addressCountry: f.addressCountry,
-    addressPostalCode: f.addressPostalCode,
-    opportunityAmountCurrency: f.opportunityAmountCurrency,
+    salutationName: f.salutation || '',
+    firstName: f.firstName?.trim() || '',
+    lastName: f.lastName?.trim() || '',
+    middleName: f.middleName?.trim() || '',
+    emailAddress: f.email?.trim().toLowerCase() || '',
+    phoneNumber: formattedPhone,
+    accountName: f.companyName?.trim() || '',
+    addressStreet: f.addressStreet?.trim() || '',
+    addressCity: f.addressCity?.trim() || '',
+    addressState: f.addressState?.trim() || '',
+    addressCountry: f.addressCountry?.trim() || '',
+    addressPostalCode: f.addressPostalCode?.trim() || '',
+    opportunityAmountCurrency: f.opportunityAmountCurrency || 'USD',
     opportunityAmount: f.opportunityAmount ? parseFloat(f.opportunityAmount) : null,
     cBusinessType: f.businessType ? [f.businessType] : [],
     cFabricCategory: f.fabricCategory ? [f.fabricCategory] : [],
-    description: f.description,
+    description: f.description?.trim() || '',
   };
 }
 
@@ -119,9 +136,14 @@ export default function ContactForm({ onSuccess, storageKey = DEFAULT_STORAGE_KE
       errors.email = 'Please enter a valid email address';
     }
     
-    // Basic phone validation if provided
-    if (formData.phone && !/^[\+]?[1-9][\d]{0,15}$/.test(formData.phone.replace(/[\s\-\(\)]/g, ''))) {
-      errors.phone = 'Please enter a valid phone number';
+    // Basic phone validation if provided - more lenient
+    if (formData.phone && formData.phone.trim()) {
+      const cleanPhone = formData.phone.replace(/[\s\-\(\)\+]/g, '');
+      if (!/^\d{7,15}$/.test(cleanPhone)) {
+        errors.phone = 'Please enter a valid phone number (7-15 digits)';
+      } else if (cleanPhone.length < 10) {
+        errors.phone = 'Phone number should be at least 10 digits';
+      }
     }
     
     return errors;
@@ -188,24 +210,67 @@ export default function ContactForm({ onSuccess, storageKey = DEFAULT_STORAGE_KE
     try {
       // Submit to the new EspoCRM API endpoint (full URL)
       const payload = mapToBackend(formData);
+      
+      // Debug logging - remove in production
+      console.log('Form data being sent:', payload);
+      console.log('Original form data:', formData);
+      
       const apiUrl = 'https://espo.egport.com/api/v1/LeadCapture/a4624c9bb58b8b755e3d94f1a25fc9be';
       
       const response = await fetch(apiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'User-Agent': navigator.userAgent || 'Unknown',
         },
         body: JSON.stringify(payload),
-        mode: 'cors', // Explicitly set CORS mode
-        credentials: 'omit' // Don't send credentials for external API
+        mode: 'cors',
+        credentials: 'omit'
       });
+      
+      console.log('Response status:', response.status);
+      console.log('Response headers:', Object.fromEntries(response.headers.entries()));
       
       if (!response.ok) {
         const errorText = await response.text();
+        console.error('API Error Response:', errorText);
+        
+        let errorData;
+        try {
+          errorData = JSON.parse(errorText);
+        } catch {
+          errorData = { message: errorText };
+        }
+        
+        // Handle specific validation errors
+        if (response.status === 400 && errorData?.messageTranslation?.data?.field) {
+          const field = errorData.messageTranslation.data.field;
+          const fieldMap = {
+            'phoneNumber': 'phone',
+            'emailAddress': 'email',
+            'firstName': 'firstName',
+            'lastName': 'lastName'
+          };
+          
+          console.error('Field validation error:', field, errorData);
+          
+          if (fieldMap[field]) {
+            setValidationErrors({
+              [fieldMap[field]]: `Please check your ${fieldMap[field].replace(/([A-Z])/g, ' $1').toLowerCase()}`
+            });
+            setShake(true);
+            setTimeout(() => setShake(false), 500);
+            return;
+          }
+        }
+        
         throw new Error(`HTTP ${response.status}: ${response.statusText} - ${errorText}`);
       }
       
       const result = await response.json();
+      console.log('Success response:', result);
+      
       resetAll();
       setShowSuccess(true);
       setTimeout(() => {
@@ -213,6 +278,9 @@ export default function ContactForm({ onSuccess, storageKey = DEFAULT_STORAGE_KE
         onSuccess?.();
       }, 2000);
     } catch (err) {
+      console.error('Full error details:', err);
+      console.error('Error stack:', err.stack);
+      
       // Show user-friendly error message
       let errorMessage = 'Failed to submit form. Please try again.';
       
@@ -220,14 +288,15 @@ export default function ContactForm({ onSuccess, storageKey = DEFAULT_STORAGE_KE
         errorMessage = 'Submission endpoint not found. Please contact support.';
       } else if (err?.message?.includes('500')) {
         errorMessage = 'Server error. Please try again later.';
-      } else if (err?.message?.includes('CORS') || err?.message?.includes('fetch')) {
+      } else if (err?.message?.includes('CORS') || err?.message?.includes('fetch') || err?.message?.includes('NetworkError')) {
         errorMessage = 'Network error. Please check your connection and try again.';
+      } else if (err?.message?.includes('400')) {
+        errorMessage = 'Please check your information and try again.';
       } else if (err?.message) {
         errorMessage = err.message;
       }
       
       alert(errorMessage);
-      console.error('Form submission error:', err);
     } finally {
       setIsSubmitting(false);
     }

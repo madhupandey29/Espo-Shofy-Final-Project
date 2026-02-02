@@ -5,7 +5,7 @@ const ContactMap = () => {
   const [mapError, setMapError] = useState(false);
   
   const gmapSrc =
-    'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3671.7267!2d72.5198!3d23.0225!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMjPCsDAxJzIxLjAiTiA3MsKwMzEnMTEuMyJF!5e0!3m2!1sen!2sin!4v1234567890123!5m2!1sen!2sin';
+    'https://maps.google.com/maps?width=100%25&height=600&hl=en&q=Safal%20Prelude,%20404,%204th%20Floor,%20Corporate%20Road,%20Prahlad%20Nagar,%20Ahmedabad,%20Gujarat%20380015&t=&z=14&ie=UTF8&iwloc=B&output=embed';
 
   const directionsLink =
     'https://www.google.com/maps/dir/?api=1&destination=4TH+FLOOR,+Safal+Prelude,+404,+Corporate+Rd,+near+YMCA+CLUB,+Prahlad+Nagar,+Ahmedabad,+Gujarat+380015';
@@ -75,7 +75,7 @@ const ContactMap = () => {
       <style jsx>{`
         .map-block {
           padding: 24px 0 80px;
-          background: #f7f9fc; /* light page bg so it contrasts with the footer */
+          background: #f7f9fc;
         }
         .wrap {
           max-width: 1160px;
@@ -84,11 +84,29 @@ const ContactMap = () => {
           position: relative;
         }
         .frame {
-          height: 420px;
+          height: 450px;
           border-radius: 12px;
           overflow: hidden;
           background: #fff;
           box-shadow: 0 10px 30px rgba(15, 34, 53, 0.12);
+          position: relative;
+          display: block;
+        }
+
+        .frame iframe {
+          width: 100% !important;
+          height: 100% !important;
+          display: block;
+          margin: 0;
+          padding: 0;
+          border: none;
+          vertical-align: top;
+        }
+
+        /* Reset any potential iframe styling */
+        .frame iframe {
+          min-height: 450px;
+          max-height: 450px;
         }
 
         /* Map fallback styles */
@@ -143,70 +161,98 @@ const ContactMap = () => {
           transform: translateY(-1px);
         }
 
-        /* --- Info window (Google style) --- */
+        /* Info window (Google style) - Fixed positioning and visibility */
         .info-window {
           position: absolute;
-          top: 24px;
-          left: 40px;
-          width: 320px;
+          top: 20px;
+          left: 20px;
+          width: 300px;
           background: #fff;
           border: 1px solid rgba(0, 0, 0, 0.2);
-          border-radius: 6px;
-          box-shadow:
-            0 2px 6px rgba(0, 0, 0, 0.15),
-            0 1px 0 rgba(255, 255, 255, 0.6) inset;
-          padding: 10px 12px;
-          color: #202124; /* google-ish neutral */
-          font-family: Roboto, Arial, sans-serif;
+          border-radius: 8px;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+          padding: 14px 16px;
+          color: #202124;
+          font-family: 'Inter', Roboto, Arial, sans-serif;
+          z-index: 10;
+          max-height: calc(100% - 40px);
+          overflow: visible;
         }
+        
         .iw-title {
-          margin: 0 0 6px;
-          font-size: 15px;
+          margin: 0 0 8px;
+          font-size: 16px;
           font-weight: 700;
           color: #202124;
-          line-height: 1.2;
+          line-height: 1.3;
         }
+        
         .iw-address {
-          margin: 0 0 10px;
+          margin: 0 0 12px;
           font-size: 13px;
-          line-height: 1.45;
-          color: #5f6368; /* grey text like maps */
+          line-height: 1.5;
+          color: #5f6368;
         }
+        
         .iw-links {
           display: flex;
-          gap: 14px;
+          gap: 16px;
           align-items: center;
           flex-wrap: wrap;
         }
+        
         .iw-link {
-          font-size: 13px;
-          color: #1a73e8; /* google blue */
+          font-size: 14px;
+          color: #1a73e8;
           text-decoration: none;
+          font-weight: 500;
+          padding: 2px 0;
+          transition: all 0.2s ease;
         }
+        
         .iw-link:hover {
+          color: #1557b0;
           text-decoration: underline;
         }
 
-        /* responsive */
+        /* Responsive Design */
         @media (max-width: 768px) {
-          .frame { height: 360px; }
+          .frame { 
+            height: 380px; 
+          }
+          .frame iframe {
+            min-height: 380px;
+            max-height: 380px;
+          }
           .info-window {
             top: 16px;
             left: 16px;
-            width: calc(100% - 32px);
+            right: 16px;
+            width: auto;
+            max-width: calc(100% - 32px);
           }
           .fallback-links {
             flex-direction: column;
             align-items: center;
           }
         }
+        
         @media (max-width: 480px) {
-          .frame { height: 320px; }
+          .frame { 
+            height: 320px; 
+          }
+          .frame iframe {
+            min-height: 320px;
+            max-height: 320px;
+          }
           .info-window {
             position: relative;
-            top: auto; left: auto;
+            top: auto; 
+            left: auto;
+            right: auto;
             width: 100%;
-            margin-top: 12px;
+            margin-top: 16px;
+            max-width: none;
           }
         }
       `}</style>

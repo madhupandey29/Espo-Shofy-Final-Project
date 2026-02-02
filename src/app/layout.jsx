@@ -42,6 +42,11 @@ const poppins = Poppins({
 export const metadata = {
   title: 'Shofy - Next.js E-commerce',
   description: 'Modern e-commerce platform built with Next.js',
+  other: {
+    'mobile-web-app-capable': 'yes',
+    'apple-mobile-web-app-capable': 'yes',
+    'apple-mobile-web-app-status-bar-style': 'default',
+  },
 };
 
 export default async function RootLayout({ children }) {

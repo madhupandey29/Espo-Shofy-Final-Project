@@ -92,7 +92,7 @@ const nextConfig = {
         headers: [
           {
             key: 'Content-Type',
-            value: 'text/css',
+            value: 'text/css; charset=utf-8',
           },
         ],
       },
@@ -101,7 +101,7 @@ const nextConfig = {
         headers: [
           {
             key: 'Content-Type',
-            value: 'text/css',
+            value: 'text/css; charset=utf-8',
           },
         ],
       },
@@ -110,7 +110,7 @@ const nextConfig = {
         headers: [
           {
             key: 'Content-Type',
-            value: 'application/javascript',
+            value: 'application/javascript; charset=utf-8',
           },
         ],
       },
@@ -146,7 +146,7 @@ const nextConfig = {
   // ✅ suppress React warnings during build
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production' ? {
-      exclude: ['error']
+      exclude: ['error', 'warn']
     } : false,
   },
 
