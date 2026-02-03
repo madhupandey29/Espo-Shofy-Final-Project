@@ -181,48 +181,84 @@ const SitemapPageClient = () => {
     if (url === '/' || url.endsWith('/')) return 'home';
     if (url.includes('/about')) return 'about';
     if (url.includes('/contact')) return 'contact';
+    if (url.includes('/capabilities')) return 'capabilities';
     if (url.includes('/fabric/') || url.includes('/product/')) return 'products';
     if (url.includes('/blog')) return 'blog';
-    if (url.includes('/fabric')) return 'fabric';
-    if (url.includes('/cart') || url.includes('/wishlist') || url.includes('/checkout')) return 'fabric';
-    if (url.includes('/login') || url.includes('/register') || url.includes('/profile')) return 'account';
-    return 'fabric';
+    if (url.includes('/cart') || url.includes('/wishlist') || url.includes('/checkout')) return 'products';
+    return 'products';
   };
 
   const organizePagesBySection = (pages) => {
     const sections = {
       home: {
         title: 'Home',
-        pages: []
+        pages: [],
+        mainUrl: '/'
       },
       about: {
         title: 'About',
-        pages: []
+        pages: [],
+        mainUrl: '/about'
       },
       contact: {
         title: 'Contact',
-        pages: []
+        pages: [],
+        mainUrl: '/contact'
       },
-      fabric: {
-        title: 'Fabric Collection',
-        pages: []
-      },
-      blog: {
-        title: 'Blog',
-        pages: []
+      capabilities: {
+        title: 'Capabilities',
+        pages: [],
+        mainUrl: '/capabilities'
       },
       products: {
         title: 'Products',
-        pages: []
+        pages: [],
+        mainUrl: '/fabric'
       },
-      account: {
-        title: 'Account',
-        pages: []
+      blog: {
+        title: 'Blog',
+        pages: [],
+        mainUrl: '/blog'
       }
     };
 
+    // Track URLs to avoid duplicates
+    const seenUrls = new Set();
+
     pages.forEach(page => {
       const category = getPageCategory(page.url);
+      const cleanUrl = page.url.replace(process.env.NEXT_PUBLIC_SITE_URL || '', '') || '/';
+      const pageTitle = page.title || getPageTitle(page.url);
+      
+      // Skip duplicates
+      if (seenUrls.has(cleanUrl)) {
+        return;
+      }
+      seenUrls.add(cleanUrl);
+      
+      // Skip main section URLs - they will be shown as section headers only
+      const mainUrls = ['/', '/about', '/contact', '/capabilities', '/fabric', '/blog'];
+      if (mainUrls.includes(cleanUrl)) {
+        return;
+      }
+      
+      // Skip entries that have the same title as their section (duplicates)
+      if (category === 'about' && (pageTitle === 'About' || pageTitle === 'About Us')) {
+        return;
+      }
+      if (category === 'contact' && (pageTitle === 'Contact' || pageTitle === 'Contact Us')) {
+        return;
+      }
+      if (category === 'capabilities' && (pageTitle === 'Capabilities' || pageTitle === 'Our Capabilities')) {
+        return;
+      }
+      if (category === 'products' && (pageTitle === 'Fabric' || pageTitle === 'Fabric Collection')) {
+        return;
+      }
+      if (category === 'blog' && (pageTitle === 'Blog')) {
+        return;
+      }
+      
       if (sections[category]) {
         sections[category].pages.push(page);
       }
@@ -236,10 +272,9 @@ const SitemapPageClient = () => {
       home: '/',
       about: '/about',
       contact: '/contact',
-      fabric: '/fabric',
+      capabilities: '/capabilities',
       products: '/fabric',
-      blog: '/blog',
-      account: '/login'
+      blog: '/blog'
     };
     return sectionUrls[sectionKey] || '/';
   };
@@ -264,11 +299,13 @@ const SitemapPageClient = () => {
     
     if (path.includes('/fabric/')) {
       const slug = path.split('/fabric/')[1];
+      // Remove "Fabric/" prefix and format the title
       return slug.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
     }
     
     if (path.includes('/blog-details/')) {
       const slug = path.split('/blog-details/')[1];
+      // Remove "Blog Details/" prefix and format the title
       return slug.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
     }
     
@@ -329,54 +366,77 @@ const SitemapPageClient = () => {
             {Object.entries(organizedSections).map(([sectionKey, section]) => {
               const filteredPages = section.pages || [];
               
-              if (filteredPages.length === 0) return null;
-              
+              // Always show section even if no sub-pages
               return (
                 <div key={sectionKey} className={styles.sitemapColumn}>
                   <Link 
-                    href={getSectionMainUrl(sectionKey)} 
+                    href={section.mainUrl || getSectionMainUrl(sectionKey)} 
                     className={styles.columnTitleLink}
                   >
                     <h3 className={styles.columnTitle}>{section.title}</h3>
                   </Link>
-                  <ul className={styles.linksList}>
-                    {sectionKey === 'products' ? (
-                      <>
-                        {filteredPages.slice(0, showAllProducts ? filteredPages.length : 5).map((page, index) => (
+                  {filteredPages.length > 0 && (
+                    <ul className={styles.linksList}>
+                      {sectionKey === 'products' ? (
+                        <>
+                          {filteredPages.slice(0, showAllProducts ? filteredPages.length : 5).map((page, index) => (
+                            <li key={index} className={styles.linkItem}>
+                              <Link
+                                href={page.url.replace(process.env.NEXT_PUBLIC_SITE_URL, '') || '/'}
+                                className={styles.sitemapLink}
+                              >
+                                {(() => {
+                                  let title = page.title || getPageTitle(page.url);
+                                  // Remove "Fabric/" prefix from product titles
+                                  if (title.startsWith('Fabric/')) {
+                                    title = title.replace('Fabric/', '');
+                                  }
+                                  // Remove "Blog Details/" prefix from blog titles
+                                  if (title.startsWith('Blog Details/')) {
+                                    title = title.replace('Blog Details/', '');
+                                  }
+                                  return title;
+                                })()}
+                              </Link>
+                            </li>
+                          ))}
+                          {filteredPages.length > 5 && (
+                            <li className={styles.linkItem}>
+                              <button 
+                                onClick={() => setShowAllProducts(!showAllProducts)}
+                                className={styles.showMoreBtn}
+                              >
+                                {showAllProducts ? 'Show Less' : `Show More (${filteredPages.length - 5} more)`}
+                              </button>
+                            </li>
+                          )}
+                        </>
+                      ) : (
+                        // Show all links for all other sections including Blog
+                        filteredPages.map((page, index) => (
                           <li key={index} className={styles.linkItem}>
                             <Link
                               href={page.url.replace(process.env.NEXT_PUBLIC_SITE_URL, '') || '/'}
                               className={styles.sitemapLink}
                             >
-                              {page.title || getPageTitle(page.url)}
+                              {(() => {
+                                let title = page.title || getPageTitle(page.url);
+                                // Remove "Fabric/" prefix from product titles
+                                if (title.startsWith('Fabric/')) {
+                                  title = title.replace('Fabric/', '');
+                                }
+                                // Remove "Blog Details/" prefix from blog titles
+                                if (title.startsWith('Blog Details/')) {
+                                  title = title.replace('Blog Details/', '');
+                                }
+                                return title;
+                              })()}
                             </Link>
                           </li>
-                        ))}
-                        {filteredPages.length > 5 && (
-                          <li className={styles.linkItem}>
-                            <button 
-                              onClick={() => setShowAllProducts(!showAllProducts)}
-                              className={styles.showMoreBtn}
-                            >
-                              {showAllProducts ? 'Show Less' : `Show More (${filteredPages.length - 5} more)`}
-                            </button>
-                          </li>
-                        )}
-                      </>
-                    ) : (
-                      // Show all links for all other sections including Blog
-                      filteredPages.map((page, index) => (
-                        <li key={index} className={styles.linkItem}>
-                          <Link
-                            href={page.url.replace(process.env.NEXT_PUBLIC_SITE_URL, '') || '/'}
-                            className={styles.sitemapLink}
-                          >
-                            {page.title || getPageTitle(page.url)}
-                          </Link>
-                        </li>
-                      ))
-                    )}
-                  </ul>
+                        ))
+                      )}
+                    </ul>
+                  )}
                 </div>
               );
             })}

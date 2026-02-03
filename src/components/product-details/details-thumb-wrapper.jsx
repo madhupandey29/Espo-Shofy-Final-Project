@@ -353,6 +353,57 @@ const DetailsThumbWrapper = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mainImageUrl, processedImageURLs]);
 
+  // Force video positioning after video becomes active - AGGRESSIVE APPROACH
+  useEffect(() => {
+    if (isVideoActive && currentVideoUrl) {
+      const forceVideoPosition = () => {
+        const videoElements = document.querySelectorAll('.pdw-main-inner video, .pdw-main-inner iframe');
+        videoElements.forEach(video => {
+          video.style.setProperty('position', 'absolute', 'important');
+          video.style.setProperty('top', '0', 'important');
+          video.style.setProperty('left', '0', 'important');
+          video.style.setProperty('width', '100%', 'important');
+          video.style.setProperty('height', '100%', 'important');
+          video.style.setProperty('object-fit', 'cover', 'important');
+          video.style.setProperty('object-position', 'center', 'important');
+          video.style.setProperty('z-index', '1', 'important');
+          video.style.setProperty('transform', 'none', 'important');
+        });
+      };
+
+      // Run immediately
+      forceVideoPosition();
+      
+      // Run after a short delay
+      const timer1 = setTimeout(forceVideoPosition, 100);
+      
+      // Run after a longer delay to catch any late-loading videos
+      const timer2 = setTimeout(forceVideoPosition, 500);
+      
+      // Run periodically to ensure positioning stays correct
+      const interval = setInterval(forceVideoPosition, 1000);
+      
+      // Add ResizeObserver to handle container size changes
+      let resizeObserver;
+      const container = document.querySelector('.pdw-main-inner');
+      if (container && typeof ResizeObserver !== 'undefined') {
+        resizeObserver = new ResizeObserver(() => {
+          forceVideoPosition();
+        });
+        resizeObserver.observe(container);
+      }
+      
+      return () => {
+        clearTimeout(timer1);
+        clearTimeout(timer2);
+        clearInterval(interval);
+        if (resizeObserver) {
+          resizeObserver.disconnect();
+        }
+      };
+    }
+  }, [isVideoActive, currentVideoUrl]);
+
   const onThumbClick = (item, index) => {
     setCurrentSlide(index);
     if (item.type === 'video') {
@@ -606,7 +657,17 @@ const DetailsThumbWrapper = ({
                   return embedUrl;
                 })()}
                 className="pdw-video"
-                style={{ width: '100%', height: '100%', border: 'none' }}
+                style={{ 
+                  position: 'absolute',
+                  top: '0',
+                  left: '0',
+                  width: '100%', 
+                  height: '100%', 
+                  border: 'none',
+                  borderRadius: '12px',
+                  objectFit: 'cover',
+                  zIndex: '1'
+                }}
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                 allowFullScreen
                 loading="lazy"
@@ -626,7 +687,16 @@ const DetailsThumbWrapper = ({
                 controls
                 autoPlay
                 className="pdw-video"
-                style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                style={{ 
+                  position: 'absolute',
+                  top: '0',
+                  left: '0',
+                  width: '100%', 
+                  height: '100%', 
+                  objectFit: 'cover',
+                  objectPosition: 'center',
+                  zIndex: '1'
+                }}
               />
             )
           ) : (
@@ -931,7 +1001,7 @@ const DetailsThumbWrapper = ({
           max-width: 600px;
           aspect-ratio: 1;
           border-radius: 16px; 
-          overflow: visible;
+          overflow: hidden;
           background: #fff; 
           border: 1px solid #e5e7eb;
           box-shadow: 0 10px 30px rgba(0,0,0,.08);
@@ -939,11 +1009,85 @@ const DetailsThumbWrapper = ({
           margin-bottom: 60px;
         }
         .pdw-main-inner { 
-          width: 100%; height: 100%; position: relative; display: grid; place-items: center;
-          transition: transform 0.2s ease; border-radius: 12px; overflow: hidden;
+          width: 100%; 
+          height: 100%; 
+          position: relative; 
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: transform 0.2s ease; 
+          border-radius: 12px; 
+          overflow: hidden;
+        }
+        
+        /* Ensure video elements fill the flex container properly */
+        .pdw-main-inner > * {
+          flex-shrink: 0;
+        }
+        
+        /* When video is active, ensure container is positioned for absolute children */
+        .pdw-main-inner:has(video),
+        .pdw-main-inner:has(iframe) {
+          position: relative !important;
         }
         .pdw-main-inner:hover { transform: scale(1.02); }
-        .pdw-video { background: #000; width: 100%; height: 100%; }
+        /* Force video positioning on all screen sizes with MAXIMUM SPECIFICITY */
+        body .pdw-wrapper .pdw-main .pdw-main-inner video,
+        body .pdw-wrapper .pdw-main .pdw-main-inner iframe,
+        .pdw-video { 
+          background: #000 !important; 
+          width: 100% !important; 
+          height: 100% !important; 
+          object-fit: cover !important;
+          object-position: center !important;
+          border-radius: 12px !important;
+          position: absolute !important;
+          top: 0 !important;
+          left: 0 !important;
+          right: 0 !important;
+          bottom: 0 !important;
+          z-index: 1 !important;
+          transform: none !important;
+        }
+        
+        /* Override global video height: auto rule with MAXIMUM SPECIFICITY */
+        body .pdw-wrapper .pdw-main .pdw-main-inner .pdw-video,
+        .pdw-main-inner .pdw-video {
+          height: 100% !important;
+          width: 100% !important;
+          position: absolute !important;
+          top: 0 !important;
+          left: 0 !important;
+        }
+        
+        /* Ensure iframe videos maintain their container size with MAXIMUM SPECIFICITY */
+        body .pdw-wrapper .pdw-main .pdw-main-inner iframe.pdw-video,
+        .pdw-main-inner iframe.pdw-video {
+          width: 100% !important;
+          height: 100% !important;
+          min-height: 100% !important;
+          position: absolute !important;
+          top: 0 !important;
+          left: 0 !important;
+          right: 0 !important;
+          bottom: 0 !important;
+        }
+        
+        /* Force video elements to fill container on all screen sizes */
+        body .pdw-wrapper .pdw-main .pdw-main-inner video,
+        body .pdw-wrapper .pdw-main .pdw-main-inner iframe,
+        .pdw-main-inner video,
+        .pdw-main-inner iframe {
+          position: absolute !important;
+          top: 0 !important;
+          left: 0 !important;
+          width: 100% !important;
+          height: 100% !important;
+          object-fit: cover !important;
+          object-position: center !important;
+          z-index: 1 !important;
+          transform: none !important;
+        }
 
         /* ✅ ensure Next/Image fills container */
         .pdw-main :global(.pdw-main-img) {
@@ -1011,6 +1155,20 @@ const DetailsThumbWrapper = ({
             transform: scale(1.02); 
             cursor: pointer;
           }
+          
+          /* Force video positioning on desktop */
+          .pdw-main-inner video,
+          .pdw-main-inner iframe {
+            position: absolute !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+            object-fit: cover !important;
+            object-position: center !important;
+            border-radius: 12px !important;
+          }
+          
           .pdw-main-inner::after {
             content: '🔍 Click to enlarge';
             position: absolute;
@@ -1040,16 +1198,15 @@ const DetailsThumbWrapper = ({
         .pdw-modal-overlay {
           position: fixed; top: 0; left: 0; right: 0; bottom: 0;
           background: rgba(0,0,0,.85); display: flex; align-items: center; justify-content: center;
-          z-index: 999999; padding: 100px 20px 60px 20px; cursor: pointer; /* Increased top padding for navbar */
+          z-index: 999999; padding: 20px; cursor: pointer;
         }
         .pdw-modal-content {
           position: relative; 
-          width: 90vw; height: calc(100vh - 160px); /* Adjust height to account for navbar */
+          width: 90vw; height: 80vh;
           max-width: 1200px; max-height: 800px;
           background: white; border-radius: 12px; overflow: hidden;
           box-shadow: 0 20px 60px rgba(0,0,0,.4); cursor: default;
           display: flex; align-items: center; justify-content: center;
-          margin-top: 0; /* Remove additional margin since padding handles it */
         }
         .pdw-modal-close {
           position: absolute; top: 15px; right: 15px; z-index: 1000000;
@@ -1100,10 +1257,14 @@ const DetailsThumbWrapper = ({
         }
 
         .pdw-modal-video {
-          width: 100%; height: 100%;
-          max-width: 100%; max-height: 100%;
+          width: 100%; 
+          height: 100%;
+          max-width: 100%; 
+          max-height: 100%;
           object-fit: contain;
+          object-position: center;
           border: none;
+          border-radius: 8px;
         }
 
         @media (max-width: 768px) {
@@ -1123,6 +1284,19 @@ const DetailsThumbWrapper = ({
             margin: 0 auto 80px auto;
             border-radius: 16px;
             box-shadow: 0 8px 25px rgba(0,0,0,.12);
+          }
+          
+          /* Force video positioning on mobile */
+          .pdw-main-inner video,
+          .pdw-main-inner iframe {
+            position: absolute !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+            object-fit: cover !important;
+            object-position: center !important;
+            border-radius: 16px !important;
           }
 
           .pdw-nav-arrow { 
@@ -1152,12 +1326,24 @@ const DetailsThumbWrapper = ({
             font-weight: 500;
           }
           
-          /* Hide modal completely on mobile */
-          .pdw-modal-overlay { display: none !important; }
+          /* Enable modal on mobile with proper sizing */
+          .pdw-modal-overlay { 
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            padding: 10px !important;
+          }
           
-          /* Remove pointer cursor on mobile since modal won't open */
-          .pdw-main-inner { cursor: default !important; }
-          .pdw-main-inner:hover { transform: none !important; }
+          .pdw-modal-content {
+            width: 95vw !important;
+            height: 70vh !important;
+            max-width: 600px !important;
+            max-height: 500px !important;
+          }
+          
+          /* Enable pointer cursor on mobile since modal will open */
+          .pdw-main-inner { cursor: pointer !important; }
+          .pdw-main-inner:hover { transform: scale(1.01) !important; }
         }
 
         @media (max-width: 480px) {
@@ -1167,6 +1353,20 @@ const DetailsThumbWrapper = ({
             margin-bottom: 75px;
             border-radius: 14px;
           }
+          
+          /* Force video positioning on very small screens */
+          .pdw-main-inner video,
+          .pdw-main-inner iframe {
+            position: absolute !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+            object-fit: cover !important;
+            object-position: center !important;
+            border-radius: 14px !important;
+          }
+          
           .pdw-nav-arrow { 
             width: 40px; 
             height: 40px; 

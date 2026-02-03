@@ -21,7 +21,7 @@
                 color: var(--tp-common-black);
                 padding: 23px 0;
             }
-			&.has-dropdown{
+			/* &.has-dropdown{
 				& > a{
                     position: relative;
                     &::after{
@@ -36,7 +36,7 @@
                         @extend %tp-transition;
                     }
                 }
-			}
+			} */
 			& > .tp-submenu{
                 position: absolute;
                 top: 120%;

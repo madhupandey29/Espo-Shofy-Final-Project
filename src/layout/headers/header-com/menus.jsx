@@ -4,11 +4,32 @@ import menu_data from "@/data/menu-data";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { 
+  FaIndustry, 
+  FaCogs, 
+  FaTools, 
+  FaFlask, 
+  FaAward, 
+  FaChevronDown,
+  FaRocket 
+} from 'react-icons/fa';
 
 const Menus = () => {
   const router = useRouter();
   const [openMegaMenu, setOpenMegaMenu] = useState(null);
   const menuTimeoutRef = useRef(null);
+
+  // Function to get icon component by name
+  const getIconComponent = (iconName) => {
+    const icons = {
+      FaIndustry,
+      FaCogs,
+      FaTools,
+      FaFlask,
+      FaAward
+    };
+    return icons[iconName] || FaIndustry;
+  };
 
   // Function to handle mega menu close
   const handleMenuClose = () => {
@@ -42,7 +63,7 @@ const Menus = () => {
     }
     
     // Force hide the dropdown with direct CSS
-    const megaMenuDropdown = document.querySelector('.capabilities-mega-grid-2x4.show');
+    const megaMenuDropdown = document.querySelector('.capabilities-mega-grid-compact.show');
     if (megaMenuDropdown) {
       megaMenuDropdown.classList.remove('show');
       megaMenuDropdown.style.opacity = '0';
@@ -51,7 +72,7 @@ const Menus = () => {
     }
     
     // Also try to find and hide any visible mega menu
-    const allMegaMenus = document.querySelectorAll('.capabilities-mega-grid-2x4');
+    const allMegaMenus = document.querySelectorAll('.capabilities-mega-grid-compact');
     allMegaMenus.forEach(menu => {
       menu.classList.remove('show');
       menu.style.opacity = '0';
@@ -193,9 +214,12 @@ const Menus = () => {
             onMouseEnter={() => handleMouseEnter(menu.id)}
             onMouseLeave={handleMouseLeave}
           >
-            <Link href={menu.link} onClick={(e) => handleCapabilityClick(menu.link, e)}>{menu.title}</Link>
+            <Link href={menu.link} onClick={(e) => handleCapabilityClick(menu.link, e)}>
+              {menu.title}
+              <FaChevronDown className="dropdown-icon" />
+            </Link>
             <div 
-              className={`capabilities-mega-grid-2x4 tp-submenu tp-mega-menu ${openMegaMenu === menu.id ? 'show' : ''}`}
+              className={`capabilities-mega-grid-compact tp-submenu tp-mega-menu ${openMegaMenu === menu.id ? 'show' : ''}`}
               onClick={(e) => {
                 // Only close if clicking on the container itself, not on links
                 if (e.target === e.currentTarget) {
@@ -203,49 +227,47 @@ const Menus = () => {
                 }
               }}
             >
-              {/* 2x3 Grid for 6 capability boxes */}
-              <div className="capabilities-boxes-2x3-grid">
-                {menu.capability_pages.map((capability, i) => (
-                  <div key={i} className="capability-square-box">
-                    <Link 
-                      href={capability.link} 
-                      className="capability-square-link"
-                      onClick={(e) => handleCapabilityClick(capability.link, e)}
-                    >
-                      <div className="capability-square-icon">
-                        <span className="capability-emoji">{capability.icon}</span>
-                      </div>
-                      <div className="capability-square-content">
-                        <h5 className="capability-square-title">{capability.title}</h5>
-                        <p className="capability-square-desc">{capability.description}</p>
-                      </div>
-                    </Link>
-                  </div>
-                ))}
+              {/* Header */}
+              <div className="capabilities-header">
+                <h4>Our Capabilities</h4>
               </div>
               
-              {/* View All Capabilities button column */}
-              <div className="capabilities-cta-column">
-                <div className="capabilities-cta-content">
-                  <div className="cta-icon">
-                    <span>🚀</span>
-                  </div>
-                  <h4 className="cta-title">Explore All Our Capabilities</h4>
-                  <p className="cta-description">
-                    Discover our complete range of manufacturing capabilities, 
-                    advanced technology, and quality processes.
-                  </p>
-                  <Link 
-                    href="/capabilities" 
-                    className="view-all-capabilities-btn"
-                    onClick={(e) => handleCapabilityClick('/capabilities', e)}
-                  >
-                    <span>View Capabilities</span>
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                      <path d="M6 12L10 8L6 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                  </Link>
+              {/* Main content */}
+              <div className="capabilities-content">
+                {/* Grid for capability items */}
+                <div className="capabilities-boxes-compact-grid">
+                  {menu.capability_pages.map((capability, i) => {
+                    const IconComponent = getIconComponent(capability.icon);
+                    return (
+                      <div key={i} className="capability-compact-box">
+                        <Link 
+                          href={capability.link} 
+                          className="capability-compact-link"
+                          onClick={(e) => handleCapabilityClick(capability.link, e)}
+                        >
+                          <div className="capability-compact-icon">
+                            <IconComponent />
+                          </div>
+                          <div className="capability-compact-content">
+                            <h5 className="capability-compact-title">{capability.title}</h5>
+                            <p className="capability-compact-desc">{capability.description}</p>
+                          </div>
+                        </Link>
+                      </div>
+                    );
+                  })}
                 </div>
+              </div>
+              
+              {/* Footer CTA */}
+              <div className="capabilities-footer-cta">
+                <Link 
+                  href="/capabilities" 
+                  className="view-all-compact-btn"
+                  onClick={(e) => handleCapabilityClick('/capabilities', e)}
+                >
+                  View All Capabilities
+                </Link>
               </div>
             </div>
           </li>

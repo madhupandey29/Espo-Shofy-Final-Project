@@ -63,28 +63,67 @@
 .capabilitiesHighlights {
   display: flex;
   align-items: center;
-  gap: 30px;
-  margin-bottom: 50px;
+  gap: 20px;
+  margin-bottom: 60px;
   animation: fadeInUp 1.2s ease-out 0.6s both;
+  flex-wrap: nowrap;
+  justify-content: flex-start;
 }
 
 .highlightItem {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
+  flex: 0 1 auto;
+  min-width: 120px;
+}
+
+.highlightItem div:last-child {
+  display: flex;
+  flex-direction: column;
+}
+
+.highlightItem strong {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--tp-text-1);
+  line-height: 1.1;
+  margin-bottom: 2px;
+}
+
+.highlightItem span {
+  font-size: 0.75rem;
+  color: var(--tp-text-2);
+  font-weight: 500;
+  line-height: 1.2;
 }
 
 .highlightIcon {
-  font-size: 2rem;
-  padding: 16px;
-  background: rgba(44, 76, 151, 0.1);
+  font-size: 1.2rem;
+  padding: 8px;
+  background: rgba(255, 255, 255, 0.9);
   border-radius: 50%;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+}
+
+.highlightIcon:hover {
+  transform: scale(1.05);
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.1);
 }
 
 .highlightDivider {
-  width: 2px;
-  height: 50px;
+  width: 1px;
+  height: 35px;
   background: var(--tp-grey-6);
+  flex-shrink: 0;
+  opacity: 0.5;
 }
 
 .capabilitiesHeroVideo {
@@ -1211,14 +1250,102 @@
   }
 }
 
-/* ===== RESPONSIVE DESIGN ===== */
-@media (max-width: 1200px) {
-  .capabilitiesHeroTitle {
-    font-size: 3.2rem;
+/* ===== SIMPLE RESPONSIVE DESIGN ===== */
+
+/* Large screens - keep horizontal */
+@media (min-width: 768px) {
+  .capabilitiesHighlights {
+    gap: 25px;
   }
   
-  .productsGrid {
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  .highlightItem {
+    min-width: 140px;
+    gap: 12px;
+  }
+  
+  .highlightIcon {
+    width: 36px;
+    height: 36px;
+    font-size: 1.3rem;
+  }
+  
+  .highlightItem strong {
+    font-size: 1rem;
+  }
+  
+  .highlightItem span {
+    font-size: 0.8rem;
+  }
+  
+  .highlightDivider {
+    height: 40px;
+  }
+}
+
+/* Medium screens - tighter spacing */
+@media (min-width: 576px) and (max-width: 767px) {
+  .capabilitiesHighlights {
+    gap: 15px;
+  }
+  
+  .highlightItem {
+    min-width: 110px;
+    gap: 8px;
+  }
+  
+  .highlightIcon {
+    width: 30px;
+    height: 30px;
+    font-size: 1.1rem;
+    padding: 6px;
+  }
+  
+  .highlightItem strong {
+    font-size: 0.85rem;
+  }
+  
+  .highlightItem span {
+    font-size: 0.7rem;
+  }
+  
+  .highlightDivider {
+    height: 30px;
+  }
+}
+
+/* Mobile - stack vertically */
+@media (max-width: 575px) {
+  .capabilitiesHighlights {
+    flex-direction: column;
+    gap: 20px;
+    align-items: flex-start;
+  }
+  
+  .highlightItem {
+    width: 100%;
+    min-width: auto;
+    gap: 12px;
+  }
+  
+  .highlightIcon {
+    width: 40px;
+    height: 40px;
+    font-size: 1.4rem;
+    padding: 8px;
+  }
+  
+  .highlightItem strong {
+    font-size: 1.1rem;
+  }
+  
+  .highlightItem span {
+    font-size: 0.9rem;
+  }
+  
+  .highlightDivider {
+    width: 60%;
+    height: 1px;
+    align-self: center;
   }
 }
 
@@ -1233,12 +1360,27 @@
   
   .capabilitiesHighlights {
     flex-direction: column;
-    gap: 20px;
+    gap: 25px;
+    align-items: flex-start;
+  }
+  
+  .highlightItem {
+    width: 100%;
+    min-width: auto;
+    justify-content: flex-start;
   }
   
   .highlightDivider {
-    width: 60px;
+    width: 80%;
     height: 2px;
+    align-self: center;
+  }
+
+  .highlightIcon {
+    font-size: 2rem;
+    padding: 16px;
+    min-width: 55px;
+    min-height: 55px;
   }
 
   .tpBtn {
@@ -1330,6 +1472,55 @@
   .ctaActions .tpBtn {
     width: 100%;
     max-width: 300px;
+  }
+}
+
+@media (max-width: 480px) {
+  .capabilitiesHeroTitle {
+    font-size: 2.2rem;
+  }
+
+  .videoFloatingCard {
+    padding: 16px;
+  }
+
+  .productsGrid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+    padding: 0 5px;
+  }
+
+  .machinesGrid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+    padding: 0 5px;
+  }
+
+  .certificationsGrid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .processFlow {
+    padding: 20px 10px;
+  }
+
+  .processStep {
+    padding: 15px;
+  }
+
+  .stepNumber {
+    width: 70px;
+    height: 70px;
+    font-size: 1.6rem;
+  }
+
+  .productCard {
+    min-height: 380px;
+  }
+
+  .machineCard {
+    min-height: 280px;
   }
 }
 
