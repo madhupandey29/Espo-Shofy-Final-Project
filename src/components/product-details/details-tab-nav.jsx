@@ -5,6 +5,7 @@
 
 import React, { useEffect, useState, useMemo } from 'react';
 import { useGetSingleProductQuery } from '@/redux/features/productApi';
+import { useGetWebsiteFaqsQuery } from '@/redux/features/websiteFaqApi';
 
 /* ───── helpers ───── */
 const nonEmpty = (v) => {
@@ -15,7 +16,44 @@ const pick = (...xs) => xs.find(nonEmpty);
 const stripHtml = (html) => String(html || '').replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
 
 /* ---------- FAQ renderer ---------- */
-function FaqBlock({ items = [] }) {
+function FaqBlock({ items = [], isLoading = false }) {
+  if (isLoading) {
+    return (
+      <div className="faq-loading">
+        <div className="loading-spinner"></div>
+        <p>Loading FAQs...</p>
+        <style jsx>{`
+          .faq-loading {
+            text-align: center;
+            padding: 40px 20px;
+            border-radius: 12px;
+            border: 1px dashed var(--tp-grey-2);
+            background: var(--tp-grey-1);
+          }
+          .loading-spinner {
+            width: 24px;
+            height: 24px;
+            border: 2px solid var(--tp-grey-2);
+            border-top: 2px solid var(--tp-theme-primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 12px;
+          }
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+          .faq-loading p {
+            margin: 0;
+            font-size: 14px;
+            color: var(--tp-text-2);
+            font-family: var(--tp-ff-roboto);
+          }
+        `}</style>
+      </div>
+    );
+  }
+
   if (!items.length) {
     return (
       <div className="no-faqs">
@@ -173,6 +211,9 @@ export default function DetailsTabNav({ product = {} }) {
   const { data: singleResp } = useGetSingleProductQuery(_id, { skip: !_id });
   const singleById = singleResp?.data || singleResp?.product || singleResp;
 
+  /* ─── fetch website FAQs ─── */
+  const { data: websiteFaqsResp, isLoading: websiteFaqsLoading } = useGetWebsiteFaqsQuery();
+
   const [singleBySlug, setSingleBySlug] = useState(null);
   const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL;
   const API_KEY = process.env.NEXT_PUBLIC_API_KEY;
@@ -213,7 +254,7 @@ export default function DetailsTabNav({ product = {} }) {
       productdescription
     ) || '';
 
-  /* ---------------- FAQ data (product only - no API calls) ---------------- */
+  /* ---------------- FAQ data (product + website) ---------------- */
   const productFaqs = useMemo(() => {
     const src = full && Object.keys(full).length ? full : product;
     const items = [];
@@ -237,8 +278,36 @@ export default function DetailsTabNav({ product = {} }) {
     return items;
   }, [product, full]);
 
-  // Only use product FAQs (no API calls)
-  const mergedFaqs = useMemo(() => [...productFaqs], [productFaqs]);
+  /* ─── website FAQs processing ─── */
+  const websiteFaqs = useMemo(() => {
+    if (websiteFaqsLoading || !websiteFaqsResp) return [];
+    
+    const faqs = Array.isArray(websiteFaqsResp) ? websiteFaqsResp : [websiteFaqsResp];
+    const items = [];
+
+    faqs.forEach((faq, faqIndex) => {
+      for (let i = 1; i <= 4; i++) {
+        const q = faq?.[`question${i}`];
+        const a = faq?.[`answer${i}`];
+        if (!nonEmpty(q) || !nonEmpty(a)) continue;
+
+        const qStr = String(q);
+        const aStr = String(a);
+
+        items.push({
+          key: `w-${faqIndex}-${i}`,
+          question: qStr,
+          answer: aStr,
+          questionIsHtml: /<[a-z][\s\S]*>/i.test(qStr),
+          answerIsHtml: /<[a-z][\s\S]*>/i.test(aStr),
+        });
+      }
+    });
+    return items;
+  }, [websiteFaqsResp, websiteFaqsLoading]);
+
+  // Merge website FAQs first, then product FAQs
+  const mergedFaqs = useMemo(() => [...websiteFaqs, ...productFaqs], [websiteFaqs, productFaqs]);
 
   return (
     <div className="product-details-modern">
@@ -280,7 +349,7 @@ export default function DetailsTabNav({ product = {} }) {
                   </div>
 
                   <div className="faq-body">
-                    <FaqBlock items={mergedFaqs} />
+                    <FaqBlock items={mergedFaqs} isLoading={websiteFaqsLoading} />
                   </div>
                 </div>
               </div>

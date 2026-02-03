@@ -7,7 +7,6 @@ import DetailsWrapper from './details-wrapper';
 import DetailsTabNav from './details-tab-nav';
 import RelatedProducts from './related-products';
 import DetailsSuitableKeywords from './details-desc-suitable';
-import AltTextDebugger from '../debug/AltTextDebugger';
 
 export default function ProductDetailsContent({ productItem }) {
   // ✅ IMPORTANT: normalize productItem (handles {data:[{...}]} / [{...}] / {...})
@@ -241,11 +240,6 @@ export default function ProductDetailsContent({ productItem }) {
       <DetailsTabNav product={p} />
       <DetailsSuitableKeywords product={p} />
       <RelatedProducts collectionId={collectionId} />
-      
-      <AltTextDebugger 
-        productItem={productItem} 
-        show={typeof window !== 'undefined' && window.location.search.includes('debug=alt')} 
-      />
 
       <style jsx>{`
         .tp-product-details-area {

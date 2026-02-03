@@ -1,17 +1,24 @@
 /* =======================  MODAL CONTAINER  ======================= */
 .modalOverlay{
-  position: fixed; inset: 0; z-index: 60;
-  background: rgba(0,0,0,.55);
+  position: fixed !important; 
+  inset: 0 !important; 
+  z-index: 1000000 !important;
+  background: rgba(0,0,0,.55) !important;
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
   transition: opacity .22s ease;
+  pointer-events: auto !important;
 }
 .modalOverlay.fadeOut{ opacity:0; }
 
 .modalCard{
-  position: fixed; inset: 0; z-index: 70;
-  display: grid; place-items: center;
-  padding: clamp(10px, 2.2vw, 20px);
+  position: fixed !important; 
+  inset: 0 !important; 
+  z-index: 1000001 !important;
+  display: grid !important; 
+  place-items: center !important;
+  padding: clamp(10px, 2.2vw, 20px) !important;
+  pointer-events: auto !important;
 }
 
 /* =======================  CARD / GRID  ======================= */

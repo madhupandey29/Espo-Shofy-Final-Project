@@ -366,6 +366,7 @@ const ProductItem = ({ product, index = 0 }) => {
 
     let productWithGroupCode = { ...prd };
 
+    // Fetch groupcode data if needed
     if (prd.groupcode && typeof prd.groupcode === 'object' && prd.groupcode._id && !prd.groupcode.img) {
       try {
         const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL;
@@ -389,7 +390,67 @@ const ProductItem = ({ product, index = 0 }) => {
       }
     }
 
-    dispatch(handleProductModal(productWithGroupCode));
+    // Fetch collection data if needed
+    if (prd.collectionId && (!prd.collection || !prd.collection.collectionImage1CloudUrl)) {
+      try {
+        const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL;
+        const API_KEY = process.env.NEXT_PUBLIC_API_KEY;
+
+        const response = await fetch(`${API_BASE}/collection/${prd.collectionId}`, {
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': API_KEY,
+          },
+        });
+
+        if (response.ok) {
+          const collectionResponse = await response.json();
+          if (collectionResponse.success && collectionResponse.data) {
+            productWithGroupCode.collection = collectionResponse.data;
+          }
+        }
+      } catch {
+        /* ignore */
+      }
+    }
+
+    // Ensure all product image fields are properly mapped
+    const processedProduct = {
+      ...productWithGroupCode,
+      // Map Cloudinary URLs to standard fields, removing trailing hash
+      img: (productWithGroupCode.image1CloudUrl && typeof productWithGroupCode.image1CloudUrl === 'string' 
+        ? productWithGroupCode.image1CloudUrl.replace(/#$/, '') 
+        : productWithGroupCode.image1CloudUrl) || productWithGroupCode.img || productWithGroupCode.image || '',
+      image1: (productWithGroupCode.image1CloudUrl && typeof productWithGroupCode.image1CloudUrl === 'string' 
+        ? productWithGroupCode.image1CloudUrl.replace(/#$/, '') 
+        : productWithGroupCode.image1CloudUrl) || productWithGroupCode.image1 || '',
+      image2: (productWithGroupCode.image2CloudUrl && typeof productWithGroupCode.image2CloudUrl === 'string' 
+        ? productWithGroupCode.image2CloudUrl.replace(/#$/, '') 
+        : productWithGroupCode.image2CloudUrl) || productWithGroupCode.image2 || '',
+      image3: (productWithGroupCode.image3CloudUrl && typeof productWithGroupCode.image3CloudUrl === 'string' 
+        ? productWithGroupCode.image3CloudUrl.replace(/#$/, '') 
+        : productWithGroupCode.image3CloudUrl) || productWithGroupCode.image3 || '',
+      video: productWithGroupCode.videoURL || productWithGroupCode.videourl || productWithGroupCode.video || '',
+      videourl: productWithGroupCode.videoURL || productWithGroupCode.videourl || productWithGroupCode.video || '',
+      videoThumbnail: productWithGroupCode.videoThumbnail || '',
+      // Alt text fields
+      altTextImage1: productWithGroupCode.altTextImage1 || '',
+      altTextImage2: productWithGroupCode.altTextImage2 || '',
+      altTextImage3: productWithGroupCode.altTextImage3 || '',
+      altTextVideo: productWithGroupCode.altTextVideo || '',
+    };
+
+    console.log('🔍 Quick View - Processed Product Data:', {
+      hasImage1: !!processedProduct.image1,
+      hasImage2: !!processedProduct.image2,
+      hasImage3: !!processedProduct.image3,
+      hasVideo: !!processedProduct.video,
+      hasCollection: !!processedProduct.collection,
+      collectionImage: processedProduct.collection?.collectionImage1CloudUrl,
+      collectionVideo: processedProduct.collection?.collectionvideoURL,
+    });
+
+    dispatch(handleProductModal(processedProduct));
   };
 
   /* global search visibility */

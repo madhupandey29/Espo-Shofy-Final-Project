@@ -391,6 +391,19 @@
   }
 }
 
+.productCardLink {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+  height: 100%;
+  transition: all 0.3s ease;
+}
+
+.productCardLink:hover {
+  text-decoration: none;
+  color: inherit;
+}
+
 .productCard {
   background: white;
   border-radius: 20px;
@@ -403,6 +416,7 @@
   display: flex;
   flex-direction: column;
   min-height: 420px;
+  cursor: pointer;
 }
 
 .productCard::before {

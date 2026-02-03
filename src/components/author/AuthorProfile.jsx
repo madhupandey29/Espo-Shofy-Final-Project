@@ -49,12 +49,13 @@ const AuthorProfile = ({ authorId = null, showSignature = true, className = '' }
     );
   }
 
-  // Extract author data with fallbacks
-  const authorName = author.name || 'Author Name';
-  const authorDesignation = author.designation || 'Founder & Managing Director, Amrita Global Enterprises';
-  const authorDescription = author.description || `Leading Amrita Global Enterprises, ${authorName} has built a legacy of trust and innovation in premium textile manufacturing. With a passion for quality fabrics and sustainable design, he continues to redefine modern fabric sourcing for global apparel brands.`;
+  // Extract author data - no fallbacks, only use API data
+  const authorName = author.name;
+  const authorDesignation = author.designation;
+  const authorDescription = author.description;
   const authorImage = author.authorimage || author.image || null;
   const authorLinkedin = author.authorLinkedinURL || null;
+  const authorAltText = author.altimage;
 
   return (
     <div className={`author-profile ${className}`}>
@@ -64,7 +65,7 @@ const AuthorProfile = ({ authorId = null, showSignature = true, className = '' }
           {authorImage ? (
             <Image
               src={authorImage}
-              alt={authorName}
+              alt={authorAltText || authorName || 'Author'}
               width={120}
               height={120}
               className="author-image"
@@ -75,17 +76,19 @@ const AuthorProfile = ({ authorId = null, showSignature = true, className = '' }
             />
           ) : null}
           <div className="author-initials" style={{ display: authorImage ? 'none' : 'flex' }}>
-            {authorName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
+            {authorName ? authorName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : 'AU'}
           </div>
         </div>
 
         {/* Author Info */}
         <div className="author-info">
-          <h2 className="author-name">{authorName}</h2>
-          <p className="author-title">{authorDesignation}</p>
-          <div className="author-description">
-            <p>{authorDescription}</p>
-          </div>
+          {authorName && <h2 className="author-name">{authorName}</h2>}
+          {authorDesignation && <p className="author-title">{authorDesignation}</p>}
+          {authorDescription && (
+            <div className="author-description">
+              <p>{authorDescription}</p>
+            </div>
+          )}
           
           {/* LinkedIn Link */}
           {authorLinkedin && (
@@ -104,7 +107,7 @@ const AuthorProfile = ({ authorId = null, showSignature = true, className = '' }
             </div>
           )}
           
-          {showSignature && (
+          {showSignature && authorName && (
             <div className="author-signature">
               <span className="signature-text">{authorName}</span>
             </div>

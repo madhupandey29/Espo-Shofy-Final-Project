@@ -38,7 +38,7 @@ export default function AboutSection({
     </>
   ),
   ctaText = 'Know More',
-  ctaHref = '/contact',
+  ctaHref = '/about',
   imageSrc = '/assets/img/banner/2/p2.jpg',
   imageAlt = 'About our fabric sourcing and quality process',
   variant = 'light', // "light" | "dark"

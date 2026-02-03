@@ -117,6 +117,7 @@ const DetailsThumbWrapper = ({
 
   videoId = false,
   status,
+  isModalView = false, // New prop for modal layout
 }) => {
   // Debug logging to see what data we're receiving
   console.log('🔍 DetailsThumbWrapper Debug:', {
@@ -124,7 +125,9 @@ const DetailsThumbWrapper = ({
     videourl, video,
     altTextImage1, altTextImage2, altTextImage3, altTextVideo,
     apiImages: apiImages ? 'present' : 'missing',
-    groupCodeData: groupCodeData ? 'present' : 'missing'
+    groupCodeData: groupCodeData ? 'present' : 'missing',
+    isModalView,
+    groupCodeDataKeys: groupCodeData ? Object.keys(groupCodeData) : []
   });
   const [isVideoActive, setIsVideoActive] = useState(false);
   const [currentVideoUrl, setCurrentVideoUrl] = useState(null);
@@ -534,7 +537,7 @@ const DetailsThumbWrapper = ({
   };
 
   return (
-    <div className="pdw-wrapper">
+    <div className={`pdw-wrapper ${isModalView ? 'pdw-modal-view' : ''}`}>
       {/* Desktop Thumbs */}
       <nav className="pdw-thumbs pdw-desktop-only">
         <div className="pdw-thumbs-inner">
@@ -956,6 +959,38 @@ const DetailsThumbWrapper = ({
           gap: 25px;
           align-items: start;
           max-width: 100%;
+        }
+        
+        /* Modal view: horizontal thumbnails above main image */
+        .pdw-wrapper.pdw-modal-view {
+          display: block;
+          max-width: 100%;
+        }
+        
+        .pdw-modal-view .pdw-thumbs {
+          width: 100% !important;
+          margin-bottom: 15px;
+        }
+        
+        .pdw-modal-view .pdw-thumbs-inner {
+          display: flex !important;
+          flex-direction: row !important;
+          gap: 10px !important;
+          justify-content: center !important;
+          overflow: visible !important;
+          max-height: none !important;
+          padding: 0 !important;
+        }
+        
+        .pdw-modal-view .pdw-thumb {
+          width: 75px !important;
+          height: 75px !important;
+          flex: 0 0 auto !important;
+        }
+        
+        .pdw-modal-view .pdw-main {
+          width: 100% !important;
+          margin: 0 auto !important;
         }
 
         /* Desktop Thumbnails */

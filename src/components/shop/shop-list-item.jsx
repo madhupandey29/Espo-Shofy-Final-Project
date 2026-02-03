@@ -244,7 +244,43 @@ const ShopListItem = ({ product }) => {
             <button
               type="button"
               className="tp-product-action-btn-2 tp-product-quick-view-btn"
-              onClick={() => dispatch(handleProductModal(product))}
+              onClick={() => {
+                // Process product data to ensure all images and collection data are available
+                const processedProduct = {
+                  ...product,
+                  // Map Cloudinary URLs to standard fields, removing trailing hash
+                  img: (product.image1CloudUrl && typeof product.image1CloudUrl === 'string' 
+                    ? product.image1CloudUrl.replace(/#$/, '') 
+                    : product.image1CloudUrl) || product.img || product.image || '',
+                  image1: (product.image1CloudUrl && typeof product.image1CloudUrl === 'string' 
+                    ? product.image1CloudUrl.replace(/#$/, '') 
+                    : product.image1CloudUrl) || product.image1 || '',
+                  image2: (product.image2CloudUrl && typeof product.image2CloudUrl === 'string' 
+                    ? product.image2CloudUrl.replace(/#$/, '') 
+                    : product.image2CloudUrl) || product.image2 || '',
+                  image3: (product.image3CloudUrl && typeof product.image3CloudUrl === 'string' 
+                    ? product.image3CloudUrl.replace(/#$/, '') 
+                    : product.image3CloudUrl) || product.image3 || '',
+                  video: product.videoURL || product.videourl || product.video || '',
+                  videourl: product.videoURL || product.videourl || product.video || '',
+                  videoThumbnail: product.videoThumbnail || '',
+                  // Alt text fields
+                  altTextImage1: product.altTextImage1 || '',
+                  altTextImage2: product.altTextImage2 || '',
+                  altTextImage3: product.altTextImage3 || '',
+                  altTextVideo: product.altTextVideo || '',
+                };
+                
+                console.log('🔍 Shop List Quick View - Product Data:', {
+                  hasImage1: !!processedProduct.image1,
+                  hasImage2: !!processedProduct.image2,
+                  hasImage3: !!processedProduct.image3,
+                  hasVideo: !!processedProduct.video,
+                  hasCollection: !!processedProduct.collection,
+                });
+                
+                dispatch(handleProductModal(processedProduct));
+              }}
             >
               <QuickView />
               <span className="tp-product-tooltip tp-product-tooltip-right">Quick View</span>

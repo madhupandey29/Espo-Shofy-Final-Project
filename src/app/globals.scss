@@ -574,6 +574,34 @@ body .pdw-wrapper .pdw-main .pdw-main-inner iframe,
   z-index: 999 !important;
 }
 
+/* When auth modal is open, ensure header stays below */
+body.modal-open .tp-header-area,
+body.modal-open #header-sticky,
+body.modal-open .tp-header-sticky-area,
+body.modal-open .tp-header-bottom-2,
+body.modal-open .tp-header-style-primary,
+body.modal-open .tp-header-style-darkRed,
+body.modal-open .tp-header-height {
+  z-index: 1 !important;
+  pointer-events: none !important;
+}
+
+/* Ensure all header child elements also stay below modal */
+body.modal-open .tp-header-area *,
+body.modal-open #header-sticky *,
+body.modal-open .tp-header-bottom-2 * {
+  z-index: inherit !important;
+}
+
+/* Ensure other floating elements stay below auth modal */
+body.modal-open .tp-header-search-mobile,
+body.modal-open .user-menu-dropdown,
+body.modal-open .tp-header-action,
+body.modal-open .tp-header-action-item {
+  z-index: 1 !important;
+  pointer-events: none !important;
+}
+
 /* Force modal media container to center content */
 .pdw-modal-media-container {
   display: flex !important;

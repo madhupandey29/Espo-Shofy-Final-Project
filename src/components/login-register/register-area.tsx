@@ -19,7 +19,11 @@ const RegisterArea: React.FC<Props> = ({ onClose, onSwitchToLogin }) => {
   useEffect(() => {
     const prev = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
-    return () => { document.body.style.overflow = prev; };
+    document.body.classList.add('modal-open');
+    return () => { 
+      document.body.style.overflow = prev; 
+      document.body.classList.remove('modal-open');
+    };
   }, []);
 
   const handleClose = useCallback(() => {

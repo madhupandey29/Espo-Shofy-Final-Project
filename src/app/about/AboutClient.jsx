@@ -177,80 +177,106 @@ const AboutClient = () => {
               <div className={styles.headerLine}></div>
             </div>
             
-            <div className={styles.directorCard}>
-              <div className={styles.cardBackground}>
-                <div className={styles.patternOverlay}></div>
-              </div>
-              
-              <div className={styles.directorProfile}>
-                <div className={styles.imageSection}>
-                  <div className={styles.imageContainer}>
-                    {authorLoading ? (
-                      <div className={styles.imageSkeleton}></div>
-                    ) : (
-                      <Image 
-                        src={author?.authorimage || "/assets/img/blog/founder1.jpg"} 
-                        alt={author?.altimage || author?.name || "Director"}
-                        width={280}
-                        height={320}
-                        className={styles.profileImage}
-                      />
-                    )}
-                    <div className={styles.imageFrame}></div>
-                  </div>
-                  
-                  {/* LinkedIn Link - Under image */}
-                  {author?.authorLinkedinURL && (
-                    <div className={styles.socialLink}>
-                      <a 
-                        href={author.authorLinkedinURL} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className={styles.linkedinBtn}
-                      >
-                        <FaLinkedinIn />
-                        Connect on LinkedIn
-                      </a>
-                    </div>
-                  )}
+            {authorLoading ? (
+              <div className={styles.directorCard}>
+                <div className={styles.cardBackground}>
+                  <div className={styles.patternOverlay}></div>
                 </div>
                 
-                <div className={styles.contentSection}>
-                  <div className={styles.profileHeader}>
-                    {authorLoading ? (
-                      <>
-                        <div className={styles.nameSkeleton}></div>
-                        <div className={styles.positionSkeleton}></div>
-                      </>
-                    ) : (
-                      <>
-                        <h4>{author?.name || 'Rajesh Goyal'}</h4>
-                        <p className={styles.position}>{author?.designation || 'Director'} & Founder</p>
-                      </>
-                    )}
-                    <div className={styles.experience}>
-                      <span className={styles.years}>25+</span>
-                      <span className={styles.label}>Years Experience</span>
+                <div className={styles.directorProfile}>
+                  <div className={styles.imageSection}>
+                    <div className={styles.imageContainer}>
+                      <div className={styles.imageSkeleton}></div>
+                      <div className={styles.imageFrame}></div>
                     </div>
                   </div>
                   
-                  <div className={styles.profileContent}>
-                    <blockquote className={styles.quote}>
-                      "Excellence in textiles comes from passion, precision, and unwavering commitment to quality. At AGE Fabrics, we don't just create products—we craft legacies."
-                    </blockquote>
+                  <div className={styles.contentSection}>
+                    <div className={styles.profileHeader}>
+                      <div className={styles.nameSkeleton}></div>
+                      <div className={styles.positionSkeleton}></div>
+                      <div className={styles.experience}>
+                        <span className={styles.years}>25+</span>
+                        <span className={styles.label}>Years Experience</span>
+                      </div>
+                    </div>
                     
-                    {authorLoading ? (
+                    <div className={styles.profileContent}>
                       <div className={styles.descriptionSkeleton}></div>
-                    ) : (
-                      <p className={styles.description}>
-                        {author?.description || 
-                        `Leading AGE Fabrics with a vision rooted in traditional craftsmanship and modern innovation. ${author?.name || 'Rajesh Goyal'} has transformed the company into a trusted name in premium textiles, serving clients worldwide with uncompromising quality and sustainable practices.`}
-                      </p>
-                    )}
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
+            ) : authorError ? (
+              <div className={styles.errorState}>
+                <p>Unable to load leadership information at this time.</p>
+              </div>
+            ) : author ? (
+              <div className={styles.directorCard}>
+                <div className={styles.cardBackground}>
+                  <div className={styles.patternOverlay}></div>
+                </div>
+                
+                <div className={styles.directorProfile}>
+                  <div className={styles.imageSection}>
+                    <div className={styles.imageContainer}>
+                      {author.authorimage ? (
+                        <Image 
+                          src={author.authorimage} 
+                          alt={author.altimage || `${author.name} Profile Image`}
+                          width={280}
+                          height={320}
+                          className={styles.profileImage}
+                        />
+                      ) : (
+                        <div className={styles.noImage}>
+                          <span>{author.altimage || 'No Image Available'}</span>
+                        </div>
+                      )}
+                      <div className={styles.imageFrame}></div>
+                    </div>
+                    
+                    {/* LinkedIn Link - Under image */}
+                    {author.authorLinkedinURL && (
+                      <div className={styles.socialLink}>
+                        <a 
+                          href={author.authorLinkedinURL} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className={styles.linkedinBtn}
+                        >
+                          <FaLinkedinIn />
+                          Connect on LinkedIn
+                        </a>
+                      </div>
+                    )}
+                  </div>
+                  
+                  <div className={styles.contentSection}>
+                    <div className={styles.profileHeader}>
+                      <h4>{author.name}</h4>
+                      <p className={styles.position}>{author.designation}</p>
+                      <div className={styles.experience}>
+                        <span className={styles.years}>25+</span>
+                        <span className={styles.label}>Years Experience</span>
+                      </div>
+                    </div>
+                    
+                    <div className={styles.profileContent}>
+                      {author.description && (
+                        <p className={styles.description}>
+                          {author.description}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className={styles.noDataState}>
+                <p>No leadership information available.</p>
+              </div>
+            )}
           </div>
         </section>
 

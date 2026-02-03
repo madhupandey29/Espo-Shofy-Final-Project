@@ -760,6 +760,61 @@
     }
   }
 
+  // Error and No Data States
+  .errorState,
+  .noDataState {
+    text-align: center;
+    padding: 60px 20px;
+    background: var(--tp-common-white);
+    border-radius: 25px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    max-width: 600px;
+    margin: 0 auto;
+
+    p {
+      color: var(--tp-text-2);
+      font-size: 16px;
+      margin: 0;
+      font-style: italic;
+    }
+  }
+
+  .errorState {
+    border: 2px solid rgba(220, 38, 127, 0.1);
+    background: linear-gradient(135deg, rgba(220, 38, 127, 0.02), var(--tp-common-white));
+
+    p {
+      color: #dc2626;
+    }
+  }
+
+  .noDataState {
+    border: 2px solid rgba(107, 114, 128, 0.1);
+    background: linear-gradient(135deg, rgba(107, 114, 128, 0.02), var(--tp-common-white));
+  }
+
+  // No Image State
+  .noImage {
+    width: 280px;
+    height: 320px;
+    background: linear-gradient(135deg, var(--tp-grey-5), #e2e8f0);
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px dashed var(--tp-grey-3);
+    position: relative;
+    z-index: 2;
+
+    span {
+      color: var(--tp-text-2);
+      font-size: 14px;
+      font-weight: 500;
+      text-align: center;
+      opacity: 0.7;
+    }
+  }
+
   .position {
     color: var(--tp-theme-secondary);
     font-size: 18px;
@@ -1335,6 +1390,25 @@
       height: 300px;
     }
 
+    .noImage {
+      width: 260px;
+      height: 300px;
+
+      span {
+        font-size: 14px;
+      }
+    }
+
+    .errorState,
+    .noDataState {
+      padding: 50px 20px;
+      border-radius: 20px;
+
+      p {
+        font-size: 15px;
+      }
+    }
+
     .profileImage {
       width: 260px;
       height: 300px;
@@ -1625,6 +1699,25 @@
       height: 280px;
     }
 
+    .noImage {
+      width: 240px;
+      height: 280px;
+
+      span {
+        font-size: 13px;
+      }
+    }
+
+    .errorState,
+    .noDataState {
+      padding: 45px 18px;
+      border-radius: 18px;
+
+      p {
+        font-size: 15px;
+      }
+    }
+
     .profileHeader h4 {
       font-size: 32px;
     }
@@ -1803,6 +1896,25 @@
     .imageSkeleton {
       width: 220px;
       height: 260px;
+    }
+
+    .noImage {
+      width: 220px;
+      height: 260px;
+
+      span {
+        font-size: 13px;
+      }
+    }
+
+    .errorState,
+    .noDataState {
+      padding: 40px 15px;
+      border-radius: 15px;
+
+      p {
+        font-size: 14px;
+      }
     }
 
     .position {

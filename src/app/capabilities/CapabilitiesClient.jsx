@@ -353,34 +353,36 @@ const CapabilitiesClient = () => {
             </div>
             <div className={styles.productsGrid}>
               {productCategories.map((product, index) => (
-                <div key={index} className={styles.productCard}>
-                  <div className={styles.productImage}>
-                    <Image
-                      src={product.image}
-                      alt={product.name}
-                      width={300}
-                      height={200}
-                      className="img-fluid"
-                    />
-                  </div>
-                  <div className={styles.productContent}>
-                    <h4 className={styles.productName}>{product.name}</h4>
-                    <div className={styles.productSpecs}>
-                      <div className={styles.specItem}>
-                        <strong>GSM:</strong> <span>{product.gsm}</span>
-                      </div>
-                      <div className={styles.specItem}>
-                        <strong>Width:</strong> <span>{product.width}</span>
-                      </div>
-                      <div className={styles.specItem}>
-                        <strong>Uses:</strong> <span>{product.uses}</span>
-                      </div>
-                      <div className={styles.specItem}>
-                        <strong>Finishing:</strong> <span>{product.finishing}</span>
+                <Link key={index} href="/fabric" className={styles.productCardLink}>
+                  <div className={styles.productCard}>
+                    <div className={styles.productImage}>
+                      <Image
+                        src={product.image}
+                        alt={product.name}
+                        width={300}
+                        height={200}
+                        className="img-fluid"
+                      />
+                    </div>
+                    <div className={styles.productContent}>
+                      <h4 className={styles.productName}>{product.name}</h4>
+                      <div className={styles.productSpecs}>
+                        <div className={styles.specItem}>
+                          <strong>GSM:</strong> <span>{product.gsm}</span>
+                        </div>
+                        <div className={styles.specItem}>
+                          <strong>Width:</strong> <span>{product.width}</span>
+                        </div>
+                        <div className={styles.specItem}>
+                          <strong>Uses:</strong> <span>{product.uses}</span>
+                        </div>
+                        <div className={styles.specItem}>
+                          <strong>Finishing:</strong> <span>{product.finishing}</span>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
+                </Link>
               ))}
             </div>
             <div className="text-center mt-5">

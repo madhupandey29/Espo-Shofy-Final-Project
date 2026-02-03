@@ -24,7 +24,7 @@ const toUrl = (v) => {
 };
 const idOf = (v) => (v && typeof v === 'object' ? v._id : v);
 
-/** Big, centered, no outer scroll */
+/** Wide modal to show all thumbnails without scroll */
 const customStyles = {
   content: {
     top: '50%',
@@ -32,14 +32,14 @@ const customStyles = {
     right: 'auto',
     bottom: 'auto',
     transform: 'translate(-50%, -50%)',
-    width: 'min(1180px, 96vw)',
-    maxHeight: '92vh',
-    padding: '16px 22px 18px',
-    borderRadius: '14px',
+    width: 'min(1300px, 98vw)',
+    height: 'min(700px, 95vh)',
+    padding: '16px 20px 18px',
+    borderRadius: '12px',
     overflow: 'hidden',
   },
   overlay: {
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
     zIndex: 99999999,
   }
 };
@@ -52,15 +52,15 @@ const mobileStyles = {
     right: 'auto',
     bottom: 'auto',
     transform: 'translate(-50%, -50%)',
-    width: '95vw',
-    maxWidth: '95vw',
-    maxHeight: '95vh',
-    padding: '12px 16px 14px',
-    borderRadius: '10px',
+    width: '92vw',
+    maxWidth: '92vw',
+    maxHeight: '92vh',
+    padding: '10px 12px 12px',
+    borderRadius: '8px',
     overflow: 'auto', // Allow scrolling on mobile
   },
   overlay: {
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
     zIndex: 99999999,
   }
 };
@@ -94,6 +94,7 @@ export default function ProductModal() {
 
   const normalized = useMemo(() => {
     const p = productItem || {};
+    
     return {
       ...p,
       title: p.title || p.name || '',
@@ -147,7 +148,7 @@ export default function ProductModal() {
       bodyOpenClassName="ReactModal__Body--open"
       contentLabel="Product Modal"
     >
-      {/* top bar: keep your button classnames */}
+      {/* top bar with close button in corner */}
       <div className="pm-topbar" role="toolbar" aria-label="Quick view actions">
         <button
           type="button"
@@ -160,11 +161,11 @@ export default function ProductModal() {
         <button
           onClick={() => dispatch(handleModalClose())}
           type="button"
-          className="tp-product-modal-close-btn"
+          className="tp-product-modal-close-btn pm-close-btn"
           aria-label="Close quick view"
           title="Close"
         >
-          <i className="fa-regular fa-xmark" />
+          ×
         </button>
       </div>
 
@@ -189,15 +190,17 @@ export default function ProductModal() {
             videoThumbnail={productItem?.videoThumbnail}
             /* keep extras merged after the primaries */
             imageURLs={imageURLs}
-            /* wider viewer inside modal; disable external zoom pane */
-            imgWidth={420}
-            imgHeight={420}
+            /* larger viewer for modal to show all thumbnails */
+            imgWidth={450}
+            imgHeight={400}
             zoomPaneWidth={0}
             /* keep thumbs scrollable by giving them height */
-            zoomPaneHeight={420}
+            zoomPaneHeight={400}
             status={normalized?.status}
             /* keep videoId fallback for safety */
             videoId={productItem?.video}
+            /* modal mode to show horizontal thumbnails */
+            isModalView={true}
           />
         </div>
 
@@ -218,82 +221,142 @@ export default function ProductModal() {
           justify-content:space-between;
           align-items:center;
           gap:12px;
-          margin-bottom:6px;
+          margin-bottom:4px; /* Even smaller margin */
+          position: relative;
         }
-        :global(.tp-product-modal-close-btn){ position:static; }
+        
+        /* Close button positioned in top-right corner */
+        .pm-close-btn {
+          position: absolute !important;
+          top: -12px;
+          right: -12px;
+          width: 36px !important;
+          height: 36px !important;
+          border-radius: 50% !important;
+          background: #1e3a8a !important; /* Navy blue background */
+          color: white !important; /* White icon */
+          border: 2px solid white !important;
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          font-size: 20px !important; /* Larger font for visibility */
+          font-weight: bold !important; /* Bold for better visibility */
+          cursor: pointer !important;
+          z-index: 1000 !important;
+          transition: all 0.2s ease !important;
+          box-shadow: 0 2px 8px rgba(30, 58, 138, 0.3) !important;
+        }
+        
+        .pm-close-btn:hover {
+          background: #1e40af !important; /* Darker navy on hover */
+          transform: scale(1.1) !important;
+          box-shadow: 0 4px 12px rgba(30, 58, 138, 0.4) !important;
+        }
+        
+        /* Ensure the × symbol is visible */
+        .pm-close-btn i {
+          color: white !important;
+          font-size: 20px !important;
+          font-weight: bold !important;
+        }
 
         .pm-body{
           display:grid;
-          grid-template-columns: 540px 1fr; /* allow thumbs + main image to fit */
-          gap:20px;
-          max-height: calc(92vh - 60px);
-          overflow-y:auto; /* allow scroll on small screens */
+          grid-template-columns: 1fr 1fr; /* Equal columns for media and details */
+          gap:10px; /* Slightly smaller gap */
+          height: calc(700px - 35px); /* A bit more height for content */
+          overflow: hidden; /* No scroll bars */
         }
 
         .pm-media{
           display:flex;
-          align-items:center;
+          align-items:flex-start;
           justify-content:center;
           min-width:0;
           height:100%;
-          max-height:100%;
-          overflow:hidden; /* thumbnails self-manage scroll if they need it */
+          overflow:hidden;
           background:#fff;
         }
-        .pm-media :global(img){
-          max-width:100%;
-          max-height:100%;
-          width:auto;
-          height:auto;
-          object-fit:contain !important;
-          display:block;
+        
+        /* Force horizontal thumbnail layout in modal */
+        .pm-media :global(.pdw-wrapper) {
+          display: block !important;
+          width: 100% !important;
+        }
+        
+        .pm-media :global(.pdw-thumbs) {
+          width: 100% !important;
+          margin-bottom: 12px !important;
+        }
+        
+        .pm-media :global(.pdw-thumbs-inner) {
+          display: flex !important;
+          flex-direction: row !important;
+          gap: 8px !important;
+          justify-content: flex-start !important;
+          overflow-x: auto !important;
+          overflow-y: hidden !important;
+          max-height: none !important;
+          padding: 0 !important;
+          scrollbar-width: thin !important;
+        }
+        
+        .pm-media :global(.pdw-thumb) {
+          width: 70px !important;
+          height: 70px !important;
+          flex: 0 0 auto !important;
+        }
+        
+        .pm-media :global(.pdw-main) {
+          width: 100% !important;
+          max-width: 450px !important;
+          margin: 0 auto !important;
         }
 
         .pm-details{
           min-width:0;
-          max-height:100%;
-          overflow-y:auto;
-          overflow-x:hidden; /* remove bottom horizontal scrollbar */
-          padding-right: 4px; /* avoid text under scrollbar on Windows */
+          height:100%;
+          overflow-y: auto;
+          overflow-x: hidden;
+          padding: 1px 3px 1px 1px; /* Even more minimal padding */
         }
 
-        /* ———————— Classy typography & spacing in the details ———————— */
-
-        /* Large, elegant title (handles long titles better) */
+        /* Typography & spacing - just slightly more compact */
         :global(.tp-product-details h1),
         :global(.tp-product-details h2){
-          font-weight: 800;
-          letter-spacing: -0.02em;
-          line-height: 1.18;
-          margin: 2px 0 12px 0;
-          max-width: 42ch; /* nicer wrap */
+          font-weight: 700;
+          letter-spacing: -0.01em;
+          line-height: 1.1;
+          margin: 0 0 3px 0; /* Slightly smaller margin */
+          font-size: 1.2rem;
+          max-width: 42ch;
         }
 
-        /* Section subtitles (like category) */
         :global(.tp-product-details .subheading),
         :global(.tp-product-details h5){
-          font-weight: 700;
-          letter-spacing: .02em;
-          margin: 0 0 6px 0;
+          font-weight: 600;
+          letter-spacing: .01em;
+          margin: 0 0 1px 0; /* Smaller margin */
           color: #111827;
+          font-size: 0.8rem;
         }
 
-        /* Two-column spec block – tighter & aligned */
+        /* Two-column spec block - slightly more compact */
         :global(.tp-product-details .tp-product-details-meta){
           display: grid;
           grid-template-columns: 1fr 1fr;
-          gap: 10px 28px; /* row gap / column gap */
-          margin: 6px 0 14px;
+          gap: 1px 6px; /* Slightly smaller gaps */
+          margin: 1px 0 3px; /* Smaller margins */
         }
         :global(.tp-product-details .tp-product-details-meta p){
           display:flex;
-          justify-content: space-between; /* label left, value right */
-          gap: 16px;
+          justify-content: space-between;
+          gap: 3px; /* Smaller gap */
           margin: 0;
-          padding: 6px 0;
+          padding: 1px 0; /* Minimal padding */
           border-bottom: 1px dashed rgba(17,24,39,.08);
-          font-size: 15px;
-          line-height: 1.35;
+          font-size: 11px;
+          line-height: 1.1;
         }
         :global(.tp-product-details .tp-product-details-meta p:last-child){
           border-bottom: none;
@@ -305,80 +368,120 @@ export default function ProductModal() {
           color:#111827; font-weight:600;
         }
 
-        /* Ratings row trimmed a bit */
+        /* Ratings row - minimal */
         :global(.tp-product-details .tp-product-details-rating){
-          margin: 6px 0 10px;
+          margin: 1px 0 1px; /* Minimal margins */
         }
 
-        /* CTA row: equal height, equal width, classy spacing */
+        /* CTA row: ensure buttons are fully visible */
         :global(.tp-product-details .tp-product-details-action){
           display:grid;
           grid-template-columns: 1fr 1fr;
-          gap: 16px;
-          margin-top: 14px;
+          gap: 5px; /* Slightly smaller gap */
+          margin-top: 3px; /* Smaller margin */
+          margin-bottom: 1px; /* Minimal bottom margin */
         }
         :global(.tp-product-details .tp-product-details-action .tp-btn){
-          height: 48px;
-          border-radius: 10px;
-          font-weight: 700;
+          height: 32px;
+          border-radius: 5px;
+          font-weight: 600;
+          font-size: 11px;
+          padding: 4px 8px;
         }
 
-        /* Keep wishlist/heart floating block aligned (if present) */
+        /* Keep wishlist/heart floating block aligned */
         :global(.tp-product-details .tp-product-details-wishlist){
-          margin-left: 12px;
+          margin-left: 3px; /* Smaller margin */
         }
 
         /* Responsiveness */
-        @media (max-width: 1080px){
-          .pm-body{ grid-template-columns: 420px 1fr; gap:18px; }
-        }
-        @media (max-width: 900px){
-          .pm-body{
+        @media (max-width: 1100px){
+          .pm-body{ 
             grid-template-columns: 1fr;
-            max-height: none; /* Remove height restriction on mobile */
-            overflow-y: visible; /* Allow natural flow on mobile */
-            gap: 15px;
-          }
-          /* Make thumbs a horizontal strip below the main image */
-          :global(.pdw-wrapper){ grid-template-columns: 1fr !important; gap: 12px; }
-          :global(.pdw-thumbs){ width: 100% !important; }
-          :global(.pdw-thumbs-inner){ flex-direction: row !important; overflow-x: auto !important; overflow-y: hidden !important; max-height: none !important; gap: 10px !important; padding-bottom: 4px; }
-          :global(.pdw-thumb){ width: 72px !important; height: 72px !important; flex: 0 0 auto; }
-          :global(.tp-product-details .tp-product-details-meta){
-            grid-template-columns: 1fr; /* stack specs cleanly */
-          }
-          :global(.tp-product-details .tp-product-details-action){
-            grid-template-columns: 1fr; /* stack buttons on small screens */
+            gap: 16px;
+            height: auto;
+            max-height: calc(95vh - 70px);
+            overflow-y: auto;
           }
           
-          .pm-details{
-            max-height: none; /* Remove height restriction */
-            overflow-y: visible; /* Allow natural flow */
+          .pm-media {
+            order: 1;
+          }
+          
+          .pm-details {
+            order: 2;
+            height: auto;
+            max-height: 400px;
+          }
+          
+          /* Keep horizontal thumbnails on smaller screens */
+          .pm-media :global(.pdw-thumbs-inner) {
+            justify-content: flex-start !important;
+            overflow-x: auto !important;
+            padding-bottom: 4px !important;
+          }
+          
+          .pm-media :global(.pdw-thumb) {
+            width: 60px !important;
+            height: 60px !important;
+          }
+        }
+        
+        @media (max-width: 768px){
+          .pm-body{
+            gap: 8px;
+            padding: 0 2px;
+          }
+          
+          .pm-media :global(.pdw-main) {
+            max-width: 100% !important;
+          }
+          
+          .pm-media :global(.pdw-thumb) {
+            width: 50px !important;
+            height: 50px !important;
+          }
+          
+          .pm-details {
+            padding: 1px 3px 1px 1px; /* Ultra compact on mobile */
+          }
+          
+          :global(.tp-product-details h1),
+          :global(.tp-product-details h2){
+            font-size: 1.1rem; /* Smaller on mobile */
+            margin: 0 0 3px 0;
+          }
+          
+          :global(.tp-product-details .tp-product-details-meta){
+            grid-template-columns: 1fr;
+            gap: 1px 6px; /* Ultra compact */
+          }
+          :global(.tp-product-details .tp-product-details-action){
+            grid-template-columns: 1fr;
+            gap: 4px; /* Minimal gap */
+            margin-top: 3px;
+          }
+          :global(.tp-product-details .tp-product-details-action .tp-btn){
+            height: 30px; /* Smaller on mobile */
+            font-size: 10px;
+            padding: 3px 6px;
           }
         }
         
         @media (max-width: 600px){
           .pm-topbar{
-            justify-content: space-between; /* Keep them on same row on mobile too */
             gap: 8px;
             margin-bottom: 10px;
           }
           
-          .pm-body{
-            gap: 15px;
-            padding: 0 5px;
-          }
-          
           :global(.tp-btn){
             font-size: 12px !important;
-            padding: 8px 16px !important;
+            padding: 8px 14px !important;
           }
-        }
-        
-        @media (max-width: 480px){
-          .pm-body{
-            gap: 10px;
-            padding: 0;
+          
+          .pm-media :global(.pdw-thumb) {
+            width: 50px !important;
+            height: 50px !important;
           }
         }
       `}</style>
