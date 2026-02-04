@@ -1029,6 +1029,7 @@ export async function downloadProductPdf(product, options = {}) {
 
     if (onProgress) onProgress('Creating PDF document...');
     const headerTop = 6.5;
+    const M = 14;
 
     // Draw header
     drawHeader(doc, {
