@@ -289,24 +289,67 @@ const DetailsWrapper = ({ productItem = {} }) => {
       // Get current page URL for QR code
       const currentUrl = typeof window !== 'undefined' ? window.location.href : '';
       
+      // Update button text to show progress
+      if (button) {
+        const btnText = button.querySelector('.btn-text');
+        if (btnText) btnText.textContent = 'Loading images...';
+      }
+      
       // Generate PDF with product data
-      await downloadProductPdf(productItem, {
+      const result = await downloadProductPdf(productItem, {
         productUrl: currentUrl,
+        onProgress: (message) => {
+          if (button) {
+            const btnText = button.querySelector('.btn-text');
+            if (btnText) btnText.textContent = message;
+          }
+        },
         // You can add more options here if needed
         // companyName: 'Custom Company Name',
         // phone1: 'Custom Phone',
         // etc.
       });
 
+      // Show success message
+      if (result?.success) {
+        // Temporarily show success message
+        if (button) {
+          const btnText = button.querySelector('.btn-text');
+          if (btnText) {
+            btnText.textContent = 'PDF Downloaded!';
+            setTimeout(() => {
+              btnText.textContent = 'Download Catalogue';
+            }, 2000);
+          }
+        }
+      }
+
       } catch (error) {
-      alert('Error generating PDF. Please try again.');
+      console.error('PDF generation error:', error);
+      
+      // Show more specific error messages
+      let errorMessage = 'Error generating PDF. ';
+      
+      if (error.message?.includes('timeout')) {
+        errorMessage += 'The request timed out. Please check your internet connection and try again.';
+      } else if (error.message?.includes('network') || error.message?.includes('fetch')) {
+        errorMessage += 'Network error. Please check your internet connection and try again.';
+      } else if (error.message?.includes('image')) {
+        errorMessage += 'Some images could not be loaded, but the PDF should still be generated. Please try again.';
+      } else {
+        errorMessage += 'Please try again. If the problem persists, contact support.';
+      }
+      
+      alert(errorMessage);
     } finally {
       // Reset button state
       const button = document.querySelector('.action-btn.primary');
       if (button) {
         button.disabled = false;
         const btnText = button.querySelector('.btn-text');
-        if (btnText) btnText.textContent = 'Download Catalogue';
+        if (btnText && btnText.textContent !== 'PDF Downloaded!') {
+          btnText.textContent = 'Download Catalogue';
+        }
       }
     }
   };

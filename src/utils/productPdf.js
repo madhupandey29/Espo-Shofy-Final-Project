@@ -6,6 +6,11 @@ import QRCode from "qrcode";
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL?.replace(/\/$/, "") || "";
 const API_KEY = process.env.NEXT_PUBLIC_API_KEY || "";
 
+// Configuration constants
+const IMAGE_LOAD_TIMEOUT = 15000; // 15 seconds
+const BATCH_SIZE = 3; // Load images in smaller batches
+const BATCH_DELAY = 200; // Delay between batches in ms
+
 /* ------------------------------ Helper Functions ------------------------------ */
 function cleanStr(v) {
   if (v === null || v === undefined) return "";
@@ -113,13 +118,89 @@ function getCardImage(p) {
   return candidates[0] || "";
 }
 
+// Enhanced image loading with multiple fallback strategies
+async function loadImageWithFallbacks(product, isCard = false) {
+  const imageUrl = isCard ? getCardImage(product) : getPrimaryImage(product);
+  
+  if (!imageUrl) {
+    return { dataUrl: null, size: null };
+  }
+  
+  try {
+    // Try to load the image
+    const dataUrl = await toDataUrl(imageUrl);
+    if (dataUrl) {
+      const size = await getDataUrlSize(dataUrl);
+      return { dataUrl, size };
+    }
+  } catch (error) {
+    console.warn(`Failed to load primary image: ${error.message}`);
+  }
+  
+  // If primary image fails, try other candidates
+  const allCandidates = isCard ? [
+    product?.image2ThumbUrl,
+    product?.image3ThumbUrl,
+    product?.image1CloudUrl,
+    product?.image2CloudUrl,
+    product?.image3CloudUrl,
+    product?.img,
+    product?.image1,
+    product?.image2,
+    product?.image3,
+  ] : [
+    product?.image2CloudUrl,
+    product?.image3CloudUrl,
+    product?.image1ThumbUrl,
+    product?.image2ThumbUrl,
+    product?.image3ThumbUrl,
+    product?.img,
+    product?.image2,
+    product?.image3,
+  ];
+  
+  for (const fallbackUrl of allCandidates.map(cleanStr).filter(Boolean)) {
+    try {
+      const dataUrl = await toDataUrl(fallbackUrl);
+      if (dataUrl) {
+        const size = await getDataUrlSize(dataUrl);
+        console.log(`Successfully loaded fallback image: ${fallbackUrl}`);
+        return { dataUrl, size };
+      }
+    } catch (error) {
+      console.warn(`Fallback image failed: ${fallbackUrl}`, error.message);
+      continue;
+    }
+  }
+  
+  console.warn(`All image loading attempts failed for product: ${product?.fabricCode || 'unknown'}`);
+  return { dataUrl: null, size: null };
+}
+
 async function toDataUrl(url) {
   const u = cleanStr(url);
   if (!u) return null;
+  
   try {
-    const res = await fetch(u, { mode: "cors" });
-    if (!res.ok) throw new Error("Image fetch failed");
+    // First try: Direct fetch with CORS
+    const res = await fetch(u, { 
+      mode: "cors",
+      headers: {
+        'Accept': 'image/*',
+      },
+      // Add timeout to prevent hanging
+      signal: AbortSignal.timeout(IMAGE_LOAD_TIMEOUT) // Configurable timeout
+    });
+    
+    if (!res.ok) throw new Error(`Image fetch failed: ${res.status}`);
+    
     const blob = await res.blob();
+    
+    // Verify it's actually an image
+    if (!blob.type.startsWith('image/')) {
+      throw new Error('Response is not an image');
+    }
+    
     return await new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onerror = reject;
@@ -127,7 +208,61 @@ async function toDataUrl(url) {
       reader.readAsDataURL(blob);
     });
   } catch (error) {
-    return null;
+    console.warn(`Failed to fetch image directly: ${error.message}`);
+    
+    // Fallback: Try using Next.js Image API proxy
+    try {
+      const encodedUrl = encodeURIComponent(u);
+      const proxyUrl = `/api/image-proxy?url=${encodedUrl}`;
+      
+      const res = await fetch(proxyUrl, {
+        signal: AbortSignal.timeout(IMAGE_LOAD_TIMEOUT)
+      });
+      
+      if (!res.ok) throw new Error(`Proxy fetch failed: ${res.status}`);
+      
+      const blob = await res.blob();
+      
+      return await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onerror = reject;
+        reader.onload = () => resolve(reader.result);
+        reader.readAsDataURL(blob);
+      });
+    } catch (proxyError) {
+      console.warn(`Failed to fetch image via proxy: ${proxyError.message}`);
+      
+      // Final fallback: Try loading via Image element (for same-origin images)
+      try {
+        return await new Promise((resolve, reject) => {
+          const img = new Image();
+          img.crossOrigin = 'anonymous';
+          
+          img.onload = () => {
+            try {
+              const canvas = document.createElement('canvas');
+              const ctx = canvas.getContext('2d');
+              canvas.width = img.naturalWidth || img.width;
+              canvas.height = img.naturalHeight || img.height;
+              ctx.drawImage(img, 0, 0);
+              resolve(canvas.toDataURL('image/png'));
+            } catch (canvasError) {
+              reject(canvasError);
+            }
+          };
+          
+          img.onerror = () => reject(new Error('Image load failed'));
+          
+          // Set timeout for image loading
+          setTimeout(() => reject(new Error('Image load timeout')), IMAGE_LOAD_TIMEOUT - 2000);
+          
+          img.src = u;
+        });
+      } catch (imageError) {
+        console.warn(`All image loading methods failed for ${u}:`, imageError.message);
+        return null;
+      }
+    }
   }
 }
 
@@ -737,11 +872,17 @@ export async function downloadProductPdf(product, options = {}) {
     phone2,
     email,
     addressLine,
+    onProgress, // New callback for progress updates
   } = options;
 
   try {
+    // Notify progress
+    if (onProgress) onProgress('Initializing PDF generation...');
+    
     // ✅ Dynamic import of jsPDF - only loads when user clicks download
     const { jsPDF } = await import("jspdf");
+    
+    if (onProgress) onProgress('Fetching company information...');
     
     // Fetch company information and collection data
     const collectionId = product?.collectionId || product?.collection?.id || product?.collection?._id || product?.collection;
@@ -751,6 +892,8 @@ export async function downloadProductPdf(product, options = {}) {
       fetchCollectionProductsCount(collectionId),
       fetchCollectionProductsList(collectionId)
     ]);
+    
+    if (onProgress) onProgress('Loading product images...');
     
     // Dynamic fields with fallbacks
     const dynamicCompanyName = cleanStr(companyName) || cleanStr(companyInfo?.legalName) || cleanStr(companyInfo?.name) || "Amrita Global Enterprises";
@@ -819,18 +962,20 @@ export async function downloadProductPdf(product, options = {}) {
       return parts.join(' ');
     })();
 
-    // Load images
-    const imgUrl = getPrimaryImage(product);
-    let imgDataUrl = null;
-    try {
-      imgDataUrl = imgUrl ? await toDataUrl(imgUrl) : null;
-    } catch {
-      imgDataUrl = null;
+    // Load images with improved error handling
+    console.log('Loading main product image...');
+    const { dataUrl: imgDataUrl, size: imgSize } = await loadImageWithFallbacks(product, false);
+    
+    if (imgDataUrl) {
+      console.log('Successfully loaded main product image');
+    } else {
+      console.warn('Failed to load main product image, PDF will show placeholder');
     }
 
-    // Try multiple logo paths with full URLs - prioritize your actual logo
+    // Try multiple logo paths with improved loading
     let logoDataUrl = null;
-    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL;
+    let logoSize = null;
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || '';
     const logoPaths = [
       "/assets/img/logo/my_logo.png", // Your actual logo (FIRST PRIORITY)
       logoPath,
@@ -841,33 +986,49 @@ export async function downloadProductPdf(product, options = {}) {
       "/assets/img/logo/logo.png"
     ];
     
+    if (onProgress) onProgress('Loading company logo...');
     for (const path of logoPaths) {
       try {
         const fullUrl = path.startsWith('http') ? path : `${baseUrl}${path}`;
+        console.log(`Trying logo path: ${fullUrl}`);
         logoDataUrl = await toDataUrl(fullUrl);
         if (logoDataUrl) {
+          logoSize = await getDataUrlSize(logoDataUrl);
+          console.log(`Successfully loaded logo: ${path}`);
           break;
         }
       } catch (error) {
+        console.warn(`Logo loading failed for ${path}:`, error.message);
         continue;
       }
     }
     
     if (!logoDataUrl) {
-      }
-
-    const logoSize = logoDataUrl ? await getDataUrlSize(logoDataUrl) : null;
-
-    // Generate QR code
-    let finalQrDataUrl = null;
-    if (qrDataUrl && typeof qrDataUrl === "string") {
-      finalQrDataUrl = qrDataUrl;
-    } else if (productUrl) {
-      finalQrDataUrl = await makeQrDataUrl(normalizeUrl(productUrl));
+      console.warn('Failed to load any logo, PDF will show company name only');
     }
 
+    // Generate QR code with better error handling
+    let finalQrDataUrl = null;
+    if (onProgress) onProgress('Generating QR code...');
+    try {
+      if (qrDataUrl && typeof qrDataUrl === "string") {
+        finalQrDataUrl = qrDataUrl;
+        console.log('Using provided QR code');
+      } else if (productUrl) {
+        finalQrDataUrl = await makeQrDataUrl(normalizeUrl(productUrl));
+        if (finalQrDataUrl) {
+          console.log('Successfully generated QR code');
+        } else {
+          console.warn('Failed to generate QR code');
+        }
+      }
+    } catch (error) {
+      console.warn('QR code generation failed:', error.message);
+      finalQrDataUrl = null;
+    }
+
+    if (onProgress) onProgress('Creating PDF document...');
     const headerTop = 6.5;
-    const M = 14;
 
     // Draw header
     drawHeader(doc, {
@@ -1209,17 +1370,47 @@ export async function downloadProductPdf(product, options = {}) {
 
     // ✅ NEW: Add collection products as 2x2 grid on additional pages
     if (collectionProducts.length > 0) {
-      // Preload card images
-      for (const prod of collectionProducts) {
-        const imgUrl = getCardImage(prod);
+      if (onProgress) onProgress(`Loading collection images (${collectionProducts.length} products)...`);
+      
+      // Preload card images with improved error handling
+      const imageLoadPromises = collectionProducts.map(async (prod, index) => {
         try {
-          prod.__cardImgDataUrl = imgUrl ? await toDataUrl(imgUrl) : null;
-          prod.__cardImgSize = prod.__cardImgDataUrl ? await getDataUrlSize(prod.__cardImgDataUrl) : null;
-        } catch {
+          console.log(`Loading image ${index + 1}/${collectionProducts.length} for product: ${prod?.fabricCode || 'unknown'}`);
+          const { dataUrl, size } = await loadImageWithFallbacks(prod, true);
+          prod.__cardImgDataUrl = dataUrl;
+          prod.__cardImgSize = size;
+          
+          if (dataUrl) {
+            console.log(`✓ Image loaded for product: ${prod?.fabricCode || 'unknown'}`);
+          } else {
+            console.warn(`✗ Image failed for product: ${prod?.fabricCode || 'unknown'}`);
+          }
+        } catch (error) {
+          console.warn(`Image loading error for product ${prod?.fabricCode || 'unknown'}:`, error.message);
           prod.__cardImgDataUrl = null;
           prod.__cardImgSize = null;
         }
+      });
+      
+      // Load images in batches to avoid overwhelming the server
+      const batchSize = BATCH_SIZE;
+      for (let i = 0; i < imageLoadPromises.length; i += batchSize) {
+        const batch = imageLoadPromises.slice(i, i + batchSize);
+        await Promise.all(batch);
+        
+        // Update progress
+        if (onProgress) {
+          const loaded = Math.min(i + batchSize, imageLoadPromises.length);
+          onProgress(`Loading images... (${loaded}/${imageLoadPromises.length})`);
+        }
+        
+        // Small delay between batches to be nice to the server
+        if (i + batchSize < imageLoadPromises.length) {
+          await new Promise(resolve => setTimeout(resolve, BATCH_DELAY));
+        }
       }
+      
+      if (onProgress) onProgress('Finalizing PDF...');
 
       // Grid layout: 2 columns x 2 rows per page (4 products per page)
       // Will generate enough pages to show all collection products (48 for Nokia)
@@ -1275,12 +1466,36 @@ export async function downloadProductPdf(product, options = {}) {
       }
     }
 
-    // Save PDF
-    const fileName = code ? `${code}.pdf` : "product-sample.pdf";
-    doc.save(fileName);
+    // Save PDF with error handling
+    if (onProgress) onProgress('Saving PDF...');
     
-    return { success: true, fileName };
+    try {
+      const fileName = code ? `${code}.pdf` : "product-sample.pdf";
+      doc.save(fileName);
+      
+      if (onProgress) onProgress('PDF downloaded successfully!');
+      
+      return { success: true, fileName };
+    } catch (saveError) {
+      console.error('PDF save error:', saveError);
+      throw new Error(`Failed to save PDF: ${saveError.message}`);
+    }
+    
   } catch (error) {
-    throw error;
+    console.error('PDF generation error:', error);
+    
+    // Enhance error messages for better user experience
+    if (error.name === 'AbortError' || error.message?.includes('timeout')) {
+      throw new Error('Request timed out. Please check your internet connection and try again.');
+    } else if (error.message?.includes('fetch') || error.message?.includes('network')) {
+      throw new Error('Network error occurred. Please check your internet connection and try again.');
+    } else if (error.message?.includes('CORS') || error.message?.includes('cross-origin')) {
+      throw new Error('Image loading blocked by browser security. Please try again or contact support.');
+    } else if (error.message?.includes('jsPDF') || error.message?.includes('PDF')) {
+      throw new Error('PDF generation failed. Please try again.');
+    } else {
+      // Re-throw with original message for debugging
+      throw error;
+    }
   }
 }
