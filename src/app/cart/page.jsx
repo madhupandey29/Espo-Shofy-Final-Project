@@ -9,6 +9,10 @@ import CartArea from "@/components/cart-wishlist/cart-area";
 
 export const metadata = {
   title: "Shofy - Cart Page",
+  robots: {
+    index: false,
+    follow: true,
+  },
 };
 
 // Force SSR for fast, fresh API-driven cart

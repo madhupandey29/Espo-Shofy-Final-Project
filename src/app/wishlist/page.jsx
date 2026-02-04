@@ -5,6 +5,10 @@ import WishlistArea from "@/components/cart-wishlist/wishlist-area";
 
 export const metadata = {
   title: "Shofy - Wishlist Page",
+  robots: {
+    index: false,
+    follow: true,
+  },
 };
 
 // Force SSR for wishlist to avoid stale cached data

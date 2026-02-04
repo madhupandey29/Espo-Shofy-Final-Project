@@ -6,6 +6,10 @@ import ForgotArea from "@/components/login-register/forgot-area";
 
 export const metadata = {
   title: "Shofy - Forgot Page",
+  robots: {
+    index: false,
+    follow: true,
+  },
 };
 
 export default function ForgotPage() {

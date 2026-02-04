@@ -1,6 +1,7 @@
 import './globals.scss';
 import '../styles/carousel-mobile-fix.css';
 import '../styles/security-protection.css';
+import '../styles/safe-responsive-fixes.css';
 import Providers from '@/components/provider';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import GoogleAnalytics from '@/components/analytics/GoogleAnalytics';
@@ -42,6 +43,7 @@ const poppins = Poppins({
 export const metadata = {
   title: 'Shofy - Next.js E-commerce',
   description: 'Modern e-commerce platform built with Next.js',
+  viewport: 'width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes',
   other: {
     'mobile-web-app-capable': 'yes',
     'apple-mobile-web-app-capable': 'yes',

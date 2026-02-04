@@ -6,6 +6,10 @@ import RegisterArea from "@/components/login-register/register-area";
 
 export const metadata = {
   title: "Shofy - Register Page",
+  robots: {
+    index: false,
+    follow: true,
+  },
 };
 
 export default function RegisterPage() {
