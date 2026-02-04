@@ -28,18 +28,29 @@ const formatDate = (blog) => {
 const stripHtml = (v = '') =>
   String(v || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
 
-// Normalize image data
+// Normalize image data with validation
 const normalizeImg = (v) => {
   if (!v) return { src: '' };
-  if (typeof v === 'string') return { src: v };
+  if (typeof v === 'string') {
+    // Validate string URLs
+    if (v.startsWith('http://') || v.startsWith('https://') || v.startsWith('/')) {
+      return { src: v };
+    }
+    return { src: '' }; // Invalid URL
+  }
   if (typeof v === 'object') {
-    return {
-      src: v.url || v.secure_url || v.src || v.path || '',
-      width: v.width,
-      height: v.height,
-      alt: v.alt,
-      title: v.title,
-    };
+    const src = v.url || v.secure_url || v.src || v.path || '';
+    // Validate object URLs
+    if (src && (src.startsWith('http://') || src.startsWith('https://') || src.startsWith('/'))) {
+      return {
+        src: src,
+        width: v.width,
+        height: v.height,
+        alt: v.alt,
+        title: v.title,
+      };
+    }
+    return { src: '' }; // Invalid URL
   }
   return { src: '' };
 };
@@ -58,6 +69,9 @@ const ModernBlogCard = ({ blog, index = 0 }) => {
   // Fallback to ID if slug is empty
   slug = slug || id;
 
+  const rawTitle = blog?.title || '';
+  const plainTitle = stripHtml(rawTitle) || 'Blog Post';
+
   const img1 = normalizeImg(blog?.blogimage1);
   const img2 = normalizeImg(blog?.blogimage2);
   const chosen = img1.src ? img1 : img2.src ? img2 : null;
@@ -65,8 +79,6 @@ const ModernBlogCard = ({ blog, index = 0 }) => {
   const fallbackSrc = '/assets/img/blog/blog-big-2.jpg';
   const src = chosen?.src || fallbackSrc;
 
-  const rawTitle = blog?.title || '';
-  const plainTitle = stripHtml(rawTitle) || 'Blog Post';
   const date = formatDate(blog); // Pass the whole blog object
 
   // Get excerpt from available content with better priority

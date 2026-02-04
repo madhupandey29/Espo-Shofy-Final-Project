@@ -23,6 +23,15 @@ const slider_setting = {
 
 const BlogItem = ({ item = {} }) => {
   const [isVideoOpen, setIsVideoOpen] = useState(false);
+  
+  // Validate image URL
+  const validateImageUrl = (url) => {
+    if (!url || typeof url !== 'string') return false;
+    return url.startsWith('http://') || url.startsWith('https://') || url.startsWith('/');
+  };
+  
+  const validImg = validateImageUrl(item.img) ? item.img : '/assets/img/blog/fallback.jpg';
+  
   return (
     <>
       <article
@@ -34,14 +43,14 @@ const BlogItem = ({ item = {} }) => {
           !item.slider && (
             <div className="tp-postbox-thumb w-img">
               <Link href={`/blog-details/${item.id}`}>
-                <Image src={item.img} alt="blog img" />
+                <Image src={validImg} alt="blog img" />
               </Link>
             </div>
           )}
         {item.video && (
           <div className="tp-postbox-thumb tp-postbox-video w-img p-relative">
             <Link href={`/blog-details/${item.id}`}>
-              <Image src={item.img} alt="blog img" />
+              <Image src={validImg} alt="blog img" />
             </Link>
             <a
               onClick={() => setIsVideoOpen(true)}

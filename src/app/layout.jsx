@@ -61,7 +61,7 @@ export default async function RootLayout({ children }) {
   const localBusinessJsonLd = null; // Add your JSON-LD logic here
 
   return (
-    <html lang="en" className={`${inter.variable} ${poppins.variable}`}>
+    <html lang="en" className={`${inter.variable} ${poppins.variable}`} data-env={process.env.NODE_ENV === 'production' ? 'production' : 'development'}>
       <head>
         {/* Google Analytics */}
         <GoogleAnalytics />
@@ -211,20 +211,7 @@ export default async function RootLayout({ children }) {
           }}
         />
 
-        {/* Environment Detection Script - Sets data-env attribute for CSS rules */}
-        <Script
-          id="environment-detection"
-          strategy="beforeInteractive"
-          dangerouslySetInnerHTML={{
-            __html: `
-              // Set environment attribute on html only to avoid hydration mismatch
-              (function() {
-                const isProduction = '${process.env.NODE_ENV}' === 'production';
-                document.documentElement.setAttribute('data-env', isProduction ? 'production' : 'development');
-              })();
-            `,
-          }}
-        />
+        {/* Environment Detection Script - No longer needed since data-env is set on html tag */}
 
         {/* ⚠️ SECURITY COMPONENTS TEMPORARILY DISABLED FOR TESTING */}
         {/* <AntiInspection /> */}

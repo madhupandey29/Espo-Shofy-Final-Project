@@ -136,7 +136,7 @@ const Menus = () => {
   // Handle mouse leave for megamenu
   const handleMouseLeave = (e) => {
     // Don't close immediately if user is clicking
-    if (e.relatedTarget && e.currentTarget.contains(e.relatedTarget)) {
+    if (e.relatedTarget && e.relatedTarget.nodeType === Node.ELEMENT_NODE && e.currentTarget.contains(e.relatedTarget)) {
       return;
     }
     

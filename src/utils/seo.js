@@ -33,6 +33,18 @@ async function getDefaultSeoSettings() {
 }
 
 /**
+ * Generate Next.js optimized logo URL
+ * @param {string} logoPath - The logo path (default: "/assets/img/logo/age.jpg")
+ * @param {number} width - Image width (default: 256)
+ * @param {number} quality - Image quality (default: 90)
+ * @returns {string} - Complete Next.js optimized logo URL
+ */
+export const getOptimizedLogoUrl = (logoPath = "/assets/img/logo/age.jpg", width = 256, quality = 90) => {
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://espo-shofy-final-project.vercel.app";
+  return `${baseUrl}/_next/image?url=${encodeURIComponent(logoPath)}&w=${width}&q=${quality}`;
+};
+
+/**
  * Generate canonical URL from environment variable and path
  * @param {string} path - The path to append to the site URL (default: "/")
  * @returns {string} - Complete canonical URL
@@ -70,6 +82,7 @@ export const getAbsoluteImageUrl = (imagePath) => {
  * @param {string} options.path - Page path for canonical URL
  * @param {string} options.keywords - SEO keywords
  * @param {string} options.ogImage - OpenGraph image path (will be made absolute)
+ * @param {string} options.ogLogo - OpenGraph logo path (will be made absolute)
  * @param {string} options.robots - Robots meta tag value (default: "index, follow")
  * @param {Object} options.openGraph - OpenGraph overrides
  * @param {Object} options.twitter - Twitter card overrides
@@ -81,6 +94,7 @@ export const generateMetadata = async ({
   path = "/",
   keywords,
   ogImage,
+  ogLogo,
   robots = "index, follow",
   openGraph = {},
   twitter = {}
@@ -90,6 +104,7 @@ export const generateMetadata = async ({
   
   const canonical = getCanonicalUrl(path);
   const absoluteOgImage = ogImage ? getAbsoluteImageUrl(ogImage) : null;
+  const absoluteOgLogo = ogLogo ? getAbsoluteImageUrl(ogLogo) : null;
   
   // Site name from default SEO settings or environment
   const siteName = defaultSeoSettings?.name || process.env.NEXT_PUBLIC_SITE_NAME || 'eCatalogue';
@@ -114,6 +129,11 @@ export const generateMetadata = async ({
         alt: title
       }
     ];
+  }
+
+  // Add logo if provided
+  if (absoluteOgLogo) {
+    ogData.logo = absoluteOgLogo;
   }
 
   const twitterData = {
@@ -191,6 +211,10 @@ export const generateMetadata = async ({
       // Add Bing verification directly in other meta tags as fallback
       ...(defaultSeoSettings?.bingVerification && {
         'msvalidate.01': defaultSeoSettings.bingVerification,
+      }),
+      // Add Open Graph logo if provided
+      ...(absoluteOgLogo && {
+        'og:logo': absoluteOgLogo,
       }),
     }
   };

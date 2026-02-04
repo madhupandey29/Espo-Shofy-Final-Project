@@ -32,7 +32,19 @@ export default function BlogItem({ blog }) {
   
   // Fallback to ID if slug is empty
   slug = slug || id;
-  const img  = blog?.blogimage1 || blog?.blogimage2 || blog?.img || '/assets/img/blog/fallback.jpg';
+  
+  // Validate image URLs
+  const validateImageUrl = (url) => {
+    if (!url || typeof url !== 'string') return false;
+    return url.startsWith('http://') || url.startsWith('https://') || url.startsWith('/');
+  };
+  
+  const blogimage1 = validateImageUrl(blog?.blogimage1) ? blog.blogimage1 : null;
+  const blogimage2 = validateImageUrl(blog?.blogimage2) ? blog.blogimage2 : null;
+  const oldImg = validateImageUrl(blog?.img) ? blog.img : null;
+  
+  const img = blogimage1 || blogimage2 || oldImg || '/assets/img/blog/fallback.jpg';
+  
   const date = fmt(blog?.createdAt) || blog?.date || '';
   const tags = Array.isArray(blog?.tags) ? blog.tags
              : Array.isArray(blog?.categories) ? blog.categories

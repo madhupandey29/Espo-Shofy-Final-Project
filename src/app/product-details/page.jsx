@@ -2,7 +2,7 @@ import Wrapper from "@/layout/wrapper";
 import HeaderTwo from "@/layout/headers/header-2";
 import ProductDetailsClient from "./ProductDetailsClient";
 import Footer from "@/layout/footers/footer";
-import { generateMetadata as generateSEOMetadata } from "@/utils/seo";
+import { generateMetadata as generateSEOMetadata, getOptimizedLogoUrl } from "@/utils/seo";
 
 // Server-side function to fetch product data for metadata
 async function getProductData(productId) {
@@ -37,6 +37,9 @@ export async function generateMetadata({ searchParams }) {
                     product?.image1 || 
                     null;
   
+  // Logo URL - construct Next.js optimized image URL with base URL from env
+  const logoUrl = getOptimizedLogoUrl();
+  
   const productTitle = product?.name || product?.productTitle || product?.title || "Product Details";
   const productDescription = product?.shortProductDescription || 
                            product?.description || 
@@ -58,6 +61,7 @@ export async function generateMetadata({ searchParams }) {
     keywords: keywordsString,
     path: `/product-details?id=${productId}`,
     ogImage: firstImage,
+    ogLogo: logoUrl,
     robots: robotsTag
   });
 }

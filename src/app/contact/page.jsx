@@ -4,18 +4,21 @@ import ContactBreadcrumb from "@/components/breadcrumb/contact-breadcrumb";
 import ContactArea from "@/components/contact/contact-area";
 import ContactMap from "@/components/contact/contact-map";
 import Footer from "@/layout/footers/footer";
-import { generateMetadata as generateSEOMetadata } from "@/utils/seo";
+import { generateMetadata as generateSEOMetadata, getOptimizedLogoUrl } from "@/utils/seo";
 
 /* -----------------------------
   Metadata (Static SEO)
 ----------------------------- */
 export async function generateMetadata() {
+  const logoUrl = getOptimizedLogoUrl();
+  
   return generateSEOMetadata({
     title: "Contact eCatalogue | Premium Fabric Supplier - Get in Touch",
     description: "Contact eCatalogue by Amrita Global Enterprises for premium cotton fabrics, mercerized textiles, and custom fabric solutions. Expert textile consultation and support.",
     keywords: "contact eCatalogue, fabric supplier contact, textile consultation, Amrita Global Enterprises, premium fabrics, cotton textiles, fabric inquiry",
     path: "/contact",
     ogImage: "/assets/img/logo/logo.svg",
+    ogLogo: logoUrl,
     robots: "index, follow"
   });
 }

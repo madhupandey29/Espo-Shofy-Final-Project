@@ -53,9 +53,17 @@ const AuthorProfile = ({ authorId = null, showSignature = true, className = '' }
   const authorName = author.name;
   const authorDesignation = author.designation;
   const authorDescription = author.description;
-  const authorImage = author.authorimage || author.image || null;
+  const authorImageRaw = author.authorimage || author.image || null;
   const authorLinkedin = author.authorLinkedinURL || null;
   const authorAltText = author.altimage;
+
+  // Validate author image URL
+  const isValidImageUrl = (url) => {
+    if (!url || typeof url !== 'string') return false;
+    return url.startsWith('http://') || url.startsWith('https://') || url.startsWith('/');
+  };
+
+  const authorImage = isValidImageUrl(authorImageRaw) ? authorImageRaw : null;
 
   return (
     <div className={`author-profile ${className}`}>

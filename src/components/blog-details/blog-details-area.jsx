@@ -4,6 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import AuthorProfile from '../author/AuthorProfile';
 import styles from './BlogDetails.module.scss';
+import { cleanBlogContent } from '@/utils/cleanBlogContent';
 
 const fmt = (iso) => {
   if (!iso) return '';
@@ -57,14 +58,23 @@ const BlogDetailsArea = ({ blog }) => {
   const publishedDate = fmt(blog?.publishedAt || blog?.createdAt);
   const author = blog?.assignedUserName || blog?.author || 'Admin';
 
-  // Handle images
+  // Handle images with validation
   const heroImage = blog?.blogimage1;
   const inlineImage = blog?.blogimage2;
 
+  // Validate image URLs - must be absolute URLs or start with /
+  const isValidImageUrl = (url) => {
+    if (!url || typeof url !== 'string') return false;
+    return url.startsWith('http://') || url.startsWith('https://') || url.startsWith('/');
+  };
+
+  const validHeroImage = isValidImageUrl(heroImage) ? heroImage : null;
+  const validInlineImage = isValidImageUrl(inlineImage) ? inlineImage : null;
+
   // Split content for proper flow: title → some content → image → rest of content
-  const paragraph1Content = blog?.paragraph1 || '';
-  const paragraph2Content = blog?.paragraph2 || '';
-  const paragraph3Content = blog?.paragraph3 || '';
+  const paragraph1Content = cleanBlogContent(blog?.paragraph1 || '');
+  const paragraph2Content = cleanBlogContent(blog?.paragraph2 || '');
+  const paragraph3Content = cleanBlogContent(blog?.paragraph3 || '');
 
   return (
     <section className={styles.blogDetailsArea}>
@@ -128,10 +138,10 @@ const BlogDetailsArea = ({ blog }) => {
             {/* CONTENT FLOW: Image1 → Introduction → Image2 → Content → Conclusion */}
             
             {/* First Image - Before Introduction */}
-            {heroImage ? (
+            {validHeroImage ? (
               <div className={styles.heroImageContainer}>
                 <Image
-                  src={heroImage}
+                  src={validHeroImage}
                   alt={blog?.title?.replace(/<[^>]*>/g, '') || 'Blog image'}
                   width={800}
                   height={450}
@@ -161,10 +171,10 @@ const BlogDetailsArea = ({ blog }) => {
             )}
 
             {/* Second Image - Before paragraph2 */}
-            {inlineImage ? (
+            {validInlineImage ? (
               <div className={styles.inlineImageContainer}>
                 <Image
-                  src={inlineImage}
+                  src={validInlineImage}
                   alt="Article illustration"
                   width={800}
                   height={400}

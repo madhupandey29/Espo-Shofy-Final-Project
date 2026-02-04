@@ -4,6 +4,15 @@ import Wrapper from "@/layout/wrapper";
 import Footer from "@/layout/footers/footer";
 import BlogDetailsArea from "@/components/blog-details/blog-details-area";
 import { generateMetadata as generateSEOMetadata } from "@/utils/seo";
+import { generateBlogStructuredData, generateBlogBreadcrumbStructuredData } from "@/utils/blogStructuredData";
+
+import dynamic from 'next/dynamic';
+
+// Dynamically import the structured data component to avoid hydration issues
+const StructuredDataScripts = dynamic(
+  () => import('@/components/seo/StructuredDataScripts'),
+  { ssr: false }
+);
 
 const stripTrailingSlash = (s = "") => String(s || "").replace(/\/+$/, "");
 
@@ -53,6 +62,46 @@ async function getBlog(slugOrId) {
   return null;
 }
 
+// CLEAN AUTHOR FUNCTION - Always fetch from /author API
+async function getAuthor() {
+  try {
+    const response = await fetch(`${API_BASE}/author`, { 
+      cache: "no-store",
+      headers: {
+        'Content-Type': 'application/json',
+      }
+    });
+    
+    if (!response.ok) {
+      return null;
+    }
+    
+    const data = await response.json();
+    
+    // Handle different response formats
+    let author = null;
+    
+    if (data && data.name) {
+      author = data;
+    } else if (data.data && data.data.name) {
+      author = data.data;
+    } else if (Array.isArray(data) && data.length > 0 && data[0].name) {
+      author = data[0];
+    } else if (data.data && Array.isArray(data.data) && data.data.length > 0 && data.data[0].name) {
+      author = data.data[0];
+    }
+    
+    if (author && author.name) {
+      return author;
+    }
+    
+    return null;
+    
+  } catch (error) {
+    return null;
+  }
+}
+
 export async function generateMetadata({ params }) {
   const blog = await getBlog(params.id);
 
@@ -84,27 +133,40 @@ export async function generateMetadata({ params }) {
 
 export default async function BlogDetails({ params }) {
   const blog = await getBlog(params.id);
+  const author = await getAuthor();
+  
+  // Generate structured data
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.amrita-fashions.com';
+  const blogStructuredData = generateBlogStructuredData(blog, author, baseUrl);
+  const breadcrumbStructuredData = generateBlogBreadcrumbStructuredData(blog, baseUrl);
 
   return (
-    <Wrapper>
-      <HeaderTwo style_2 />
+    <>
+      <StructuredDataScripts 
+        blogStructuredData={blogStructuredData}
+        breadcrumbStructuredData={breadcrumbStructuredData}
+      />
       
-      {/* Hidden H1 for SEO */}
-      <h1 
-        style={{
-          position: "absolute",
-          left: "-9999px",
-          top: "auto",
-          width: "1px",
-          height: "1px",
-          overflow: "hidden",
-        }}
-      >
-        {blog?.title || "Blog Details - Latest Article"}
-      </h1>
-      
-      <BlogDetailsArea blog={blog} />
-      <Footer primary_style />
-    </Wrapper>
+      <Wrapper>
+        <HeaderTwo style_2 />
+        
+        {/* Hidden H1 for SEO */}
+        <h1 
+          style={{
+            position: "absolute",
+            left: "-9999px",
+            top: "auto",
+            width: "1px",
+            height: "1px",
+            overflow: "hidden",
+          }}
+        >
+          {blog?.title || "Blog Details - Latest Article"}
+        </h1>
+        
+        <BlogDetailsArea blog={blog} />
+        <Footer primary_style />
+      </Wrapper>
+    </>
   );
 }

@@ -51,8 +51,7 @@ const getSecurityHeaders = () => {
         "base-uri 'self'",
         "form-action 'self' https://espo.egport.com",
         "frame-ancestors 'self'",
-        "upgrade-insecure-requests",
-        "report-uri /api/csp-report"
+        "upgrade-insecure-requests"
       ].join('; '),
     },
   ];
@@ -82,17 +81,22 @@ const nextConfig = {
   // ✅ Security headers for all routes
   async headers() {
     return [
+      // Apply security headers to all routes EXCEPT Next.js static assets
       {
-        source: '/(.*)',
+        source: '/((?!_next/static).*)',
         headers: getSecurityHeaders(),
       },
-      // Fix MIME type issues for static assets
+      // Fix MIME type issues for static assets - More comprehensive
       {
         source: '/assets/css/:path*',
         headers: [
           {
             key: 'Content-Type',
             value: 'text/css; charset=utf-8',
+          },
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff',
           },
         ],
       },
@@ -103,6 +107,14 @@ const nextConfig = {
             key: 'Content-Type',
             value: 'text/css; charset=utf-8',
           },
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff',
+          },
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
         ],
       },
       {
@@ -111,6 +123,10 @@ const nextConfig = {
           {
             key: 'Content-Type',
             value: 'application/javascript; charset=utf-8',
+          },
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff',
           },
           {
             key: 'Cache-Control',
@@ -126,6 +142,10 @@ const nextConfig = {
             value: 'application/javascript; charset=utf-8',
           },
           {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff',
+          },
+          {
             key: 'Cache-Control',
             value: 'public, max-age=31536000, immutable',
           },
@@ -137,6 +157,20 @@ const nextConfig = {
           {
             key: 'Content-Type',
             value: 'font/ttf',
+          },
+        ],
+      },
+      // Exclude CSP from Next.js static assets to prevent MIME type conflicts
+      {
+        source: '/_next/static/:path*',
+        headers: [
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff',
+          },
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
           },
         ],
       },

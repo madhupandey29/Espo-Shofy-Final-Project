@@ -3,7 +3,7 @@ import Wrapper from "@/layout/wrapper";
 import HeaderTwo from "@/layout/headers/header-2";
 import Footer from "@/layout/footers/footer";
 import ShopArea from "@/components/shop/shop-area";
-import { generateMetadata as generateSEOMetadata } from "@/utils/seo";
+import { generateMetadata as generateSEOMetadata, getOptimizedLogoUrl } from "@/utils/seo";
 
 /* ---------------------------------------------
    Incremental Static Regeneration (ISR)
@@ -14,12 +14,15 @@ export const revalidate = 120;
    Metadata (Static SEO)
 ---------------------------------------------- */
 export async function generateMetadata() {
+  const logoUrl = getOptimizedLogoUrl();
+  
   return generateSEOMetadata({
     title: "Premium Fabrics Collection | Cotton, Mercerized & Designer Textiles - eCatalogue",
     description: "Browse our complete collection of premium cotton fabrics, mercerized textiles, and designer materials. Nokia & Majestica collections with GSM specifications for fashion and industrial use.",
     keywords: "fabric collection, cotton fabrics, mercerized textiles, premium materials, Nokia collection, Majestica collection, GSM fabrics, textile collection, fabric store",
     path: "/fabric",
     ogImage: "/assets/img/logo/logo.svg",
+    ogLogo: logoUrl,
     robots: "index, follow"
   });
 }
