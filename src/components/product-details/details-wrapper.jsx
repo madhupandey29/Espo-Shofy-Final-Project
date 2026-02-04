@@ -299,9 +299,10 @@ const DetailsWrapper = ({ productItem = {} }) => {
       const result = await downloadProductPdf(productItem, {
         productUrl: currentUrl,
         onProgress: (message) => {
+          // Always show simple "Generating PDF..." message
           if (button) {
             const btnText = button.querySelector('.btn-text');
-            if (btnText) btnText.textContent = message;
+            if (btnText) btnText.textContent = 'Generating PDF...';
           }
         },
         // You can add more options here if needed

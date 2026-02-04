@@ -134,7 +134,7 @@ async function loadImageWithFallbacks(product, isCard = false) {
       return { dataUrl, size };
     }
   } catch (error) {
-    console.warn(`Failed to load primary image: ${error.message}`);
+    // Silent fallback - no console warnings
   }
   
   // If primary image fails, try other candidates
@@ -164,16 +164,13 @@ async function loadImageWithFallbacks(product, isCard = false) {
       const dataUrl = await toDataUrl(fallbackUrl);
       if (dataUrl) {
         const size = await getDataUrlSize(dataUrl);
-        console.log(`Successfully loaded fallback image: ${fallbackUrl}`);
         return { dataUrl, size };
       }
     } catch (error) {
-      console.warn(`Fallback image failed: ${fallbackUrl}`, error.message);
-      continue;
+      continue; // Silent fallback
     }
   }
   
-  console.warn(`All image loading attempts failed for product: ${product?.fabricCode || 'unknown'}`);
   return { dataUrl: null, size: null };
 }
 
@@ -208,8 +205,6 @@ async function toDataUrl(url) {
       reader.readAsDataURL(blob);
     });
   } catch (error) {
-    console.warn(`Failed to fetch image directly: ${error.message}`);
-    
     // Fallback: Try using Next.js Image API proxy
     try {
       const encodedUrl = encodeURIComponent(u);
@@ -230,8 +225,6 @@ async function toDataUrl(url) {
         reader.readAsDataURL(blob);
       });
     } catch (proxyError) {
-      console.warn(`Failed to fetch image via proxy: ${proxyError.message}`);
-      
       // Final fallback: Try loading via Image element (for same-origin images)
       try {
         return await new Promise((resolve, reject) => {
@@ -259,7 +252,6 @@ async function toDataUrl(url) {
           img.src = u;
         });
       } catch (imageError) {
-        console.warn(`All image loading methods failed for ${u}:`, imageError.message);
         return null;
       }
     }
@@ -893,7 +885,7 @@ export async function downloadProductPdf(product, options = {}) {
       fetchCollectionProductsList(collectionId)
     ]);
     
-    if (onProgress) onProgress('Loading product images...');
+    if (onProgress) onProgress('Generating PDF...');
     
     // Dynamic fields with fallbacks
     const dynamicCompanyName = cleanStr(companyName) || cleanStr(companyInfo?.legalName) || cleanStr(companyInfo?.name) || "Amrita Global Enterprises";
@@ -963,14 +955,7 @@ export async function downloadProductPdf(product, options = {}) {
     })();
 
     // Load images with improved error handling
-    console.log('Loading main product image...');
     const { dataUrl: imgDataUrl, size: imgSize } = await loadImageWithFallbacks(product, false);
-    
-    if (imgDataUrl) {
-      console.log('Successfully loaded main product image');
-    } else {
-      console.warn('Failed to load main product image, PDF will show placeholder');
-    }
 
     // Try multiple logo paths with improved loading
     let logoDataUrl = null;
@@ -986,7 +971,7 @@ export async function downloadProductPdf(product, options = {}) {
       "/assets/img/logo/logo.png"
     ];
     
-    if (onProgress) onProgress('Loading company logo...');
+    if (onProgress) onProgress('Generating PDF...');
     for (const path of logoPaths) {
       try {
         const fullUrl = path.startsWith('http') ? path : `${baseUrl}${path}`;
@@ -998,18 +983,17 @@ export async function downloadProductPdf(product, options = {}) {
           break;
         }
       } catch (error) {
-        console.warn(`Logo loading failed for ${path}:`, error.message);
         continue;
       }
     }
     
     if (!logoDataUrl) {
-      console.warn('Failed to load any logo, PDF will show company name only');
+      // Logo failed to load - will show company name only
     }
 
     // Generate QR code with better error handling
     let finalQrDataUrl = null;
-    if (onProgress) onProgress('Generating QR code...');
+    if (onProgress) onProgress('Generating PDF...');
     try {
       if (qrDataUrl && typeof qrDataUrl === "string") {
         finalQrDataUrl = qrDataUrl;
@@ -1017,17 +1001,16 @@ export async function downloadProductPdf(product, options = {}) {
       } else if (productUrl) {
         finalQrDataUrl = await makeQrDataUrl(normalizeUrl(productUrl));
         if (finalQrDataUrl) {
-          console.log('Successfully generated QR code');
+          // QR code generated successfully
         } else {
-          console.warn('Failed to generate QR code');
+          // QR code generation failed
         }
       }
     } catch (error) {
-      console.warn('QR code generation failed:', error.message);
       finalQrDataUrl = null;
     }
 
-    if (onProgress) onProgress('Creating PDF document...');
+    if (onProgress) onProgress('Generating PDF...');
     const headerTop = 6.5;
     const M = 14;
 
@@ -1371,23 +1354,15 @@ export async function downloadProductPdf(product, options = {}) {
 
     // ✅ NEW: Add collection products as 2x2 grid on additional pages
     if (collectionProducts.length > 0) {
-      if (onProgress) onProgress(`Loading collection images (${collectionProducts.length} products)...`);
+      if (onProgress) onProgress('Generating PDF...');
       
       // Preload card images with improved error handling
       const imageLoadPromises = collectionProducts.map(async (prod, index) => {
         try {
-          console.log(`Loading image ${index + 1}/${collectionProducts.length} for product: ${prod?.fabricCode || 'unknown'}`);
           const { dataUrl, size } = await loadImageWithFallbacks(prod, true);
           prod.__cardImgDataUrl = dataUrl;
           prod.__cardImgSize = size;
-          
-          if (dataUrl) {
-            console.log(`✓ Image loaded for product: ${prod?.fabricCode || 'unknown'}`);
-          } else {
-            console.warn(`✗ Image failed for product: ${prod?.fabricCode || 'unknown'}`);
-          }
         } catch (error) {
-          console.warn(`Image loading error for product ${prod?.fabricCode || 'unknown'}:`, error.message);
           prod.__cardImgDataUrl = null;
           prod.__cardImgSize = null;
         }
@@ -1399,10 +1374,9 @@ export async function downloadProductPdf(product, options = {}) {
         const batch = imageLoadPromises.slice(i, i + batchSize);
         await Promise.all(batch);
         
-        // Update progress
+        // Update progress - keep showing "Generating PDF..."
         if (onProgress) {
-          const loaded = Math.min(i + batchSize, imageLoadPromises.length);
-          onProgress(`Loading images... (${loaded}/${imageLoadPromises.length})`);
+          onProgress('Generating PDF...');
         }
         
         // Small delay between batches to be nice to the server
@@ -1411,7 +1385,7 @@ export async function downloadProductPdf(product, options = {}) {
         }
       }
       
-      if (onProgress) onProgress('Finalizing PDF...');
+      if (onProgress) onProgress('Generating PDF...');
 
       // Grid layout: 2 columns x 2 rows per page (4 products per page)
       // Will generate enough pages to show all collection products (48 for Nokia)
@@ -1468,7 +1442,7 @@ export async function downloadProductPdf(product, options = {}) {
     }
 
     // Save PDF with error handling
-    if (onProgress) onProgress('Saving PDF...');
+    if (onProgress) onProgress('Generating PDF...');
     
     try {
       const fileName = code ? `${code}.pdf` : "product-sample.pdf";
