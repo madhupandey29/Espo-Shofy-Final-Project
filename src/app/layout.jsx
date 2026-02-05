@@ -21,6 +21,12 @@ const LazyFloatingChatbot = dynamic(() => import('@/components/chatbot/FloatingC
   loading: () => null
 });
 
+// Dynamic import for global structured data
+const GlobalStructuredData = dynamic(() => import('@/components/seo/GlobalStructuredData'), {
+  ssr: false,
+  loading: () => null
+});
+
 // Optimize Google Fonts with next/font (self-hosted, no render blocking)
 // Reduced font weights for better performance (only keep commonly used weights)
 const inter = Inter({
@@ -231,6 +237,9 @@ export default async function RootLayout({ children }) {
 
         <ErrorBoundary>
           <Providers>
+            {/* Global Corporation JSON-LD for all pages */}
+            <GlobalStructuredData />
+            
             {children}
             {/* Move chatbot inside Providers so it has access to Redux */}
             <LazyFloatingChatbot />

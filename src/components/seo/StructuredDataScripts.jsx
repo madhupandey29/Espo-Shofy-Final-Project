@@ -1,7 +1,12 @@
 'use client';
 import { useEffect } from 'react';
 
-const StructuredDataScripts = ({ blogStructuredData, breadcrumbStructuredData, productStructuredData }) => {
+const StructuredDataScripts = ({ 
+  blogStructuredData, 
+  breadcrumbStructuredData, 
+  productStructuredData, 
+  corporationStructuredData 
+}) => {
   useEffect(() => {
     // Only run on client side
     if (typeof window === 'undefined') return;
@@ -9,6 +14,16 @@ const StructuredDataScripts = ({ blogStructuredData, breadcrumbStructuredData, p
     // Remove any existing structured data scripts
     const existingScripts = document.querySelectorAll('script[data-structured-data="true"]');
     existingScripts.forEach(script => script.remove());
+
+    // Add corporation structured data script to head (for all pages)
+    if (corporationStructuredData) {
+      const corporationScript = document.createElement('script');
+      corporationScript.type = 'application/ld+json';
+      corporationScript.setAttribute('data-structured-data', 'true');
+      corporationScript.setAttribute('data-type', 'corporation');
+      corporationScript.textContent = JSON.stringify(corporationStructuredData, null, 2);
+      document.head.appendChild(corporationScript);
+    }
 
     // Add blog structured data script to head
     if (blogStructuredData) {
@@ -47,7 +62,7 @@ const StructuredDataScripts = ({ blogStructuredData, breadcrumbStructuredData, p
         scriptsToRemove.forEach(script => script.remove());
       }
     };
-  }, [blogStructuredData, breadcrumbStructuredData, productStructuredData]);
+  }, [blogStructuredData, breadcrumbStructuredData, productStructuredData, corporationStructuredData]);
 
   return null;
 };

@@ -1,5 +1,16 @@
 // Test page to verify structured data generation
 import { generateBlogStructuredData, generateBlogBreadcrumbStructuredData } from '@/utils/blogStructuredData';
+import TestStructuredDataClient from './TestStructuredDataClient';
+import { generateMetadata as generateSEOMetadata } from "@/utils/seo";
+
+export async function generateMetadata() {
+  return generateSEOMetadata({
+    title: "Structured Data Test - Debug JSON-LD Implementation",
+    description: "Test page to verify Corporation JSON-LD structured data implementation",
+    path: "/test-structured-data",
+    robots: "noindex, nofollow" // Don't index test pages
+  });
+}
 
 // Sample data for testing
 const sampleBlog = {
@@ -26,26 +37,34 @@ export default function TestStructuredData() {
   const breadcrumbStructuredData = generateBlogBreadcrumbStructuredData(sampleBlog, baseUrl);
 
   return (
-    <div style={{ padding: '2rem', fontFamily: 'monospace' }}>
-      <h1>Structured Data Test Page</h1>
+    <div style={{ padding: '2rem' }}>
+      {/* New Corporation JSON-LD Test */}
+      <TestStructuredDataClient />
       
-      <h2>BlogPosting JSON-LD:</h2>
-      <pre style={{ background: '#f5f5f5', padding: '1rem', overflow: 'auto' }}>
-        {JSON.stringify(blogStructuredData, null, 2)}
-      </pre>
+      <hr style={{ margin: '2rem 0' }} />
       
-      <h2>BreadcrumbList JSON-LD:</h2>
-      <pre style={{ background: '#f5f5f5', padding: '1rem', overflow: 'auto' }}>
-        {JSON.stringify(breadcrumbStructuredData, null, 2)}
-      </pre>
-      
-      <h2>Testing Instructions:</h2>
-      <ol>
-        <li>Copy the JSON above</li>
-        <li>Go to <a href="https://search.google.com/test/rich-results" target="_blank">Google Rich Results Test</a></li>
-        <li>Click "Test Code" and paste the JSON</li>
-        <li>Should show "BlogPosting" as valid</li>
-      </ol>
+      {/* Existing Blog JSON-LD Test */}
+      <div style={{ fontFamily: 'monospace' }}>
+        <h1>Blog Structured Data Test</h1>
+        
+        <h2>BlogPosting JSON-LD:</h2>
+        <pre style={{ background: '#f5f5f5', padding: '1rem', overflow: 'auto' }}>
+          {JSON.stringify(blogStructuredData, null, 2)}
+        </pre>
+        
+        <h2>BreadcrumbList JSON-LD:</h2>
+        <pre style={{ background: '#f5f5f5', padding: '1rem', overflow: 'auto' }}>
+          {JSON.stringify(breadcrumbStructuredData, null, 2)}
+        </pre>
+        
+        <h2>Testing Instructions:</h2>
+        <ol>
+          <li>Copy the JSON above</li>
+          <li>Go to <a href="https://search.google.com/test/rich-results" target="_blank">Google Rich Results Test</a></li>
+          <li>Click "Test Code" and paste the JSON</li>
+          <li>Should show "BlogPosting" as valid</li>
+        </ol>
+      </div>
     </div>
   );
 }

@@ -14,8 +14,13 @@ const SITE_URL = stripTrailingSlash(
  */
 async function getDefaultSeoSettings() {
   try {
+    // Check if we're in a browser environment
+    if (typeof window === 'undefined' || !process?.env?.NEXT_PUBLIC_API_BASE_URL) {
+      return null;
+    }
+
     const res = await fetch(
-      `${process.env.NEXT_PUBLIC_API_BASE_URL}/sitesettings/fieldname/name/eCatalogue`,
+      `${process.env.NEXT_PUBLIC_API_BASE_URL}/sitesettings`,
       { 
         next: { revalidate: 3600 } // Cache for 1 hour
       }
@@ -24,10 +29,32 @@ async function getDefaultSeoSettings() {
     if (!res.ok) return null;
     const json = await res.json();
     
-    if (!json?.success || !json.data || json.data.length === 0) return null;
+    // Handle both direct array response and wrapped response
+    let siteSettingsData = [];
+    if (Array.isArray(json)) {
+      siteSettingsData = json;
+    } else if (json?.success && Array.isArray(json.data)) {
+      siteSettingsData = json.data;
+    } else if (json?.data && Array.isArray(json.data)) {
+      siteSettingsData = json.data;
+    }
     
-    return json.data[0];
+    if (siteSettingsData.length === 0) return null;
+    
+    // Get filter value from environment variable
+    const siteFilter = (typeof process !== 'undefined' && process.env && process.env.NEXT_PUBLIC_SITE_FILTER) 
+      ? process.env.NEXT_PUBLIC_SITE_FILTER 
+      : 'catalogue';
+    
+    // Find site settings by siteKey (catalogue) or name (eCatalogue)
+    const targetSiteSettings = siteSettingsData.find(settings => 
+      (settings && settings.siteKey === siteFilter) || 
+      (settings && settings.name === 'eCatalogue')
+    );
+    
+    return targetSiteSettings || null;
   } catch (error) {
+    console.error('Error fetching site settings:', error);
     return null;
   }
 }
