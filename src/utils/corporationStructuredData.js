@@ -119,9 +119,6 @@ export const generateCorporationStructuredData = (companyInfo, siteSettings) => 
       "areaServed": Array.isArray(companyInfo.areaServed) && companyInfo.areaServed.length > 0 
         ? companyInfo.areaServed 
         : ["Worldwide"],
-      "availableLanguage": Array.isArray(companyInfo.languages) && companyInfo.languages.length > 0 
-        ? companyInfo.languages 
-        : ["en", "hi", "gu"],
       "contactPoint": contactPoints,
       "sameAs": sameAs,
       "knowsAbout": (siteSettings && Array.isArray(siteSettings.knowsAbout) && siteSettings.knowsAbout.length > 0) 
