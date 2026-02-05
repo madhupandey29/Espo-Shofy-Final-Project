@@ -3,6 +3,15 @@ import HeaderTwo     from '@/layout/headers/header-2';
 import Footer        from '@/layout/footers/footer';
 import ProductClient from './ProductDetailsClient';
 import { generateMetadata as generateSEOMetadata } from '@/utils/seo';
+import { generateProductStructuredData } from '@/utils/productStructuredData';
+
+import dynamic from 'next/dynamic';
+
+// Dynamically import the structured data component to avoid hydration issues
+const ProductStructuredDataHead = dynamic(
+  () => import('@/components/seo/ProductStructuredDataHead'),
+  { ssr: false }
+);
 
 export const revalidate = 600;
 
@@ -119,11 +128,34 @@ export async function generateMetadata({ params }) {
 export default async function Page({ params }) {
   const { slug } = params;
 
-  return (
-    <Wrapper>
-      <HeaderTwo style_2 />
-      <ProductClient slug={slug} />
-      <Footer primary_style />
-    </Wrapper>
-  );
+  try {
+    // Fetch product data for structured data
+    const product = await getProductBySlug(slug);
+    
+    // Generate structured data
+    const productStructuredData = generateProductStructuredData(product);
+
+    return (
+      <>
+        <ProductStructuredDataHead productStructuredData={productStructuredData} />
+        
+        <Wrapper>
+          <HeaderTwo style_2 />
+          <ProductClient slug={slug} />
+          <Footer primary_style />
+        </Wrapper>
+      </>
+    );
+  } catch (error) {
+    console.error('Error in fabric page:', error);
+    
+    // Fallback without structured data
+    return (
+      <Wrapper>
+        <HeaderTwo style_2 />
+        <ProductClient slug={slug} />
+        <Footer primary_style />
+      </Wrapper>
+    );
+  }
 }

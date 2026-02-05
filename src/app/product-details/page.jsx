@@ -3,6 +3,15 @@ import HeaderTwo from "@/layout/headers/header-2";
 import ProductDetailsClient from "./ProductDetailsClient";
 import Footer from "@/layout/footers/footer";
 import { generateMetadata as generateSEOMetadata, getOptimizedLogoUrl } from "@/utils/seo";
+import { generateProductStructuredData } from "@/utils/productStructuredData";
+
+import dynamic from 'next/dynamic';
+
+// Dynamically import the structured data component to avoid hydration issues
+const StructuredDataScripts = dynamic(
+  () => import('@/components/seo/StructuredDataScripts'),
+  { ssr: false }
+);
 
 // Server-side function to fetch product data for metadata
 async function getProductData(productId) {
@@ -66,14 +75,26 @@ export async function generateMetadata({ searchParams }) {
   });
 }
 
-export default function ProductDetailsPage({ searchParams }) {
+export default async function ProductDetailsPage({ searchParams }) {
   const productId = searchParams?.id || "6431364df5a812bd37e765ac";
   
+  // Fetch product data for structured data
+  const product = await getProductData(productId);
+  
+  // Generate structured data
+  const productStructuredData = generateProductStructuredData(product);
+  
   return (
-    <Wrapper>
-      <HeaderTwo style_2={true} />
-      <ProductDetailsClient productId={productId} />
-      <Footer primary_style={true} />
-    </Wrapper>
+    <>
+      <StructuredDataScripts 
+        productStructuredData={productStructuredData}
+      />
+      
+      <Wrapper>
+        <HeaderTwo style_2={true} />
+        <ProductDetailsClient productId={productId} />
+        <Footer primary_style={true} />
+      </Wrapper>
+    </>
   );
 }

@@ -1,7 +1,7 @@
 'use client';
 import { useEffect } from 'react';
 
-const StructuredDataScripts = ({ blogStructuredData, breadcrumbStructuredData }) => {
+const StructuredDataScripts = ({ blogStructuredData, breadcrumbStructuredData, productStructuredData }) => {
   useEffect(() => {
     // Only run on client side
     if (typeof window === 'undefined') return;
@@ -30,6 +30,16 @@ const StructuredDataScripts = ({ blogStructuredData, breadcrumbStructuredData })
       document.head.appendChild(breadcrumbScript);
     }
 
+    // Add product structured data script to head
+    if (productStructuredData) {
+      const productScript = document.createElement('script');
+      productScript.type = 'application/ld+json';
+      productScript.setAttribute('data-structured-data', 'true');
+      productScript.setAttribute('data-type', 'product');
+      productScript.textContent = JSON.stringify(productStructuredData, null, 2);
+      document.head.appendChild(productScript);
+    }
+
     // Cleanup function
     return () => {
       if (typeof document !== 'undefined') {
@@ -37,7 +47,7 @@ const StructuredDataScripts = ({ blogStructuredData, breadcrumbStructuredData })
         scriptsToRemove.forEach(script => script.remove());
       }
     };
-  }, [blogStructuredData, breadcrumbStructuredData]);
+  }, [blogStructuredData, breadcrumbStructuredData, productStructuredData]);
 
   return null;
 };

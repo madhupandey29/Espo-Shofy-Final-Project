@@ -116,13 +116,13 @@ export const newProductApi = apiSlice.injectEndpoints({
       },
     }),
     getSingleNewProduct: builder.query({
-      query: (slug) => {
-        // ✅ FIX: Since the slug endpoint is broken, get all products and filter client-side
-        // This is more reliable than the broken /product/fieldname/productslug endpoint
-        return `/product?limit=150`;
+      query: (id) => {
+        // Use the general products endpoint and filter by ID
+        // This is more reliable than the direct ID endpoint which returns 400
+        return `/product?limit=200`;
       },
-      transformResponse: (res, meta, slug) => {
-        // Handle the new API response structure and find product by slug
+      transformResponse: (res, meta, id) => {
+        // Handle the API response structure and find product by ID
         let products = [];
         if (res?.success && res?.data && Array.isArray(res.data)) {
           products = res.data;
@@ -136,21 +136,21 @@ export const newProductApi = apiSlice.injectEndpoints({
           return { data: null };
         }
         
-        // ✅ FIX: Search for product by slug in multiple fields
+        // Search for product by ID in multiple fields
         const foundProduct = products.find(product => {
+          const productId = product?.id || product?._id;
           const productSlug = product?.productslug;
           const aiTempSlug = product?.aiTempOutput;
           const fabricCode = product?.fabricCode;
-          const productId = product?.id;
           
-          // Clean the slug by removing trailing hash
-          const cleanSlug = slug ? String(slug).replace(/#$/, '') : slug;
+          // Clean the ID by removing trailing hash
+          const cleanId = id ? String(id).replace(/#$/, '') : id;
           
           return (
-            productSlug === cleanSlug ||
-            aiTempSlug === cleanSlug ||
-            fabricCode === cleanSlug ||
-            productId === cleanSlug
+            productId === cleanId ||
+            productSlug === cleanId ||
+            aiTempSlug === cleanId ||
+            fabricCode === cleanId
           );
         });
 

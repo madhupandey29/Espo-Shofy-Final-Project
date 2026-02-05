@@ -120,6 +120,8 @@ function mapBackendProductToFrontend(p) {
 }
 
 export default function ProductDetailsClient({ productId }) {
+  console.log('ProductDetailsClient rendered with productId:', productId);
+  
   const {
     data,
     isLoading,
@@ -127,18 +129,34 @@ export default function ProductDetailsClient({ productId }) {
     error,
   } = useGetSingleNewProductQuery(productId);
 
+  console.log('Query state:', { 
+    hasData: !!data?.data, 
+    isLoading, 
+    isError, 
+    errorStatus: error?.status,
+    errorMessage: error?.message 
+  });
+
   if (isLoading) {
     return <ProductDetailsLoader />;
   }
   
   if (isError) {
-    return <ErrorMsg msg="There was an error loading the product" />;
+    console.error('Product query error:', error);
+    return <ErrorMsg msg={`Error loading product: ${error?.status || 'Unknown error'}`} />;
   }
   
   if (!data?.data) {
+    console.log('No product data found for ID:', productId);
     return <ErrorMsg msg="No product found!" />;
   }
 
   const product = mapBackendProductToFrontend(data.data);
+
+  if (!product) {
+    return <ErrorMsg msg="Product data could not be processed" />;
+  }
+
+  console.log('Product loaded successfully:', product.name || product.productTitle);
   return <ProductDetailsArea product={product} />;
 }
