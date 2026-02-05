@@ -145,25 +145,17 @@ export default async function RootLayout({ children }) {
 
         {/* Corporation JSON-LD - Global for all pages */}
         {corporationJsonLd && (
-          <Script
-            id="corporation-jsonld"
+          <script
             type="application/ld+json"
-            strategy="beforeInteractive"
-            dangerouslySetInnerHTML={{
-              __html: JSON.stringify(corporationJsonLd, null, 2),
-            }}
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(corporationJsonLd) }}
           />
         )}
 
         {/* WebSite JSON-LD with SearchAction - Global for all pages */}
         {websiteJsonLd && (
-          <Script
-            id="website-jsonld"
+          <script
             type="application/ld+json"
-            strategy="beforeInteractive"
-            dangerouslySetInnerHTML={{
-              __html: JSON.stringify(websiteJsonLd, null, 2),
-            }}
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
           />
         )}
       </head>

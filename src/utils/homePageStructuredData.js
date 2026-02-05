@@ -45,10 +45,12 @@ export const generateHomePageStructuredData = (topicPageData, companyInfo, siteS
       "isPartOf": { 
         "@id": `${cleanSiteUrl}/#website`
       },
-      "about": { 
+      "publisher": { 
         "@id": `${cleanSiteUrl}/#org`
       },
-      "inLanguage": languages
+      "inLanguage": Array.isArray(languages) && languages.length > 0 
+        ? (languages.length === 1 ? languages[0] : languages)
+        : "en"
     };
 
     return structuredData;

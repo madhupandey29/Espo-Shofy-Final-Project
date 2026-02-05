@@ -6,12 +6,12 @@ const StructuredDataScripts = ({
   blogStructuredData, 
   breadcrumbStructuredData, 
   productStructuredData, 
-  corporationStructuredData,
-  homePageStructuredData
+  corporationStructuredData
+  // Removed homePageStructuredData - home page JSON-LD is now server-side only
 }) => {
-  const [clientHomePageData, setClientHomePageData] = useState(null);
+  // Removed client-side home page data generation - no longer needed
   
-  // Fetch office information on client side as fallback
+  // Fetch office information on client side for other structured data if needed
   const { data: officeRes, isLoading } = useGetOfficeInformationQuery();
   
   // Select the AGE company specifically (same logic as server-side)
@@ -21,77 +21,20 @@ const StructuredDataScripts = ({
     officeRes.data[0] 
     : null;
 
-  // Generate simple client-side structured data if server-side failed
-  useEffect(() => {
-    const generateClientSideData = async () => {
-      if (!homePageStructuredData && office && !isLoading) {
-        console.log('🔄 Server-side data not available, generating client-side...');
-        console.log('🏢 Client-side office data (AGE company):', {
-          id: office.id,
-          name: office.name,
-          legalName: office.legalName,
-          description: office.description,
-          languages: office.languages
-        });
-        
-        try {
-          // Generate simple home page structured data without API calls
-          const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.amrita-fashions.com';
-          const cleanSiteUrl = String(siteUrl || '').replace(/\/+$/, '');
-
-          let pageName = office.legalName || office.name || 'Amrita Global Enterprises';
-          if (office.description && typeof office.description === 'string') {
-            pageName = `${pageName} | ${office.description}`;
-          }
-
-          const clientData = {
-            "@context": "https://schema.org",
-            "@type": "WebPage",
-            "@id": `${cleanSiteUrl}/#home`,
-            "url": `${cleanSiteUrl}/`,
-            "name": pageName,
-            "isPartOf": { 
-              "@id": `${cleanSiteUrl}/#website`
-            },
-            "about": { 
-              "@id": `${cleanSiteUrl}/#org`
-            },
-            "inLanguage": Array.isArray(office.languages) && office.languages.length > 0 
-              ? office.languages 
-              : ["en"]
-          };
-
-          setClientHomePageData(clientData);
-          console.log('✅ Client-side structured data generated:', clientData);
-        } catch (error) {
-          console.error('❌ Client-side generation failed:', error);
-        }
-      }
-    };
-
-    generateClientSideData();
-  }, [homePageStructuredData, office, isLoading]);
-
   useEffect(() => {
     // Only run on client side
     if (typeof window === 'undefined') return;
 
-    // Use server-side data if available, otherwise use client-side data
-    const finalHomePageData = homePageStructuredData || clientHomePageData;
-
     console.log('🔧 StructuredDataScripts useEffect triggered');
     console.log('📊 Data received:', {
-      homePageStructuredData: homePageStructuredData ? 'Available (server-side)' : 'Not available',
-      clientHomePageData: clientHomePageData ? 'Available (client-side)' : 'Not available',
-      finalHomePageData: finalHomePageData ? 'Available' : 'Not available',
       blogStructuredData: blogStructuredData ? 'Available' : 'Not available',
       productStructuredData: productStructuredData ? 'Available' : 'Not available',
       corporationStructuredData: corporationStructuredData ? 'Available' : 'Not available'
     });
 
-    // Remove any existing structured data scripts
+    // Remove any existing structured data scripts (except server-side ones)
     const existingScripts = document.querySelectorAll('script[data-structured-data="true"]');
-    console.log(`🗑️ Removing ${existingScripts.length} existing structured data scripts`);
+    console.log(`🗑️ Removing ${existingScripts.length} existing client-side structured data scripts`);
     existingScripts.forEach(script => script.remove());
 
     // Add corporation structured data script to head (for all pages)
@@ -105,17 +48,7 @@ const StructuredDataScripts = ({
       console.log('✅ Added corporation structured data to head');
     }
 
-    // Add home page structured data script to head
-    if (finalHomePageData) {
-      const homePageScript = document.createElement('script');
-      homePageScript.type = 'application/ld+json';
-      homePageScript.setAttribute('data-structured-data', 'true');
-      homePageScript.setAttribute('data-type', 'homepage');
-      homePageScript.textContent = JSON.stringify(finalHomePageData, null, 2);
-      document.head.appendChild(homePageScript);
-      console.log('✅ Added home page structured data to head');
-      console.log('📄 Home page JSON-LD:', JSON.stringify(finalHomePageData, null, 2));
-    }
+    // NOTE: Home page JSON-LD is now handled server-side only - no client-side generation
 
     // Add blog structured data script to head
     if (blogStructuredData) {
@@ -158,7 +91,7 @@ const StructuredDataScripts = ({
         scriptsToRemove.forEach(script => script.remove());
       }
     };
-  }, [blogStructuredData, breadcrumbStructuredData, productStructuredData, corporationStructuredData, homePageStructuredData, clientHomePageData]);
+  }, [blogStructuredData, breadcrumbStructuredData, productStructuredData, corporationStructuredData]);
 
   return null;
 };

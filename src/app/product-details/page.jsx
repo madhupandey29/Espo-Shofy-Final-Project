@@ -86,9 +86,13 @@ export default async function ProductDetailsPage({ searchParams }) {
   
   return (
     <>
-      <StructuredDataScripts 
-        productStructuredData={productStructuredData}
-      />
+      {/* Server-side JSON-LD - visible to all crawlers and validators */}
+      {productStructuredData && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(productStructuredData) }}
+        />
+      )}
       
       <Wrapper>
         <HeaderTwo style_2={true} />

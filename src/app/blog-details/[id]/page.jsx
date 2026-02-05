@@ -6,13 +6,7 @@ import BlogDetailsArea from "@/components/blog-details/blog-details-area";
 import { generateMetadata as generateSEOMetadata } from "@/utils/seo";
 import { generateBlogStructuredData, generateBlogBreadcrumbStructuredData } from "@/utils/blogStructuredData";
 
-import dynamic from 'next/dynamic';
-
-// Dynamically import the structured data component to avoid hydration issues
-const StructuredDataScripts = dynamic(
-  () => import('@/components/seo/StructuredDataScripts'),
-  { ssr: false }
-);
+// Remove client-side JSON-LD - we'll render it server-side
 
 const stripTrailingSlash = (s = "") => String(s || "").replace(/\/+$/, "");
 
