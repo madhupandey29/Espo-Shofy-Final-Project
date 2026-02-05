@@ -21,12 +21,6 @@ const LazyFloatingChatbot = dynamic(() => import('@/components/chatbot/FloatingC
   loading: () => null
 });
 
-// Dynamic import for global structured data
-const GlobalStructuredData = dynamic(() => import('@/components/seo/GlobalStructuredData'), {
-  ssr: false,
-  loading: () => null
-});
-
 // Optimize Google Fonts with next/font (self-hosted, no render blocking)
 // Reduced font weights for better performance (only keep commonly used weights)
 const inter = Inter({
@@ -49,7 +43,6 @@ const poppins = Poppins({
 export const metadata = {
   title: 'Shofy - Next.js E-commerce',
   description: 'Modern e-commerce platform built with Next.js',
-  viewport: 'width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes',
   other: {
     'mobile-web-app-capable': 'yes',
     'apple-mobile-web-app-capable': 'yes',
@@ -57,14 +50,65 @@ export const metadata = {
   },
 };
 
+// Separate viewport export (required for Next.js 14+)
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1.0,
+  maximumScale: 5.0,
+  userScalable: true,
+};
+
 export default async function RootLayout({ children }) {
-  // You can add any server-side data fetching here if needed
+  // Server-side data fetching for structured data
+  let companyInfo = null;
+  let siteSettings = null;
+
+  try {
+    // Fetch company information
+    const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+    const companyFilter = process.env.NEXT_PUBLIC_COMPANY_FILTER;
+    
+    if (apiBaseUrl && companyFilter) {
+      const response = await fetch(`${apiBaseUrl}/companyinformation`, {
+        next: { revalidate: 3600 }, // Cache for 1 hour
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success && data.data) {
+          const targetCompany = data.data.find(company => company.name === companyFilter);
+          if (targetCompany) {
+            companyInfo = targetCompany;
+          }
+        }
+      }
+    }
+  } catch (error) {
+    console.error('Failed to fetch company info for structured data:', error);
+  }
+
+  // Generate structured data
+  let corporationJsonLd = null;
+  let websiteJsonLd = null;
+
+  if (companyInfo) {
+    try {
+      const { generateCorporationStructuredData } = await import('@/utils/corporationStructuredData');
+      const { generateWebsiteStructuredData } = await import('@/utils/websiteStructuredData');
+      
+      corporationJsonLd = generateCorporationStructuredData(companyInfo, siteSettings);
+      websiteJsonLd = generateWebsiteStructuredData(companyInfo, siteSettings);
+    } catch (error) {
+      console.error('Failed to generate structured data:', error);
+    }
+  }
+
   const defaultSeoSettings = {
     gtmId: process.env.NEXT_PUBLIC_GTM_ID || null,
   };
-
-  const companyInfo = null; // Add your company info logic here
-  const localBusinessJsonLd = null; // Add your JSON-LD logic here
 
   return (
     <html lang="en" className={`${inter.variable} ${poppins.variable}`} data-env={process.env.NODE_ENV === 'production' ? 'production' : 'development'}>
@@ -99,73 +143,26 @@ export default async function RootLayout({ children }) {
         {/* JSON-LD STRUCTURED DATA                     */}
         {/* ============================================ */}
 
-        {/* Local Business JSON-LD - ONLY if company info exists */}
-        {localBusinessJsonLd && (
+        {/* Corporation JSON-LD - Global for all pages */}
+        {corporationJsonLd && (
           <Script
-            id="local-business-jsonld"
+            id="corporation-jsonld"
             type="application/ld+json"
             strategy="beforeInteractive"
             dangerouslySetInnerHTML={{
-              __html: JSON.stringify(localBusinessJsonLd, null, 2),
+              __html: JSON.stringify(corporationJsonLd, null, 2),
             }}
           />
         )}
 
-        {/* Organization JSON-LD - ONLY if company info exists */}
-        {companyInfo && (
+        {/* WebSite JSON-LD with SearchAction - Global for all pages */}
+        {websiteJsonLd && (
           <Script
-            id="organization-jsonld"
+            id="website-jsonld"
             type="application/ld+json"
             strategy="beforeInteractive"
             dangerouslySetInnerHTML={{
-              __html: JSON.stringify({
-                '@context': 'https://schema.org',
-                '@type': 'Organization',
-                name: companyInfo.legalName || companyInfo.name,
-                legalName: companyInfo.legalName,
-                url: process.env.NEXT_PUBLIC_SITE_URL,
-                logo: companyInfo.faviconUrl,
-                image: companyInfo.defaultOgImage,
-                foundingDate: companyInfo.foundingYear?.toString(),
-                ...(companyInfo.gstin && {
-                  taxID: companyInfo.gstin,
-                }),
-                contactPoint: {
-                  '@type': 'ContactPoint',
-                  telephone: companyInfo.phone1,
-                  contactType: 'customer service',
-                  email: companyInfo.salesEmail || companyInfo.supportEmail || companyInfo.primaryEmail,
-                },
-                address: {
-                  '@type': 'PostalAddress',
-                  streetAddress: companyInfo.addressStreet,
-                  addressLocality: companyInfo.addressCity,
-                  addressRegion: companyInfo.addressState,
-                  postalCode: companyInfo.addressPostalCode,
-                  addressCountry: companyInfo.addressCountry,
-                },
-                ...(companyInfo.latitude && companyInfo.longitude && {
-                  geo: {
-                    '@type': 'GeoCoordinates',
-                    latitude: companyInfo.latitude,
-                    longitude: companyInfo.longitude,
-                  },
-                }),
-                ...(companyInfo.areaServed && companyInfo.areaServed.length > 0 && {
-                  areaServed: companyInfo.areaServed,
-                }),
-                sameAs: [
-                  companyInfo.facebookUrl,
-                  companyInfo.instagramUrl,
-                  companyInfo.youtubeUrl,
-                  companyInfo.linkedinUrl,
-                  companyInfo.xUrl,
-                  companyInfo.pinterestUrl,
-                ].filter(Boolean),
-                ...(companyInfo.recognitions?.length > 0 && {
-                  award: companyInfo.recognitions,
-                }),
-              }, null, 2),
+              __html: JSON.stringify(websiteJsonLd, null, 2),
             }}
           />
         )}
@@ -237,9 +234,6 @@ export default async function RootLayout({ children }) {
 
         <ErrorBoundary>
           <Providers>
-            {/* Global Corporation JSON-LD for all pages */}
-            <GlobalStructuredData />
-            
             {children}
             {/* Move chatbot inside Providers so it has access to Redux */}
             <LazyFloatingChatbot />

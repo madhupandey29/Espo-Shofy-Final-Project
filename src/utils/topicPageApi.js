@@ -32,14 +32,19 @@ const TOPIC_PAGE_API_URL = 'https://espobackend.vercel.app/api/topicpage';
  */
 export const fetchAllTopicPages = async () => {
   try {
-    const response = await fetch(TOPIC_PAGE_API_URL, {
+    const fetchOptions = {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
-      },
-      // Add cache control for better performance
-      next: { revalidate: 3600 } // Revalidate every hour
-    });
+      }
+    };
+
+    // Only add Next.js specific options on server side
+    if (typeof window === 'undefined') {
+      fetchOptions.next = { revalidate: 3600 }; // Revalidate every hour
+    }
+
+    const response = await fetch(TOPIC_PAGE_API_URL, fetchOptions);
 
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);

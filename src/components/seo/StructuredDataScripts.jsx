@@ -1,7 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useGetOfficeInformationQuery } from '@/redux/features/officeInformationApi';
-import { generateHomePageStructuredDataWithApi } from '@/utils/homePageStructuredData';
 
 const StructuredDataScripts = ({ 
   blogStructuredData, 
@@ -22,7 +21,7 @@ const StructuredDataScripts = ({
     officeRes.data[0] 
     : null;
 
-  // Generate client-side structured data if server-side failed
+  // Generate simple client-side structured data if server-side failed
   useEffect(() => {
     const generateClientSideData = async () => {
       if (!homePageStructuredData && office && !isLoading) {
@@ -35,15 +34,33 @@ const StructuredDataScripts = ({
           languages: office.languages
         });
         
-        // Verify this is the AGE company
-        if (office.name === 'AGE') {
-          console.log('✅ Confirmed: Using AGE company data');
-        } else {
-          console.log('⚠️ Warning: Not using AGE company, using:', office.name);
-        }
-        
         try {
-          const clientData = await generateHomePageStructuredDataWithApi(office, {});
+          // Generate simple home page structured data without API calls
+          const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.amrita-fashions.com';
+          const cleanSiteUrl = String(siteUrl || '').replace(/\/+$/, '');
+
+          let pageName = office.legalName || office.name || 'Amrita Global Enterprises';
+          if (office.description && typeof office.description === 'string') {
+            pageName = `${pageName} | ${office.description}`;
+          }
+
+          const clientData = {
+            "@context": "https://schema.org",
+            "@type": "WebPage",
+            "@id": `${cleanSiteUrl}/#home`,
+            "url": `${cleanSiteUrl}/`,
+            "name": pageName,
+            "isPartOf": { 
+              "@id": `${cleanSiteUrl}/#website`
+            },
+            "about": { 
+              "@id": `${cleanSiteUrl}/#org`
+            },
+            "inLanguage": Array.isArray(office.languages) && office.languages.length > 0 
+              ? office.languages 
+              : ["en"]
+          };
+
           setClientHomePageData(clientData);
           console.log('✅ Client-side structured data generated:', clientData);
         } catch (error) {
