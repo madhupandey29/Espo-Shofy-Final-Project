@@ -107,7 +107,7 @@ export default async function RootLayout({ children }) {
   }
 
   const defaultSeoSettings = {
-    gtmId: process.env.NEXT_PUBLIC_GTM_ID || null,
+    gtmId: process.env.NEXT_PUBLIC_GTM_ID,
   };
 
   return (
