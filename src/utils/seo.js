@@ -107,6 +107,7 @@ export const getAbsoluteImageUrl = (imagePath) => {
  * @param {string} options.title - Page title
  * @param {string} options.description - Page description
  * @param {string} options.path - Page path for canonical URL
+ * @param {string} options.canonicalOverride - Override canonical URL (from Topic Page API)
  * @param {string} options.keywords - SEO keywords
  * @param {string} options.ogImage - OpenGraph image path (will be made absolute)
  * @param {string} options.ogLogo - OpenGraph logo path (will be made absolute)
@@ -119,6 +120,7 @@ export const generateMetadata = async ({
   title,
   description,
   path = "/",
+  canonicalOverride = null,
   keywords,
   ogImage,
   ogLogo,
@@ -129,7 +131,8 @@ export const generateMetadata = async ({
   // Fetch default SEO settings
   const defaultSeoSettings = await getDefaultSeoSettings();
   
-  const canonical = getCanonicalUrl(path);
+  // Use canonical override from Topic Page API if provided, otherwise generate from path
+  const canonical = canonicalOverride || getCanonicalUrl(path);
   const absoluteOgImage = ogImage ? getAbsoluteImageUrl(ogImage) : null;
   const absoluteOgLogo = ogLogo ? getAbsoluteImageUrl(ogLogo) : null;
   

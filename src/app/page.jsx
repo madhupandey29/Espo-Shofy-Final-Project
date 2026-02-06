@@ -1,10 +1,15 @@
 // app/page.jsx
 import HomePageTwoClient from "./HomePageTwoClient";
+import { getPageSeoMetadata, PAGE_NAMES } from "@/utils/topicPageSeoIntegration";
 
-export const metadata = {
-  title: "Premium Quality Fabrics by eCatalogue | Cotton, Mercerized & Designer Textiles",
-  description: "Discover premium cotton fabrics, mercerized finishes, and textile excellence at eCatalogue by Amrita Global Enterprises. Nokia & Majestica collections for fashion, home, and industrial use.",
-};
+export async function generateMetadata() {
+  const fallback = {
+    title: "Premium Quality Fabrics by eCatalogue | Cotton, Mercerized & Designer Textiles",
+    description: "Discover premium cotton fabrics, mercerized finishes, and textile excellence at eCatalogue by Amrita Global Enterprises. Nokia & Majestica collections for fashion, home, and industrial use.",
+  };
+
+  return await getPageSeoMetadata(PAGE_NAMES.HOME, fallback);
+}
 
 export default function Page() {
   const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || "https://www.amrita-fashions.com").replace(/\/+$/, "");

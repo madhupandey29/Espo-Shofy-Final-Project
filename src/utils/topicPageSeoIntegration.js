@@ -1,0 +1,159 @@
+/**
+ * Topic Page SEO Integration Utility
+ * Fetches SEO data from the topic page API and formats it for Next.js metadata
+ */
+
+const TOPIC_PAGE_API_URL = 'https://espobackend.vercel.app/api/topicpage';
+
+/**
+ * Fetch topic page data by name
+ * @param {string} pageName - Name of the page (e.g., 'home', 'contact', 'about')
+ * @returns {Promise<Object|null>} Topic page data or null
+ */
+export async function fetchTopicPageByName(pageName) {
+  try {
+    if (!pageName || typeof pageName !== 'string') {
+      console.warn('fetchTopicPageByName: Invalid pageName provided');
+      return null;
+    }
+
+    const response = await fetch(TOPIC_PAGE_API_URL, {
+      next: { revalidate: 3600 }, // Cache for 1 hour
+    });
+
+    if (!response.ok) {
+      console.error(`Failed to fetch topic pages: ${response.status}`);
+      return null;
+    }
+
+    const data = await response.json();
+    
+    if (!data.success || !Array.isArray(data.data)) {
+      console.error('Invalid topic page API response structure');
+      return null;
+    }
+
+    // Filter out deleted pages and find by name (case-insensitive)
+    const pages = data.data.filter(page => !page.deleted);
+    const topicPage = pages.find(p => 
+      p.name && p.name.toLowerCase() === pageName.toLowerCase()
+    );
+
+    return topicPage || null;
+  } catch (error) {
+    console.error('Error fetching topic page:', error);
+    return null;
+  }
+}
+
+/**
+ * Generate Next.js metadata from topic page data
+ * @param {Object} topicPage - Topic page data from API
+ * @param {Object} fallback - Fallback metadata if topic page is not found
+ * @returns {Object} Next.js metadata object with canonicalUrl for merging
+ */
+export function generateMetadataFromTopicPage(topicPage, fallback = {}) {
+  if (!topicPage) {
+    return {
+      title: fallback.title || 'eCatalogue',
+      description: fallback.description || '',
+      keywords: fallback.keywords || '',
+      canonicalUrl: null, // No canonical from API
+    };
+  }
+
+  const metadata = {
+    title: topicPage.metaTitle || fallback.title || 'eCatalogue',
+    description: topicPage.description || fallback.description || '',
+    canonicalUrl: null, // Will be set below if available
+  };
+
+  // Add keywords if available
+  if (topicPage.keywords && Array.isArray(topicPage.keywords) && topicPage.keywords.length > 0) {
+    metadata.keywords = topicPage.keywords.join(', ');
+  } else if (fallback.keywords) {
+    metadata.keywords = fallback.keywords;
+  }
+
+  // Store canonical URL from API (will be used by pages to override default)
+  if (topicPage.canonicalUrl) {
+    metadata.canonicalUrl = topicPage.canonicalUrl.startsWith('http') 
+      ? topicPage.canonicalUrl 
+      : `https://${topicPage.canonicalUrl}`;
+  }
+
+  return metadata;
+}
+
+/**
+ * Get SEO data for a specific page
+ * @param {string} pageName - Name of the page
+ * @param {Object} fallback - Fallback metadata
+ * @returns {Promise<Object>} Next.js metadata object
+ */
+export async function getPageSeoMetadata(pageName, fallback = {}) {
+  const topicPage = await fetchTopicPageByName(pageName);
+  const metadata = generateMetadataFromTopicPage(topicPage, fallback);
+  
+  // Debug logging
+  console.log(`[Topic Page SEO] Page: ${pageName}`);
+  console.log(`[Topic Page SEO] Topic Page Data:`, topicPage);
+  console.log(`[Topic Page SEO] Canonical URL from API:`, metadata.canonicalUrl);
+  
+  // Build complete Next.js metadata object
+  const nextMetadata = {
+    title: metadata.title,
+    description: metadata.description,
+  };
+
+  // Add keywords if available
+  if (metadata.keywords) {
+    nextMetadata.keywords = metadata.keywords;
+  }
+
+  // Add canonical URL if available from API
+  if (metadata.canonicalUrl) {
+    nextMetadata.alternates = {
+      canonical: metadata.canonicalUrl,
+    };
+    console.log(`[Topic Page SEO] Setting canonical to:`, metadata.canonicalUrl);
+  } else {
+    console.log(`[Topic Page SEO] No canonical URL from API`);
+  }
+
+  // Add Open Graph data
+  nextMetadata.openGraph = {
+    title: metadata.title,
+    description: metadata.description,
+    type: topicPage?.ogType || 'website',
+  };
+
+  // Add canonical URL to Open Graph
+  if (metadata.canonicalUrl) {
+    nextMetadata.openGraph.url = metadata.canonicalUrl;
+  }
+
+  // Add Twitter Card data
+  nextMetadata.twitter = {
+    card: 'summary_large_image',
+    title: metadata.title,
+    description: metadata.description,
+  };
+
+  console.log(`[Topic Page SEO] Final metadata:`, nextMetadata);
+
+  return nextMetadata;
+}
+
+/**
+ * Page name mappings for common routes
+ */
+export const PAGE_NAMES = {
+  HOME: 'home',
+  CONTACT: 'contact',
+  ABOUT: 'about',
+  BLOG: 'blog',
+  CAPABILITIES: 'capabilities',
+  FABRIC: 'fabric',
+  PRODUCT: 'product',
+};

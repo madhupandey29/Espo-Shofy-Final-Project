@@ -6,6 +6,7 @@ import Footer from "@/layout/footers/footer";
 import CompactUniversalBreadcrumb from "@/components/breadcrumb/compact-universal-breadcrumb";
 import { generateMetadata as generateSEOMetadata } from "@/utils/seo";
 import { BreadcrumbJsonLd } from "@/utils/breadcrumbStructuredData";
+import { getPageSeoMetadata, PAGE_NAMES } from "@/utils/topicPageSeoIntegration";
 
 // Server-side function to fetch first blog for OG image
 async function getFirstBlogImage() {
@@ -60,17 +61,28 @@ async function getFirstBlogImage() {
 }
 
 /* -----------------------------
-  Metadata (Dynamic SEO)
+  Metadata (Dynamic SEO from Topic Page API)
 ----------------------------- */
 export async function generateMetadata() {
   // Fetch first blog image dynamically
   const firstBlogImage = await getFirstBlogImage();
   
-  return generateSEOMetadata({
-    title: "Shofy - Blog",
-    description: "Explore our latest blog posts about fabrics, textiles, and industry insights. Stay updated with Shofy's textile expertise.",
+  // Fetch SEO data from topic page API
+  const topicMetadata = await getPageSeoMetadata(PAGE_NAMES.BLOG, {
+    title: "Blog | Fabric & Textile Insights - eCatalogue",
+    description: "Explore our latest blog posts about fabrics, textiles, and industry insights. Stay updated with eCatalogue's textile expertise.",
     keywords: "blog, fabrics, textiles, industry insights, textile expertise, latest updates",
+  });
+
+  // Extract canonical URL from the metadata object
+  const canonicalFromApi = topicMetadata.alternates?.canonical || null;
+  
+  return generateSEOMetadata({
+    title: topicMetadata.title,
+    description: topicMetadata.description,
+    keywords: topicMetadata.keywords,
     path: "/blog",
+    canonicalOverride: canonicalFromApi, // Use canonical from API
     ogImage: firstBlogImage, // Use dynamic first blog image
     robots: "index, follow"
   });

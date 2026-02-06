@@ -6,18 +6,31 @@ import ContactMap from "@/components/contact/contact-map";
 import Footer from "@/layout/footers/footer";
 import { generateMetadata as generateSEOMetadata, getOptimizedLogoUrl } from "@/utils/seo";
 import { BreadcrumbJsonLd } from "@/utils/breadcrumbStructuredData";
+import { getPageSeoMetadata, PAGE_NAMES } from "@/utils/topicPageSeoIntegration";
 
 /* -----------------------------
-  Metadata (Static SEO)
+  Metadata (Dynamic SEO from Topic Page API)
 ----------------------------- */
 export async function generateMetadata() {
   const logoUrl = getOptimizedLogoUrl();
   
-  return generateSEOMetadata({
+  // Fetch SEO data from topic page API
+  const topicMetadata = await getPageSeoMetadata(PAGE_NAMES.CONTACT, {
     title: "Contact eCatalogue | Premium Fabric Supplier - Get in Touch",
     description: "Contact eCatalogue by Amrita Global Enterprises for premium cotton fabrics, mercerized textiles, and custom fabric solutions. Expert textile consultation and support.",
     keywords: "contact eCatalogue, fabric supplier contact, textile consultation, Amrita Global Enterprises, premium fabrics, cotton textiles, fabric inquiry",
+  });
+
+  // Extract canonical URL from the metadata object
+  const canonicalFromApi = topicMetadata.alternates?.canonical || null;
+
+  // Merge with existing SEO metadata structure
+  return generateSEOMetadata({
+    title: topicMetadata.title,
+    description: topicMetadata.description,
+    keywords: topicMetadata.keywords,
     path: "/contact",
+    canonicalOverride: canonicalFromApi, // Use canonical from API
     ogImage: "/assets/img/logo/logo.svg",
     ogLogo: logoUrl,
     robots: "index, follow"

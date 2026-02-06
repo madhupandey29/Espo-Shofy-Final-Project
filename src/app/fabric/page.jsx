@@ -6,6 +6,7 @@ import ShopArea from "@/components/shop/shop-area";
 import CompactUniversalBreadcrumb from "@/components/breadcrumb/compact-universal-breadcrumb";
 import { generateMetadata as generateSEOMetadata, getOptimizedLogoUrl } from "@/utils/seo";
 import { BreadcrumbJsonLd } from "@/utils/breadcrumbStructuredData";
+import { getPageSeoMetadata, PAGE_NAMES } from "@/utils/topicPageSeoIntegration";
 
 /* ---------------------------------------------
    Incremental Static Regeneration (ISR)
@@ -13,16 +14,27 @@ import { BreadcrumbJsonLd } from "@/utils/breadcrumbStructuredData";
 export const revalidate = 120;
 
 /* ---------------------------------------------
-   Metadata (Static SEO)
+   Metadata (Dynamic SEO from Topic Page API)
 ---------------------------------------------- */
 export async function generateMetadata() {
   const logoUrl = getOptimizedLogoUrl();
   
-  return generateSEOMetadata({
+  // Fetch SEO data from topic page API
+  const topicMetadata = await getPageSeoMetadata(PAGE_NAMES.FABRIC, {
     title: "Premium Fabrics Collection | Cotton, Mercerized & Designer Textiles - eCatalogue",
     description: "Browse our complete collection of premium cotton fabrics, mercerized textiles, and designer materials. Nokia & Majestica collections with GSM specifications for fashion and industrial use.",
     keywords: "fabric collection, cotton fabrics, mercerized textiles, premium materials, Nokia collection, Majestica collection, GSM fabrics, textile collection, fabric store",
+  });
+
+  // Extract canonical URL from the metadata object
+  const canonicalFromApi = topicMetadata.alternates?.canonical || null;
+  
+  return generateSEOMetadata({
+    title: topicMetadata.title,
+    description: topicMetadata.description,
+    keywords: topicMetadata.keywords,
     path: "/fabric",
+    canonicalOverride: canonicalFromApi, // Use canonical from API
     ogImage: "/assets/img/logo/logo.svg",
     ogLogo: logoUrl,
     robots: "index, follow"
