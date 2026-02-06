@@ -119,35 +119,35 @@
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 
   @media (max-width: 768px) {
-    width: calc(100vw - 24px); /* Better screen usage */
-    height: calc(100vh - 140px); /* Optimized height for mobile */
-    bottom: 12px;
+    width: calc(100vw - 32px); /* Smaller width for mobile */
+    height: calc(100vh - 180px); /* Reduced height for mobile */
+    bottom: 16px;
     left: 50%; /* Center horizontally */
     transform: translateX(-50%); /* Perfect centering */
     right: auto; /* Remove right positioning */
-    border-radius: 24px; /* Larger radius for modern look */
-    max-height: calc(100vh - 140px);
+    border-radius: 16px; /* Smaller radius */
+    max-height: calc(100vh - 180px);
     box-shadow: 
-      0 20px 60px rgba(var(--tp-theme-primary-rgb), 0.25),
-      0 8px 30px rgba(0, 0, 0, 0.2);
+      0 15px 40px rgba(var(--tp-theme-primary-rgb), 0.2),
+      0 6px 20px rgba(0, 0, 0, 0.15);
   }
 
   @media (max-width: 480px) {
-    width: calc(100vw - 20px);
-    height: calc(100vh - 120px);
-    bottom: 10px;
+    width: calc(100vw - 24px);
+    height: calc(100vh - 160px);
+    bottom: 12px;
     left: 50%;
     transform: translateX(-50%);
-    border-radius: 20px;
-    max-height: calc(100vh - 120px);
+    border-radius: 14px;
+    max-height: calc(100vh - 160px);
   }
 
   @media (max-width: 375px) {
-    width: calc(100vw - 16px);
-    height: calc(100vh - 110px);
-    bottom: 8px;
-    border-radius: 18px;
-    max-height: calc(100vh - 110px);
+    width: calc(100vw - 20px);
+    height: calc(100vh - 150px);
+    bottom: 10px;
+    border-radius: 12px;
+    max-height: calc(100vh - 150px);
   }
 }
 
@@ -179,21 +179,21 @@
   }
 
   @media (max-width: 768px) {
-    padding: 20px 24px; /* Optimized mobile padding */
-    border-radius: 24px 24px 0 0; /* Match window radius */
-    min-height: 80px; /* Ensure adequate height */
+    padding: 16px 20px; /* Reduced mobile padding */
+    border-radius: 16px 16px 0 0; /* Match window radius */
+    min-height: 68px; /* Reduced height */
   }
 
   @media (max-width: 480px) {
-    padding: 18px 20px;
-    border-radius: 20px 20px 0 0;
-    min-height: 76px;
+    padding: 14px 16px;
+    border-radius: 14px 14px 0 0;
+    min-height: 64px;
   }
 
   @media (max-width: 375px) {
-    padding: 16px 18px;
-    border-radius: 18px 18px 0 0;
-    min-height: 72px;
+    padding: 12px 14px;
+    border-radius: 12px 12px 0 0;
+    min-height: 60px;
   }
 }
 
@@ -222,13 +222,23 @@
     filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
   }
 
-  @media (max-width: 480px) {
-    width: 36px;
-    height: 36px;
+  @media (max-width: 768px) {
+    width: 34px;
+    height: 34px;
     border-radius: 10px;
     
     &::before {
-      font-size: 18px;
+      font-size: 16px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    
+    &::before {
+      font-size: 15px;
     }
   }
 }
@@ -246,11 +256,11 @@
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 
     @media (max-width: 768px) {
-      font-size: 20px; /* Larger on mobile for better readability */
+      font-size: 16px; /* Smaller on mobile */
     }
 
     @media (max-width: 480px) {
-      font-size: 18px;
+      font-size: 15px;
     }
   }
 
@@ -263,11 +273,11 @@
     text-overflow: ellipsis;
 
     @media (max-width: 768px) {
-      font-size: 14px; /* Larger subtitle on mobile */
+      font-size: 12px; /* Smaller subtitle on mobile */
     }
 
     @media (max-width: 480px) {
-      font-size: 13px;
+      font-size: 11px;
     }
   }
 }
@@ -308,16 +318,29 @@
     height: 16px;
   }
 
-  @media (max-width: 480px) {
-    width: 40px; /* Larger touch target on mobile */
-    height: 40px;
-    min-width: 40px;
-    min-height: 40px;
+  @media (max-width: 768px) {
+    width: 34px; /* Smaller on mobile */
+    height: 34px;
+    min-width: 34px;
+    min-height: 34px;
     border-radius: 6px;
     
     svg {
-      width: 18px;
-      height: 18px;
+      width: 15px;
+      height: 15px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    min-height: 32px;
+    border-radius: 6px;
+    
+    svg {
+      width: 14px;
+      height: 14px;
     }
   }
 }
@@ -363,7 +386,7 @@
   }
 
   @media (max-width: 768px) {
-    padding: 24px 20px; /* Better mobile padding */
+    padding: 18px 16px; /* Reduced mobile padding */
     
     &::-webkit-scrollbar {
       width: 4px; /* Thinner scrollbar on mobile */
@@ -371,7 +394,7 @@
   }
 
   @media (max-width: 480px) {
-    padding: 20px 18px;
+    padding: 16px 14px;
   }
 }
 
@@ -385,9 +408,14 @@
     margin-bottom: 20px;
     filter: drop-shadow(0 2px 8px rgba(var(--tp-theme-primary-rgb), 0.2));
 
+    @media (max-width: 768px) {
+      font-size: 42px;
+      margin-bottom: 14px;
+    }
+
     @media (max-width: 480px) {
-      font-size: 48px;
-      margin-bottom: 16px;
+      font-size: 38px;
+      margin-bottom: 12px;
     }
   }
 
@@ -398,8 +426,14 @@
     color: var(--tp-text-1);
     font-family: var(--tp-ff-jost);
 
+    @media (max-width: 768px) {
+      font-size: 17px;
+      margin-bottom: 12px;
+    }
+
     @media (max-width: 480px) {
-      font-size: 18px;
+      font-size: 16px;
+      margin-bottom: 10px;
     }
   }
 
@@ -408,8 +442,14 @@
     font-size: 15px;
     color: var(--tp-text-2);
 
+    @media (max-width: 768px) {
+      font-size: 13px;
+      margin-bottom: 16px;
+    }
+
     @media (max-width: 480px) {
-      font-size: 14px;
+      font-size: 12px;
+      margin-bottom: 14px;
     }
   }
 
@@ -435,10 +475,24 @@
         font-size: 16px;
       }
 
-      @media (max-width: 480px) {
-        font-size: 13px;
-        padding: 8px 0;
+      @media (max-width: 768px) {
+        font-size: 12px;
+        padding: 7px 0;
         padding-left: 20px;
+        
+        &::before {
+          font-size: 14px;
+        }
+      }
+
+      @media (max-width: 480px) {
+        font-size: 11px;
+        padding: 6px 0;
+        padding-left: 18px;
+        
+        &::before {
+          font-size: 13px;
+        }
       }
     }
   }
@@ -468,16 +522,26 @@
         box-shadow: 0 8px 25px rgba(var(--tp-theme-primary-rgb), 0.25);
       }
 
-      @media (max-width: 480px) {
-        padding: 12px 16px;
-        font-size: 13px;
+      @media (max-width: 768px) {
+        padding: 11px 16px;
+        font-size: 12px;
         border-radius: 10px;
+      }
+
+      @media (max-width: 480px) {
+        padding: 10px 14px;
+        font-size: 11px;
+        border-radius: 8px;
       }
     }
   }
 
+  @media (max-width: 768px) {
+    padding: 28px 16px;
+  }
+
   @media (max-width: 480px) {
-    padding: 30px 16px;
+    padding: 24px 14px;
   }
 }
 
@@ -494,11 +558,11 @@
   }
 
   @media (max-width: 768px) {
-    margin: 24px 0; /* More spacing between messages on mobile */
+    margin: 16px 0; /* Reduced spacing on mobile */
   }
 
   @media (max-width: 480px) {
-    margin: 20px 0;
+    margin: 14px 0;
   }
 }
 
@@ -544,25 +608,29 @@
 
   @media (max-width: 768px) {
     max-width: 88%; /* More width on mobile */
-    font-size: 15px; /* Larger text for better readability */
-    padding: 16px 20px; /* More generous padding */
-    border-radius: 18px;
-    line-height: 1.6; /* Better line spacing */
+    font-size: 13px; /* Smaller text */
+    padding: 12px 16px; /* Reduced padding */
+    border-radius: 16px;
+    line-height: 1.5;
     
     .user & {
-      border-bottom-right-radius: 6px;
+      border-bottom-right-radius: 5px;
     }
     
     .assistant & {
-      border-bottom-left-radius: 6px;
+      border-bottom-left-radius: 5px;
+    }
+    
+    &.typing {
+      padding: 14px 18px;
     }
   }
 
   @media (max-width: 480px) {
     max-width: 90%;
-    font-size: 14px;
-    padding: 14px 18px;
-    border-radius: 16px;
+    font-size: 12px;
+    padding: 11px 14px;
+    border-radius: 14px;
     
     .user & {
       border-bottom-right-radius: 4px;
@@ -570,6 +638,10 @@
     
     .assistant & {
       border-bottom-left-radius: 4px;
+    }
+    
+    &.typing {
+      padding: 12px 16px;
     }
   }
 }
@@ -718,18 +790,18 @@
   background: var(--tp-common-white);
 
   @media (max-width: 768px) {
-    padding: 20px 24px; /* Better mobile padding */
-    border-radius: 0 0 24px 24px; /* Match window radius */
+    padding: 16px 20px; /* Reduced mobile padding */
+    border-radius: 0 0 16px 16px; /* Match window radius */
   }
 
   @media (max-width: 480px) {
-    padding: 18px 20px;
-    border-radius: 0 0 20px 20px;
+    padding: 14px 16px;
+    border-radius: 0 0 14px 14px;
   }
 
   @media (max-width: 375px) {
-    padding: 16px 18px;
-    border-radius: 0 0 18px 18px;
+    padding: 12px 14px;
+    border-radius: 0 0 12px 12px;
   }
 }
 
@@ -749,15 +821,15 @@
   }
 
   @media (max-width: 768px) {
-    border-radius: 18px; /* Larger radius on mobile */
-    gap: 14px;
-    padding: 6px; /* More padding */
+    border-radius: 14px; /* Smaller radius on mobile */
+    gap: 10px;
+    padding: 4px; /* Reduced padding */
   }
 
   @media (max-width: 480px) {
-    border-radius: 16px;
-    gap: 12px;
-    padding: 4px;
+    border-radius: 12px;
+    gap: 8px;
+    padding: 3px;
   }
 }
 
@@ -782,14 +854,14 @@
   }
 
   @media (max-width: 768px) {
-    padding: 16px 20px; /* More generous mobile padding */
-    font-size: 16px; /* Larger text to prevent zoom on iOS */
+    padding: 12px 16px; /* Reduced mobile padding */
+    font-size: 14px; /* Smaller text */
     line-height: 1.4;
   }
 
   @media (max-width: 480px) {
-    padding: 14px 18px;
-    font-size: 15px;
+    padding: 11px 14px;
+    font-size: 13px;
   }
 }
 
@@ -821,24 +893,24 @@
   }
 
   @media (max-width: 768px) {
-    width: 52px; /* Larger touch target */
-    height: 52px;
-    border-radius: 14px;
+    width: 44px; /* Smaller touch target */
+    height: 44px;
+    border-radius: 12px;
     
     svg {
-      width: 22px;
-      height: 22px;
+      width: 19px;
+      height: 19px;
     }
   }
 
   @media (max-width: 480px) {
-    width: 48px;
-    height: 48px;
-    border-radius: 12px;
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
     
     svg {
-      width: 20px;
-      height: 20px;
+      width: 18px;
+      height: 18px;
     }
   }
 }
