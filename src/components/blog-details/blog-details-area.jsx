@@ -94,9 +94,9 @@ const BlogDetailsArea = ({ blog }) => {
           {/* Main Content */}
           <div className={styles.blogContent}>
             {/* Main Title */}
-            <h1 className={styles.blogTitle}>
+            <h2 className={styles.blogTitle}>
               {blog?.title?.replace(/<[^>]*>/g, '') || 'Blog Post'}
-            </h1>
+            </h2>
 
             {/* Meta Information - Simple with Share */}
             <div className={styles.blogMeta}>

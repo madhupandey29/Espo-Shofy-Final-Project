@@ -8,7 +8,7 @@ const SectionTitle = () => {
         <div className="row justify-content-center text-center">
           <div className="col-lg-8">
             <div className={styles.heroContent}>
-              <h1 className={styles.heroTitle}>Explore our blogs</h1>
+              <h2 className={styles.heroTitle}>Explore our blogs</h2>
             </div>
           </div>
         </div>
