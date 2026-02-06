@@ -79,19 +79,6 @@ const BlogDetailsArea = ({ blog }) => {
   return (
     <section className={styles.blogDetailsArea}>
       <div className={styles.container}>
-        {/* Hero Section with "Explore our blogs" - Same as Blog Page */}
-        <section className={styles.heroSection}>
-          <div className="container">
-            <div className="row justify-content-center text-center">
-              <div className="col-lg-8">
-                <div className={styles.heroContent}>
-                  <h1 className={styles.heroTitle}>Explore our blogs</h1>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
         {/* Back Button */}
         <div className={styles.backButtonContainer}>
           <Link href="/blog" className={styles.backButton}>

@@ -4,6 +4,7 @@ import Footer        from '@/layout/footers/footer';
 import ProductClient from './ProductDetailsClient';
 import { generateMetadata as generateSEOMetadata } from '@/utils/seo';
 import { generateProductStructuredData } from '@/utils/productStructuredData';
+import { BreadcrumbJsonLd } from '@/utils/breadcrumbStructuredData';
 
 import dynamic from 'next/dynamic';
 
@@ -134,10 +135,21 @@ export default async function Page({ params }) {
     
     // Generate structured data
     const productStructuredData = generateProductStructuredData(product);
+    
+    // Product title for breadcrumb
+    const productTitle = pick(product?.productTitle, product?.name, 'Product Details');
+    
+    // Breadcrumb structured data
+    const breadcrumbStructuredData = [
+      { name: 'Home', url: '/' },
+      { name: 'Fabric', url: '/fabric' },
+      { name: productTitle, url: `/fabric/${slug}` }
+    ];
 
     return (
       <>
         <ProductStructuredDataHead productStructuredData={productStructuredData} />
+        <BreadcrumbJsonLd breadcrumbItems={breadcrumbStructuredData} />
         
         <Wrapper>
           <HeaderTwo style_2 />

@@ -3,7 +3,9 @@ import HeaderTwo from "@/layout/headers/header-2";
 import SectionTitle from "@/components/blog/blog-grid/section-title";
 import BlogGridArea from "@/components/blog/blog-grid/blog-grid-area";
 import Footer from "@/layout/footers/footer";
+import CompactUniversalBreadcrumb from "@/components/breadcrumb/compact-universal-breadcrumb";
 import { generateMetadata as generateSEOMetadata } from "@/utils/seo";
+import { BreadcrumbJsonLd } from "@/utils/breadcrumbStructuredData";
 
 // Server-side function to fetch first blog for OG image
 async function getFirstBlogImage() {
@@ -75,9 +77,23 @@ export async function generateMetadata() {
 }
 
 export default function BlogPage() {
+  const breadcrumbItems = [
+    { label: 'Home', href: '/' },
+    { label: 'Blog' }
+  ];
+
+  // Breadcrumb structured data
+  const breadcrumbStructuredData = [
+    { name: 'Home', url: '/' },
+    { name: 'Blog', url: '/blog' }
+  ];
+
   return (
     <Wrapper>
+      <BreadcrumbJsonLd breadcrumbItems={breadcrumbStructuredData} />
+      
       <HeaderTwo style_2={true} />
+      <CompactUniversalBreadcrumb items={breadcrumbItems} />
       <SectionTitle />
       <BlogGridArea />
       <Footer primary_style={true} />

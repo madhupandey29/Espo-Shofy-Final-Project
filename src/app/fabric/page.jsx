@@ -3,7 +3,9 @@ import Wrapper from "@/layout/wrapper";
 import HeaderTwo from "@/layout/headers/header-2";
 import Footer from "@/layout/footers/footer";
 import ShopArea from "@/components/shop/shop-area";
+import CompactUniversalBreadcrumb from "@/components/breadcrumb/compact-universal-breadcrumb";
 import { generateMetadata as generateSEOMetadata, getOptimizedLogoUrl } from "@/utils/seo";
+import { BreadcrumbJsonLd } from "@/utils/breadcrumbStructuredData";
 
 /* ---------------------------------------------
    Incremental Static Regeneration (ISR)
@@ -180,8 +182,21 @@ async function fetchFromCollections(API_BASE2, MERCH_TAG_FILTER) {
 export default async function FabricPage() {
   const productData = await fetchAllProducts();
 
+  const breadcrumbItems = [
+    { label: 'Home', href: '/' },
+    { label: 'Fabrics' }
+  ];
+
+  // Breadcrumb structured data
+  const breadcrumbStructuredData = [
+    { name: 'Home', url: '/' },
+    { name: 'Fabrics', url: '/fabric' }
+  ];
+
   return (
     <Wrapper>
+      <BreadcrumbJsonLd breadcrumbItems={breadcrumbStructuredData} />
+      
       <HeaderTwo style_2 />
 
       {/* ✅ SEO-Optimized H1 for Fabric Page */}
@@ -198,6 +213,8 @@ export default async function FabricPage() {
         Premium Fabric Collection - Cotton, Mercerized & Designer Textiles
         {productData.filtered && ` - ${productData.filterTag} Collection`}
       </h1>
+
+      <CompactUniversalBreadcrumb items={breadcrumbItems} />
 
       <div className="shop-page-spacing">
         <ShopArea 

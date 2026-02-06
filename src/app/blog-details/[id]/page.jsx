@@ -3,8 +3,11 @@ import HeaderTwo from "@/layout/headers/header-2";
 import Wrapper from "@/layout/wrapper";
 import Footer from "@/layout/footers/footer";
 import BlogDetailsArea from "@/components/blog-details/blog-details-area";
+import BlogDetailsBreadcrumb from "@/components/breadcrumb/blog-details-breadcrumb";
 import { generateMetadata as generateSEOMetadata } from "@/utils/seo";
 import { generateBlogStructuredData, generateBlogBreadcrumbStructuredData } from "@/utils/blogStructuredData";
+import StructuredDataScripts from "@/components/seo/StructuredDataScripts";
+import { BreadcrumbJsonLd } from "@/utils/breadcrumbStructuredData";
 
 // Remove client-side JSON-LD - we'll render it server-side
 
@@ -133,6 +136,16 @@ export default async function BlogDetails({ params }) {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.amrita-fashions.com';
   const blogStructuredData = generateBlogStructuredData(blog, author, baseUrl);
   const breadcrumbStructuredData = generateBlogBreadcrumbStructuredData(blog, baseUrl);
+  
+  // Blog title for breadcrumb
+  const blogTitle = blog?.title || 'Article';
+  
+  // Breadcrumb structured data for JSON-LD
+  const breadcrumbJsonLdData = [
+    { name: 'Home', url: '/' },
+    { name: 'Blog', url: '/blog' },
+    { name: blogTitle, url: `/blog-details/${params.id}` }
+  ];
 
   return (
     <>
@@ -140,6 +153,7 @@ export default async function BlogDetails({ params }) {
         blogStructuredData={blogStructuredData}
         breadcrumbStructuredData={breadcrumbStructuredData}
       />
+      <BreadcrumbJsonLd breadcrumbItems={breadcrumbJsonLdData} />
       
       <Wrapper>
         <HeaderTwo style_2 />
@@ -158,6 +172,7 @@ export default async function BlogDetails({ params }) {
           {blog?.title || "Blog Details - Latest Article"}
         </h1>
         
+        <BlogDetailsBreadcrumb blogTitle={blog?.title} />
         <BlogDetailsArea blog={blog} />
         <Footer primary_style />
       </Wrapper>

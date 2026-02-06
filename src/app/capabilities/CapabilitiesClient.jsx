@@ -4,8 +4,6 @@ import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { FaPlay, FaDownload, FaIndustry, FaCogs, FaWarehouse, FaClipboardCheck, FaPhoneAlt, FaCalendarAlt, FaTimes, FaWhatsapp } from 'react-icons/fa';
-import Footer from '@/layout/footers/footer';
-import HeaderTwo from '@/layout/headers/header-2';
 import { useGetOfficeInformationQuery } from '@/redux/features/officeInformationApi';
 import styles from './Capabilities.module.scss';
 
@@ -250,8 +248,6 @@ const CapabilitiesClient = () => {
 
   return (
     <>
-      <HeaderTwo style_2={true} />
-      
       {/* Hero Section */}
       <section className={styles.capabilitiesHeroSection}>
         <div className="container">
@@ -602,8 +598,6 @@ const CapabilitiesClient = () => {
           </div>
         </div>
       )}
-
-      <Footer />
     </>
   );
 };

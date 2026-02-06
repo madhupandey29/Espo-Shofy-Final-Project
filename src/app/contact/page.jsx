@@ -5,6 +5,7 @@ import ContactArea from "@/components/contact/contact-area";
 import ContactMap from "@/components/contact/contact-map";
 import Footer from "@/layout/footers/footer";
 import { generateMetadata as generateSEOMetadata, getOptimizedLogoUrl } from "@/utils/seo";
+import { BreadcrumbJsonLd } from "@/utils/breadcrumbStructuredData";
 
 /* -----------------------------
   Metadata (Static SEO)
@@ -24,8 +25,16 @@ export async function generateMetadata() {
 }
 
 export default function ContactPage() {
+  // Breadcrumb structured data
+  const breadcrumbStructuredData = [
+    { name: 'Home', url: '/' },
+    { name: 'Contact', url: '/contact' }
+  ];
+
   return (
     <Wrapper>
+      <BreadcrumbJsonLd breadcrumbItems={breadcrumbStructuredData} />
+      
       <HeaderTwo style_2={true} />
       {/* SEO-Optimized H1 for Contact Page */}
       <h1
