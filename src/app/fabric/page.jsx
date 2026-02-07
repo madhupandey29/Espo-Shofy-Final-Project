@@ -21,9 +21,9 @@ export async function generateMetadata() {
   
   // Fetch SEO data from topic page API
   const topicMetadata = await getPageSeoMetadata(PAGE_NAMES.FABRIC, {
-    title: "Premium Fabrics Collection | Cotton, Mercerized & Designer Textiles - eCatalogue",
-    description: "Browse our complete collection of premium cotton fabrics, mercerized textiles, and designer materials. Nokia & Majestica collections with GSM specifications for fashion and industrial use.",
-    keywords: "fabric collection, cotton fabrics, mercerized textiles, premium materials, Nokia collection, Majestica collection, GSM fabrics, textile collection, fabric store",
+    title: null,
+    description: null,
+    keywords: null,
   });
 
   // Extract canonical URL from the metadata object

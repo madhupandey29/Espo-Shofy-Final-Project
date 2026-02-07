@@ -126,19 +126,21 @@ export const getTopicPageSeoData = (topicPage) => {
     return {
       title: '',
       description: '',
+      excerpt: '',
       keywords: [],
       canonicalUrl: '',
-      excerpt: '',
-      ogType: 'website'
+      ogType: 'website',
+      slug: '',
+      name: ''
     };
   }
 
   return {
     title: topicPage.metaTitle || '',
     description: topicPage.description || '',
+    excerpt: topicPage.excerpt || '',
     keywords: Array.isArray(topicPage.keywords) ? topicPage.keywords : [],
     canonicalUrl: topicPage.canonicalUrl || '',
-    excerpt: topicPage.excerpt || '',
     ogType: topicPage.ogType || 'website',
     slug: topicPage.slug || '',
     name: topicPage.name || ''

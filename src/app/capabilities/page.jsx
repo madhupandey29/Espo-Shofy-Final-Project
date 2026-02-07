@@ -13,9 +13,9 @@ import { getPageSeoMetadata, PAGE_NAMES } from '@/utils/topicPageSeoIntegration'
 ----------------------------- */
 export async function generateMetadata() {
   return await getPageSeoMetadata(PAGE_NAMES.CAPABILITIES, {
-    title: "Manufacturing Capabilities | Products, Machines & Warehouse",
-    description: "Explore our manufacturing capabilities, product range, state-of-the-art machines, warehouse facilities, and quality certifications. Discover what makes us industry leaders.",
-    keywords: "manufacturing capabilities, fabric products, textile machines, warehouse, quality control, certifications, production capacity",
+    title: null,
+    description: null,
+    keywords: null,
   });
 }
 

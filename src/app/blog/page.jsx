@@ -69,9 +69,9 @@ export async function generateMetadata() {
   
   // Fetch SEO data from topic page API
   const topicMetadata = await getPageSeoMetadata(PAGE_NAMES.BLOG, {
-    title: "Blog | Fabric & Textile Insights - eCatalogue",
-    description: "Explore our latest blog posts about fabrics, textiles, and industry insights. Stay updated with eCatalogue's textile expertise.",
-    keywords: "blog, fabrics, textiles, industry insights, textile expertise, latest updates",
+    title: null,
+    description: null,
+    keywords: null,
   });
 
   // Extract canonical URL from the metadata object

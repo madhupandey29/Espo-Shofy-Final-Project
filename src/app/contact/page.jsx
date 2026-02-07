@@ -16,9 +16,9 @@ export async function generateMetadata() {
   
   // Fetch SEO data from topic page API
   const topicMetadata = await getPageSeoMetadata(PAGE_NAMES.CONTACT, {
-    title: "Contact eCatalogue | Premium Fabric Supplier - Get in Touch",
-    description: "Contact eCatalogue by Amrita Global Enterprises for premium cotton fabrics, mercerized textiles, and custom fabric solutions. Expert textile consultation and support.",
-    keywords: "contact eCatalogue, fabric supplier contact, textile consultation, Amrita Global Enterprises, premium fabrics, cotton textiles, fabric inquiry",
+    title: null,
+    description: null,
+    keywords: null,
   });
 
   // Extract canonical URL from the metadata object

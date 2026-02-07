@@ -55,16 +55,18 @@ export async function fetchTopicPageByName(pageName) {
 export function generateMetadataFromTopicPage(topicPage, fallback = {}) {
   if (!topicPage) {
     return {
-      title: fallback.title || 'eCatalogue',
-      description: fallback.description || '',
-      keywords: fallback.keywords || '',
+      title: fallback.title || null,
+      description: fallback.description || null,
+      excerpt: fallback.excerpt || null,
+      keywords: fallback.keywords || null,
       canonicalUrl: null, // No canonical from API
     };
   }
 
   const metadata = {
-    title: topicPage.metaTitle || fallback.title || 'eCatalogue',
-    description: topicPage.description || fallback.description || '',
+    title: topicPage.metaTitle || fallback.title || null,
+    description: topicPage.description || fallback.description || null,
+    excerpt: topicPage.excerpt || fallback.excerpt || null,
     canonicalUrl: null, // Will be set below if available
   };
 
@@ -73,6 +75,8 @@ export function generateMetadataFromTopicPage(topicPage, fallback = {}) {
     metadata.keywords = topicPage.keywords.join(', ');
   } else if (fallback.keywords) {
     metadata.keywords = fallback.keywords;
+  } else {
+    metadata.keywords = null;
   }
 
   // Store canonical URL from API (will be used by pages to override default)
@@ -98,13 +102,25 @@ export async function getPageSeoMetadata(pageName, fallback = {}) {
   // Debug logging
   console.log(`[Topic Page SEO] Page: ${pageName}`);
   console.log(`[Topic Page SEO] Topic Page Data:`, topicPage);
-  console.log(`[Topic Page SEO] Canonical URL from API:`, metadata.canonicalUrl);
-  
-  // Build complete Next.js metadata object
-  const nextMetadata = {
+  console.log(`[Topic Page SEO] Metadata extracted:`, {
     title: metadata.title,
     description: metadata.description,
-  };
+    excerpt: metadata.excerpt,
+    keywords: metadata.keywords,
+    canonicalUrl: metadata.canonicalUrl
+  });
+  
+  // Build complete Next.js metadata object
+  const nextMetadata = {};
+
+  // Only add fields if they have values
+  if (metadata.title) {
+    nextMetadata.title = metadata.title;
+  }
+
+  if (metadata.description) {
+    nextMetadata.description = metadata.description;
+  }
 
   // Add keywords if available
   if (metadata.keywords) {
@@ -121,24 +137,53 @@ export async function getPageSeoMetadata(pageName, fallback = {}) {
     console.log(`[Topic Page SEO] No canonical URL from API`);
   }
 
-  // Add Open Graph data
-  nextMetadata.openGraph = {
-    title: metadata.title,
-    description: metadata.description,
-    type: topicPage?.ogType || 'website',
-  };
+  // Add Open Graph data only if we have title or description
+  if (metadata.title || metadata.description || metadata.excerpt) {
+    nextMetadata.openGraph = {};
+    
+    if (metadata.title) {
+      nextMetadata.openGraph.title = metadata.title;
+    }
+    
+    // Use excerpt for OG description if available, otherwise use description
+    if (metadata.excerpt) {
+      nextMetadata.openGraph.description = metadata.excerpt;
+    } else if (metadata.description) {
+      nextMetadata.openGraph.description = metadata.description;
+    }
+    
+    nextMetadata.openGraph.type = topicPage?.ogType || 'website';
 
-  // Add canonical URL to Open Graph
-  if (metadata.canonicalUrl) {
-    nextMetadata.openGraph.url = metadata.canonicalUrl;
+    // Add canonical URL to Open Graph
+    if (metadata.canonicalUrl) {
+      nextMetadata.openGraph.url = metadata.canonicalUrl;
+    }
   }
 
-  // Add Twitter Card data
-  nextMetadata.twitter = {
-    card: 'summary_large_image',
-    title: metadata.title,
-    description: metadata.description,
-  };
+  // Add Twitter Card data only if we have title or description
+  if (metadata.title || metadata.description || metadata.excerpt) {
+    nextMetadata.twitter = {
+      card: 'summary_large_image',
+    };
+    
+    if (metadata.title) {
+      nextMetadata.twitter.title = metadata.title;
+    }
+    
+    // Use excerpt for Twitter description if available, otherwise use description
+    if (metadata.excerpt) {
+      nextMetadata.twitter.description = metadata.excerpt;
+    } else if (metadata.description) {
+      nextMetadata.twitter.description = metadata.description;
+    }
+  }
+
+  // Add excerpt as a custom meta tag in other section
+  if (metadata.excerpt) {
+    nextMetadata.other = {
+      'excerpt': metadata.excerpt,
+    };
+  }
 
   console.log(`[Topic Page SEO] Final metadata:`, nextMetadata);
 

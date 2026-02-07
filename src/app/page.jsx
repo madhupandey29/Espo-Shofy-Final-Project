@@ -4,8 +4,9 @@ import { getPageSeoMetadata, PAGE_NAMES } from "@/utils/topicPageSeoIntegration"
 
 export async function generateMetadata() {
   const fallback = {
-    title: "Premium Quality Fabrics by eCatalogue | Cotton, Mercerized & Designer Textiles",
-    description: "Discover premium cotton fabrics, mercerized finishes, and textile excellence at eCatalogue by Amrita Global Enterprises. Nokia & Majestica collections for fashion, home, and industrial use.",
+    title: null,
+    description: null,
+    keywords: null,
   };
 
   return await getPageSeoMetadata(PAGE_NAMES.HOME, fallback);

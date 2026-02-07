@@ -13,9 +13,9 @@ import { getPageSeoMetadata, PAGE_NAMES } from '@/utils/topicPageSeoIntegration'
 ----------------------------- */
 export async function generateMetadata() {
   return await getPageSeoMetadata(PAGE_NAMES.ABOUT, {
-    title: "About Us | eCatalogue - Premium Fabric Supplier",
-    description: "Learn about eCatalogue by Amrita Global Enterprises. Discover our story, values, and commitment to delivering premium quality fabrics and textiles.",
-    keywords: "about us, eCatalogue, Amrita Global Enterprises, fabric supplier, textile company, company history, our values",
+    title: null,
+    description: null,
+    keywords: null,
   });
 }
 
