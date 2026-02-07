@@ -13,35 +13,74 @@ const TOPIC_PAGE_API_URL = 'https://espobackend.vercel.app/api/topicpage';
 export async function fetchTopicPageByName(pageName) {
   try {
     if (!pageName || typeof pageName !== 'string') {
-      console.warn('fetchTopicPageByName: Invalid pageName provided');
+      console.warn('[Topic Page API] Invalid pageName provided:', pageName);
       return null;
     }
 
-    const response = await fetch(TOPIC_PAGE_API_URL, {
-      next: { revalidate: 3600 }, // Cache for 1 hour
-    });
+    console.log('[Topic Page API] Fetching data for page:', pageName);
+    console.log('[Topic Page API] API URL:', TOPIC_PAGE_API_URL);
+
+    const fetchOptions = {
+      next: { revalidate: 60 }, // Revalidate every 60 seconds
+    };
+
+    // In production, ensure we can fetch during build time
+    if (typeof window === 'undefined') {
+      // Server-side: use revalidation
+      fetchOptions.next = { revalidate: 60 };
+    }
+
+    const response = await fetch(TOPIC_PAGE_API_URL, fetchOptions);
+
+    console.log('[Topic Page API] Response status:', response.status);
 
     if (!response.ok) {
-      console.error(`Failed to fetch topic pages: ${response.status}`);
+      console.error(`[Topic Page API] Failed to fetch topic pages: ${response.status}`);
       return null;
     }
 
     const data = await response.json();
+    console.log('[Topic Page API] Response data structure:', {
+      success: data.success,
+      total: data.total,
+      dataLength: data.data?.length
+    });
     
     if (!data.success || !Array.isArray(data.data)) {
-      console.error('Invalid topic page API response structure');
+      console.error('[Topic Page API] Invalid topic page API response structure:', data);
       return null;
     }
 
     // Filter out deleted pages and find by name (case-insensitive)
     const pages = data.data.filter(page => !page.deleted);
+    console.log('[Topic Page API] Active pages found:', pages.length);
+    console.log('[Topic Page API] Page names:', pages.map(p => p.name));
+    
     const topicPage = pages.find(p => 
       p.name && p.name.toLowerCase() === pageName.toLowerCase()
     );
 
+    if (topicPage) {
+      console.log('[Topic Page API] ✅ Found page data for:', pageName);
+      console.log('[Topic Page API] Page data:', {
+        id: topicPage.id,
+        name: topicPage.name,
+        metaTitle: topicPage.metaTitle,
+        hasDescription: !!topicPage.description,
+        hasExcerpt: !!topicPage.excerpt,
+        hasKeywords: !!topicPage.keywords?.length
+      });
+    } else {
+      console.warn('[Topic Page API] ❌ Page not found:', pageName);
+    }
+
     return topicPage || null;
   } catch (error) {
-    console.error('Error fetching topic page:', error);
+    console.error('[Topic Page API] Error fetching topic page:', error);
+    console.error('[Topic Page API] Error details:', {
+      message: error.message,
+      stack: error.stack
+    });
     return null;
   }
 }

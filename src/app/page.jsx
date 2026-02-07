@@ -1,15 +1,35 @@
 // app/page.jsx
 import HomePageTwoClient from "./HomePageTwoClient";
 import { getPageSeoMetadata, PAGE_NAMES } from "@/utils/topicPageSeoIntegration";
+import { generateMetadata as generateSEOMetadata, getOptimizedLogoUrl } from "@/utils/seo";
+
+// Revalidate every 60 seconds
+export const revalidate = 60;
 
 export async function generateMetadata() {
-  const fallback = {
+  const logoUrl = getOptimizedLogoUrl();
+  
+  // Fetch SEO data from topic page API
+  const topicMetadata = await getPageSeoMetadata(PAGE_NAMES.HOME, {
     title: null,
     description: null,
     keywords: null,
-  };
+  });
 
-  return await getPageSeoMetadata(PAGE_NAMES.HOME, fallback);
+  // Extract canonical URL from the metadata object
+  const canonicalFromApi = topicMetadata.alternates?.canonical || null;
+
+  // Merge with existing SEO metadata structure
+  return generateSEOMetadata({
+    title: topicMetadata.title,
+    description: topicMetadata.description,
+    keywords: topicMetadata.keywords,
+    path: "/",
+    canonicalOverride: canonicalFromApi, // Use canonical from API
+    ogImage: "/assets/img/logo/logo.svg",
+    ogLogo: logoUrl,
+    robots: "index, follow"
+  });
 }
 
 export default function Page() {

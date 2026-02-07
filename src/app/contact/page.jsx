@@ -8,6 +8,9 @@ import { generateMetadata as generateSEOMetadata, getOptimizedLogoUrl } from "@/
 import { BreadcrumbJsonLd } from "@/utils/breadcrumbStructuredData";
 import { getPageSeoMetadata, PAGE_NAMES } from "@/utils/topicPageSeoIntegration";
 
+// Revalidate every 60 seconds
+export const revalidate = 60;
+
 /* -----------------------------
   Metadata (Dynamic SEO from Topic Page API)
 ----------------------------- */

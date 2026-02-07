@@ -7,15 +7,34 @@ import CompactUniversalBreadcrumb from '@/components/breadcrumb/compact-universa
 import { BreadcrumbJsonLd } from '@/utils/breadcrumbStructuredData';
 import CapabilitiesClient from './CapabilitiesClient';
 import { getPageSeoMetadata, PAGE_NAMES } from '@/utils/topicPageSeoIntegration';
+import { generateMetadata as generateSEOMetadata } from '@/utils/seo';
+
+// Revalidate every 60 seconds
+export const revalidate = 60;
 
 /* -----------------------------
   Metadata (Dynamic SEO from Topic Page API)
 ----------------------------- */
 export async function generateMetadata() {
-  return await getPageSeoMetadata(PAGE_NAMES.CAPABILITIES, {
+  // Fetch SEO data from topic page API
+  const topicMetadata = await getPageSeoMetadata(PAGE_NAMES.CAPABILITIES, {
     title: null,
     description: null,
     keywords: null,
+  });
+
+  // Extract canonical URL from the metadata object
+  const canonicalFromApi = topicMetadata.alternates?.canonical || null;
+
+  // Merge with existing SEO metadata structure
+  return generateSEOMetadata({
+    title: topicMetadata.title,
+    description: topicMetadata.description,
+    keywords: topicMetadata.keywords,
+    path: "/capabilities",
+    canonicalOverride: canonicalFromApi, // Use canonical from API
+    ogImage: "/assets/img/logo/logo.svg",
+    robots: "index, follow"
   });
 }
 

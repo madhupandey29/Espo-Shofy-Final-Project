@@ -8,6 +8,9 @@ import { generateMetadata as generateSEOMetadata } from "@/utils/seo";
 import { BreadcrumbJsonLd } from "@/utils/breadcrumbStructuredData";
 import { getPageSeoMetadata, PAGE_NAMES } from "@/utils/topicPageSeoIntegration";
 
+// Revalidate every 60 seconds
+export const revalidate = 60;
+
 // Server-side function to fetch first blog for OG image
 async function getFirstBlogImage() {
   try {
