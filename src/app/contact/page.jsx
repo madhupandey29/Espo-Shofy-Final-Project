@@ -48,10 +48,12 @@ export default function ContactPage() {
   ];
 
   return (
-    <Wrapper>
+    <>
+      {/* Render JSON-LD outside Wrapper for SSR */}
       <BreadcrumbJsonLd breadcrumbItems={breadcrumbStructuredData} />
       
-      <HeaderTwo style_2={true} />
+      <Wrapper>
+        <HeaderTwo style_2={true} />
       {/* SEO-Optimized H1 for Contact Page */}
       <h1
         style={{
@@ -69,6 +71,7 @@ export default function ContactPage() {
       <ContactArea />
       <ContactMap />
       <Footer primary_style={true} />
-    </Wrapper>
+      </Wrapper>
+    </>
   );
 }

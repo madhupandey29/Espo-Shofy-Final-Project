@@ -206,10 +206,12 @@ export default async function FabricPage() {
   ];
 
   return (
-    <Wrapper>
+    <>
+      {/* Render JSON-LD outside Wrapper for SSR */}
       <BreadcrumbJsonLd breadcrumbItems={breadcrumbStructuredData} />
       
-      <HeaderTwo style_2 />
+      <Wrapper>
+        <HeaderTwo style_2 />
 
       {/* ✅ SEO-Optimized H1 for Fabric Page */}
       <h1
@@ -236,6 +238,7 @@ export default async function FabricPage() {
       </div>
 
       <Footer primary_style />
-    </Wrapper>
+      </Wrapper>
+    </>
   );
 }

@@ -126,6 +126,7 @@ function mapBackendProductToFrontend(p) {
 export default function ProductDetailsClient({ slug }) {
   // Clean the slug by removing trailing hash character
   const cleanSlug = slug ? slug.replace(/#$/, '') : slug;
+  
   // Get product by slug (now uses the fixed API that searches all products)
   const {
     data: productData,
@@ -138,5 +139,6 @@ export default function ProductDetailsClient({ slug }) {
   if (!productData?.data) return <ErrorMsg msg="Product not found. Please check the URL or try again." />;
 
   const product = mapBackendProductToFrontend(productData.data);
+  
   return <ProductDetailsArea product={product} />;
 }

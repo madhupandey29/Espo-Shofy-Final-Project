@@ -51,15 +51,18 @@ const AboutPage = () => {
   ];
 
   return (
-    <Wrapper>
-      {/* SEO component removed - using generateMetadata instead */}
+    <>
+      {/* Render JSON-LD outside Wrapper for SSR */}
       <BreadcrumbJsonLd breadcrumbItems={breadcrumbStructuredData} />
       
-      <HeaderTwo style_2={true} />
+      <Wrapper>
+        {/* SEO component removed - using generateMetadata instead */}
+        <HeaderTwo style_2={true} />
       <CompactUniversalBreadcrumb items={breadcrumbItems} />
       <AboutClient />
       <Footer primary_style={true} />
-    </Wrapper>
+      </Wrapper>
+    </>
   );
 };
 

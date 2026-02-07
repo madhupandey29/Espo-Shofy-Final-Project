@@ -104,14 +104,17 @@ export default function BlogPage() {
   ];
 
   return (
-    <Wrapper>
+    <>
+      {/* Render JSON-LD outside Wrapper for SSR */}
       <BreadcrumbJsonLd breadcrumbItems={breadcrumbStructuredData} />
       
-      <HeaderTwo style_2={true} />
+      <Wrapper>
+        <HeaderTwo style_2={true} />
       <CompactUniversalBreadcrumb items={breadcrumbItems} />
       <SectionTitle />
       <BlogGridArea />
       <Footer primary_style={true} />
-    </Wrapper>
+      </Wrapper>
+    </>
   );
 }

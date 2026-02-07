@@ -5,6 +5,8 @@ import ProductClient from './ProductDetailsClient';
 import { generateMetadata as generateSEOMetadata } from '@/utils/seo';
 import { generateProductStructuredData } from '@/utils/productStructuredData';
 import { BreadcrumbJsonLd } from '@/utils/breadcrumbStructuredData';
+import { FaqJsonLd } from '@/utils/faqStructuredData';
+import { CollectionItemListJsonLd } from '@/utils/collectionItemListStructuredData';
 
 import dynamic from 'next/dynamic';
 
@@ -84,6 +86,72 @@ async function getProductBySlug(slug) {
 }
 
 /* -----------------------------
+  Website FAQs fetcher
+----------------------------- */
+async function getWebsiteFaqs() {
+  try {
+    const res = await fetch(`${API_BASE}/websitefaq`, {
+      next: { revalidate },
+    });
+    
+    if (!res.ok) return [];
+
+    const j = await res.json();
+    
+    // Handle the response structure
+    if (j?.success && j?.data) {
+      return Array.isArray(j.data) ? j.data : [j.data];
+    }
+    if (Array.isArray(j)) {
+      return j;
+    }
+    return j?.data || [];
+  } catch (error) {
+    return [];
+  }
+}
+
+/* -----------------------------
+  Collection Products fetcher
+----------------------------- */
+async function getCollectionProducts(collectionId) {
+  if (!collectionId || String(collectionId).trim() === '') {
+    return [];
+  }
+
+  try {
+    const res = await fetch(`${API_BASE}/product?limit=150`, {
+      next: { revalidate },
+    });
+    
+    if (!res.ok) return [];
+
+    const j = await res.json();
+    
+    // Handle the response structure
+    let products = [];
+    if (j?.success && j?.data && Array.isArray(j.data)) {
+      products = j.data;
+    } else if (j?.products && Array.isArray(j.products)) {
+      products = j.products;
+    } else if (Array.isArray(j)) {
+      products = j;
+    }
+    
+    // Filter products by collection ID
+    const filteredProducts = products.filter(product => {
+      return product.collectionId === collectionId || 
+             product.collection === collectionId ||
+             product.collection_id === collectionId;
+    });
+    
+    return filteredProducts;
+  } catch (error) {
+    return [];
+  }
+}
+
+/* -----------------------------
   Metadata
 ----------------------------- */
 export async function generateMetadata({ params }) {
@@ -133,6 +201,15 @@ export default async function Page({ params }) {
     // Fetch product data for structured data
     const product = await getProductBySlug(slug);
     
+    // Fetch website FAQs for structured data
+    const websiteFaqs = await getWebsiteFaqs();
+    
+    // Get collection ID from product
+    const collectionId = product?.collectionId || product?.collection?.id || product?.collection?._id || product?.collection || null;
+    
+    // Fetch collection products for ItemList structured data
+    const collectionProducts = collectionId ? await getCollectionProducts(collectionId) : [];
+    
     // Generate structured data
     const productStructuredData = generateProductStructuredData(product);
     
@@ -148,8 +225,15 @@ export default async function Page({ params }) {
 
     return (
       <>
+        {/* Render JSON-LD outside Wrapper for SSR */}
         <ProductStructuredDataHead productStructuredData={productStructuredData} />
         <BreadcrumbJsonLd breadcrumbItems={breadcrumbStructuredData} />
+        <FaqJsonLd product={product} websiteFaqs={websiteFaqs} />
+        <CollectionItemListJsonLd 
+          products={collectionProducts} 
+          currentProduct={product}
+          collectionData={product?.collection}
+        />
         
         <Wrapper>
           <HeaderTwo style_2 />
