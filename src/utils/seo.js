@@ -11,8 +11,9 @@ const SITE_URL = stripTrailingSlash(
 
 /**
  * Fetch default SEO settings from API
+ * @returns {Promise<Object|null>} Site settings object or null
  */
-async function getDefaultSeoSettings() {
+export async function getDefaultSeoSettings() {
   try {
     // Check if we're in a browser environment
     if (typeof window === 'undefined' || !process?.env?.NEXT_PUBLIC_API_BASE_URL) {
@@ -139,15 +140,48 @@ export const generateMetadata = async ({
   // Site name from default SEO settings or environment
   const siteName = defaultSeoSettings?.name || process.env.NEXT_PUBLIC_SITE_NAME || 'eCatalogue';
   
+  // Build metadata object - only include fields with values
+  const metadata = {};
+  
+  // Add title if provided
+  if (title) {
+    metadata.title = title;
+  }
+  
+  // Add description if provided
+  if (description) {
+    metadata.description = description;
+  }
+  
+  // Add keywords if provided
+  if (keywords) {
+    metadata.keywords = keywords;
+  }
+  
+  // Add robots
+  const finalRobots = robots || defaultSeoSettings?.robotsPolicy || "index, follow";
+  metadata.robots = finalRobots;
+  
+  // Add canonical
+  metadata.alternates = { canonical };
+  
+  // Build OpenGraph data
   const ogData = {
-    title,
-    description,
-    url: canonical,
     type: "website",
     siteName,
     locale: 'en_US',
+    url: canonical,
     ...openGraph
   };
+  
+  // Only add title/description to OG if they exist
+  if (title) {
+    ogData.title = title;
+  }
+  
+  if (description) {
+    ogData.description = description;
+  }
 
   // Add image if provided
   if (absoluteOgImage) {
@@ -156,7 +190,7 @@ export const generateMetadata = async ({
         url: absoluteOgImage,
         width: 1200,
         height: 630,
-        alt: title
+        alt: title || siteName
       }
     ];
   }
@@ -165,18 +199,30 @@ export const generateMetadata = async ({
   if (absoluteOgLogo) {
     ogData.logo = absoluteOgLogo;
   }
+  
+  metadata.openGraph = ogData;
 
+  // Build Twitter data
   const twitterData = {
     card: "summary_large_image",
-    title,
-    description,
     ...twitter
   };
+  
+  // Only add title/description to Twitter if they exist
+  if (title) {
+    twitterData.title = title;
+  }
+  
+  if (description) {
+    twitterData.description = description;
+  }
 
   // Add image for Twitter if provided
   if (absoluteOgImage) {
     twitterData.images = [absoluteOgImage];
   }
+  
+  metadata.twitter = twitterData;
 
   // Build verification object from default SEO settings - CRITICAL FOR SEO
   const verification = {};
@@ -195,58 +241,45 @@ export const generateMetadata = async ({
     twitterData.site = twitterHandle.startsWith('@') ? twitterHandle : `@${twitterHandle}`;
   }
 
-  // Use robots policy from default SEO settings if not provided
-  const finalRobots = robots || defaultSeoSettings?.robotsPolicy || "index, follow";
-  
-  const metadata = {
-    title,
-    description,
-    keywords,
-    robots: finalRobots,
-    alternates: { canonical },
-    openGraph: ogData,
-    twitter: twitterData,
-    
-    // Apple Web App configuration from default SEO settings
-    appleWebApp: {
-      capable: true,
-      statusBarStyle: 'default',
-      title: siteName,
-    },
+  // Apple Web App configuration from default SEO settings
+  metadata.appleWebApp = {
+    capable: true,
+    statusBarStyle: 'default',
+    title: siteName,
+  };
 
-    // Format detection settings
-    formatDetection: {
-      telephone: false,
-      email: false,
-      address: false,
-    },
+  // Format detection settings
+  metadata.formatDetection = {
+    telephone: false,
+    email: false,
+    address: false,
+  };
 
-    // Additional meta tags from default SEO settings
-    other: {
-      ...(defaultSeoSettings?.siteStatus && {
-        'site-status': defaultSeoSettings.siteStatus,
-      }),
-      ...(defaultSeoSettings?.siteKey && {
-        'site-key': defaultSeoSettings.siteKey,
-      }),
-      ...(defaultSeoSettings?.name && {
-        'site-name': defaultSeoSettings.name,
-      }),
-      ...(defaultSeoSettings?.websiteFaqId && {
-        'website-faq-id': defaultSeoSettings.websiteFaqId,
-      }),
-      ...(defaultSeoSettings?.websiteFaqName && {
-        'website-faq-name': defaultSeoSettings.websiteFaqName,
-      }),
-      // Add Bing verification directly in other meta tags as fallback
-      ...(defaultSeoSettings?.bingVerification && {
-        'msvalidate.01': defaultSeoSettings.bingVerification,
-      }),
-      // Add Open Graph logo if provided
-      ...(absoluteOgLogo && {
-        'og:logo': absoluteOgLogo,
-      }),
-    }
+  // Additional meta tags from default SEO settings
+  metadata.other = {
+    ...(defaultSeoSettings?.siteStatus && {
+      'site-status': defaultSeoSettings.siteStatus,
+    }),
+    ...(defaultSeoSettings?.siteKey && {
+      'site-key': defaultSeoSettings.siteKey,
+    }),
+    ...(defaultSeoSettings?.name && {
+      'site-name': defaultSeoSettings.name,
+    }),
+    ...(defaultSeoSettings?.websiteFaqId && {
+      'website-faq-id': defaultSeoSettings.websiteFaqId,
+    }),
+    ...(defaultSeoSettings?.websiteFaqName && {
+      'website-faq-name': defaultSeoSettings.websiteFaqName,
+    }),
+    // Add Bing verification directly in other meta tags as fallback
+    ...(defaultSeoSettings?.bingVerification && {
+      'msvalidate.01': defaultSeoSettings.bingVerification,
+    }),
+    // Add Open Graph logo if provided
+    ...(absoluteOgLogo && {
+      'og:logo': absoluteOgLogo,
+    }),
   };
 
   // Add verification if we have any - CRITICAL FOR SEARCH CONSOLE
