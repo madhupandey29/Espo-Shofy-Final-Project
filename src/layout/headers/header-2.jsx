@@ -244,7 +244,7 @@ const HeaderTwo = ({ style_2 = false }) => {
           <div
             id="header-sticky"
             className={`tp-header-bottom-2 tp-header-sticky ${sticky ? 'header-sticky' : ''}`}
-            style={{ position: 'relative', overflow: 'visible' }}
+            style={{ overflow: 'visible' }}
           >
             <div className="container" style={{ overflow: 'visible' }}>
               <div className="tp-mega-menu-wrapper p-relative" style={{ overflow: 'visible' }}>
@@ -487,14 +487,39 @@ const HeaderTwo = ({ style_2 = false }) => {
           z-index: 1020; /* above page content, below typical modal */
         }
 
+        /* Make header sticky on scroll */
+        #header-sticky.header-sticky {
+          position: fixed !important;
+          top: 0;
+          left: 0;
+          right: 0;
+          width: 100%;
+          z-index: 1020;
+          background: #fff;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+          animation: slideDown 0.3s ease-out;
+        }
+
+        @keyframes slideDown {
+          from {
+            transform: translateY(-100%);
+            opacity: 0;
+          }
+          to {
+            transform: translateY(0);
+            opacity: 1;
+          }
+        }
+
         .header-right{
           gap: 10px;
           flex-wrap: nowrap;
         }
 
         .header-actions{
-          gap: 6px;
+          gap: 8px;
           flex: 0 0 auto;
+          align-items: center;
         }
 
         /* If your modal library adds body.modal-open (Bootstrap),

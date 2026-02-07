@@ -87,8 +87,8 @@ const OffCanvas = ({ isOffCanvasOpen, setIsCanvasOpen = () => {} }) => {
   // Enhanced close icon
   const CloseIcon = () => (
     <svg 
-      width="22" 
-      height="22" 
+      width="18" 
+      height="18" 
       viewBox="0 0 24 24" 
       fill="none" 
       xmlns="http://www.w3.org/2000/svg"
@@ -153,11 +153,11 @@ const OffCanvas = ({ isOffCanvasOpen, setIsCanvasOpen = () => {} }) => {
       background: #F7F9FC !important;
       border: 2px solid #2C4C97 !important;
       cursor: pointer !important;
-      padding: 12px !important;
-      border-radius: 12px !important;
+      padding: 10px !important;
+      border-radius: 10px !important;
       color: #2C4C97 !important;
-      width: 48px !important;
-      height: 48px !important;
+      width: 40px !important;
+      height: 40px !important;
       display: flex !important;
       align-items: center !important;
       justify-content: center !important;

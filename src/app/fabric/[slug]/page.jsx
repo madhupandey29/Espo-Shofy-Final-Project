@@ -114,7 +114,7 @@ export async function generateMetadata({ params }) {
   const robotsTag = product ? "index, follow" : "noindex, nofollow";
 
   return generateSEOMetadata({
-    title: `${title} - Shofy`,
+    title: `${title}`,
     description,
     keywords: keywordsString,
     path: `/fabric/${slug}`,
