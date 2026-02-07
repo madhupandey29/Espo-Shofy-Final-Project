@@ -39,16 +39,17 @@ const poppins = Poppins({
   preload: true,
 });
 
-// Default metadata for the application
-export const metadata = {
-  title: 'Shofy - Next.js E-commerce',
-  description: 'Modern e-commerce platform built with Next.js',
-  other: {
-    'mobile-web-app-capable': 'yes',
-    'apple-mobile-web-app-capable': 'yes',
-    'apple-mobile-web-app-status-bar-style': 'default',
-  },
-};
+// Default metadata for the application - REMOVED to allow page-level metadata to work
+// Pages now control their own metadata through generateMetadata()
+// export const metadata = {
+//   title: 'Shofy - Next.js E-commerce',
+//   description: 'Modern e-commerce platform built with Next.js',
+//   other: {
+//     'mobile-web-app-capable': 'yes',
+//     'apple-mobile-web-app-capable': 'yes',
+//     'apple-mobile-web-app-status-bar-style': 'default',
+//   },
+// };
 
 // Separate viewport export (required for Next.js 14+)
 export const viewport = {
