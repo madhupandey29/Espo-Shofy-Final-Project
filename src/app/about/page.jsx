@@ -1,13 +1,13 @@
 import React from 'react';
-import SEO from '@/components/seo';
 import Wrapper from '@/layout/wrapper';
 import HeaderTwo from '@/layout/headers/header-2';
 import Footer from '@/layout/footers/footer';
 import CompactUniversalBreadcrumb from '@/components/breadcrumb/compact-universal-breadcrumb';
 import { BreadcrumbJsonLd } from '@/utils/breadcrumbStructuredData';
 import AboutClient from './AboutClient';
-import { getPageSeoMetadata, PAGE_NAMES } from '@/utils/topicPageSeoIntegration';
+import { getPageSeoMetadata, PAGE_NAMES, fetchTopicPageByName } from '@/utils/topicPageSeoIntegration';
 import { generateMetadata as generateSEOMetadata } from '@/utils/seo';
+import { generateAboutPageStructuredData } from '@/utils/aboutPageStructuredData';
 
 // Revalidate every 60 seconds
 export const revalidate = 60;
@@ -38,7 +38,10 @@ export async function generateMetadata() {
   });
 }
 
-const AboutPage = () => {
+const AboutPage = async () => {
+  // Fetch topic page data for structured data
+  const topicPageData = await fetchTopicPageByName(PAGE_NAMES.ABOUT);
+
   const breadcrumbItems = [
     { label: 'Home', href: '/' },
     { label: 'About' }
@@ -50,17 +53,27 @@ const AboutPage = () => {
     { name: 'About', url: '/about' }
   ];
 
+  // Generate AboutPage JSON-LD
+  const aboutPageJsonLd = generateAboutPageStructuredData(topicPageData);
+
   return (
     <>
-      {/* Render JSON-LD outside Wrapper for SSR */}
+      {/* Breadcrumb JSON-LD */}
       <BreadcrumbJsonLd breadcrumbItems={breadcrumbStructuredData} />
       
+      {/* AboutPage JSON-LD - Server-side rendered */}
+      {aboutPageJsonLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(aboutPageJsonLd) }}
+        />
+      )}
+      
       <Wrapper>
-        {/* SEO component removed - using generateMetadata instead */}
         <HeaderTwo style_2={true} />
-      <CompactUniversalBreadcrumb items={breadcrumbItems} />
-      <AboutClient />
-      <Footer primary_style={true} />
+        <CompactUniversalBreadcrumb items={breadcrumbItems} />
+        <AboutClient />
+        <Footer primary_style={true} />
       </Wrapper>
     </>
   );

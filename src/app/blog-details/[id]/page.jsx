@@ -5,11 +5,8 @@ import Footer from "@/layout/footers/footer";
 import BlogDetailsArea from "@/components/blog-details/blog-details-area";
 import BlogDetailsBreadcrumb from "@/components/breadcrumb/blog-details-breadcrumb";
 import { generateMetadata as generateSEOMetadata } from "@/utils/seo";
-import { generateBlogStructuredData } from "@/utils/blogStructuredData";
-import StructuredDataScripts from "@/components/seo/StructuredDataScripts";
+import { BlogPostingJsonLd } from "@/utils/blogStructuredData";
 import { BreadcrumbJsonLd } from "@/utils/breadcrumbStructuredData";
-
-// Remove client-side JSON-LD - we'll render it server-side
 
 const stripTrailingSlash = (s = "") => String(s || "").replace(/\/+$/, "");
 
@@ -181,7 +178,6 @@ export default async function BlogDetails({ params }) {
   // Generate structured data
   const baseUrl =
     process.env.NEXT_PUBLIC_SITE_URL || "https://www.amrita-fashions.com";
-  const blogStructuredData = generateBlogStructuredData(blog, author, baseUrl);
 
   // Blog title for breadcrumb
   const blogTitle = blog?.title || "Article";
@@ -195,8 +191,8 @@ export default async function BlogDetails({ params }) {
 
   return (
     <>
-      {/* Blog structured data only - no breadcrumb here to avoid duplication */}
-      <StructuredDataScripts blogStructuredData={blogStructuredData} />
+      {/* Server-side BlogPosting JSON-LD - Google can see this immediately */}
+      <BlogPostingJsonLd blog={blog} author={author} baseUrl={baseUrl} />
 
       {/* Single breadcrumb JSON-LD - server-side rendered */}
       <BreadcrumbJsonLd breadcrumbItems={breadcrumbJsonLdData} />

@@ -11,12 +11,12 @@ import dynamic from 'next/dynamic';
 // Dynamic imports for non-critical components
 const LazyFloatingButtons = dynamic(() => import('@/components/common/FloatingButtons'), {
   ssr: false,
-  loading: () => null
+  loading: () => null,
 });
 
 const LazyFloatingChatbot = dynamic(() => import('@/components/chatbot/FloatingChatbot'), {
   ssr: false,
-  loading: () => null
+  loading: () => null,
 });
 
 // Optimize Google Fonts with next/font (self-hosted, no render blocking)
@@ -37,18 +37,6 @@ const poppins = Poppins({
   preload: true,
 });
 
-// Default metadata for the application - REMOVED to allow page-level metadata to work
-// Pages now control their own metadata through generateMetadata()
-// export const metadata = {
-//   title: 'Shofy - Next.js E-commerce',
-//   description: 'Modern e-commerce platform built with Next.js',
-//   other: {
-//     'mobile-web-app-capable': 'yes',
-//     'apple-mobile-web-app-capable': 'yes',
-//     'apple-mobile-web-app-status-bar-style': 'default',
-//   },
-// };
-
 // Separate viewport export (required for Next.js 14+)
 export const viewport = {
   width: 'device-width',
@@ -57,28 +45,57 @@ export const viewport = {
   userScalable: true,
 };
 
+const stripTrailingSlash = (s = '') => String(s || '').replace(/\/+$/, '');
+
+// ✅ Fetch SiteSettings and pick record where name === "eCatalogue"
+async function getEcatalogueSiteSettings() {
+  try {
+    const apiBaseUrl = stripTrailingSlash(process.env.NEXT_PUBLIC_API_BASE_URL);
+    if (!apiBaseUrl) return null;
+
+    const res = await fetch(`${apiBaseUrl}/sitesettings`, {
+      next: { revalidate: 300 }, // 5 min cache
+      headers: { 'Content-Type': 'application/json' },
+    });
+
+    if (!res.ok) return null;
+
+    const json = await res.json();
+    const list = Array.isArray(json?.data) ? json.data : [];
+
+    const target = list.find((x) => String(x?.name || '').toLowerCase() === 'ecatalogue');
+    return target || null;
+  } catch (e) {
+    console.error('Failed to fetch sitesettings for analytics:', e);
+    return null;
+  }
+}
+
 export default async function RootLayout({ children }) {
   // Server-side data fetching for structured data
   let companyInfo = null;
   let siteSettings = null;
 
+  // ✅ NEW: used ONLY for GA + Clarity IDs
+  const ecatalogueSettings = await getEcatalogueSiteSettings();
+
   try {
     // Fetch company information
     const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
     const companyFilter = process.env.NEXT_PUBLIC_COMPANY_FILTER;
-    
+
     if (apiBaseUrl && companyFilter) {
-      const response = await fetch(`${apiBaseUrl}/companyinformation`, {
+      const response = await fetch(`${stripTrailingSlash(apiBaseUrl)}/companyinformation`, {
         next: { revalidate: 3600 }, // Cache for 1 hour
         headers: {
           'Content-Type': 'application/json',
-        }
+        },
       });
-      
+
       if (response.ok) {
         const data = await response.json();
         if (data.success && data.data) {
-          const targetCompany = data.data.find(company => company.name === companyFilter);
+          const targetCompany = data.data.find((company) => company.name === companyFilter);
           if (targetCompany) {
             companyInfo = targetCompany;
           }
@@ -97,7 +114,7 @@ export default async function RootLayout({ children }) {
     try {
       const { generateCorporationStructuredData } = await import('@/utils/corporationStructuredData');
       const { generateWebsiteStructuredData } = await import('@/utils/websiteStructuredData');
-      
+
       corporationJsonLd = generateCorporationStructuredData(companyInfo, siteSettings);
       websiteJsonLd = generateWebsiteStructuredData(companyInfo, siteSettings);
     } catch (error) {
@@ -109,40 +126,44 @@ export default async function RootLayout({ children }) {
     gtmId: process.env.NEXT_PUBLIC_GTM_ID,
   };
 
-  // Get analytics IDs
-  const gaId = process.env.NEXT_PUBLIC_GA_ID;
-  const clarityId = process.env.NEXT_PUBLIC_CLARITY_ID;
+  // =========================================================
+  // ✅ ONLY CHANGE: Analytics IDs now prefer SiteSettings
+  // =========================================================
+  const gaId = ecatalogueSettings?.gaMeasurementId || process.env.NEXT_PUBLIC_GA_ID;
+  const clarityId = ecatalogueSettings?.clarityId || process.env.NEXT_PUBLIC_CLARITY_ID;
 
   return (
-    <html lang="en" className={`${inter.variable} ${poppins.variable}`} data-env={process.env.NODE_ENV === 'production' ? 'production' : 'development'}>
+    <html
+      lang="en"
+      className={`${inter.variable} ${poppins.variable}`}
+      data-env={process.env.NODE_ENV === 'production' ? 'production' : 'development'}
+    >
       <head>
         {/* Google Analytics */}
         {gaId && (
           <>
-            <Script
-              strategy="afterInteractive"
-              src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`}
-            />
+            {/* ✅ beforeInteractive so it appears in View Page Source */}
+            <Script strategy="beforeInteractive" src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`} />
             <Script
               id="ga-script"
-              strategy="afterInteractive"
+              strategy="beforeInteractive"
               dangerouslySetInnerHTML={{
                 __html: `
                   window.dataLayer = window.dataLayer || [];
                   function gtag(){dataLayer.push(arguments);}
                   gtag('js', new Date());
-                  gtag('config', '${gaId}');
+                  gtag('config', '${gaId}', { anonymize_ip: true, send_page_view: true });
                 `,
               }}
             />
           </>
         )}
-        
+
         {/* Microsoft Clarity */}
         {clarityId && (
           <Script
             id="clarity-script"
-            strategy="afterInteractive"
+            strategy="beforeInteractive"
             dangerouslySetInnerHTML={{
               __html: `
                 (function(c,l,a,r,i,t,y){
@@ -181,18 +202,12 @@ export default async function RootLayout({ children }) {
 
         {/* Corporation JSON-LD - Global for all pages */}
         {corporationJsonLd && (
-          <script
-            type="application/ld+json"
-            dangerouslySetInnerHTML={{ __html: JSON.stringify(corporationJsonLd) }}
-          />
+          <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(corporationJsonLd) }} />
         )}
 
         {/* WebSite JSON-LD with SearchAction - Global for all pages */}
         {websiteJsonLd && (
-          <script
-            type="application/ld+json"
-            dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
-          />
+          <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }} />
         )}
       </head>
 
@@ -207,32 +222,32 @@ export default async function RootLayout({ children }) {
               (function() {
                 let retryCount = 0;
                 const MAX_RETRIES = 1;
-                
+
                 function handleChunkError(error) {
                   // Only handle actual chunk loading errors, not CSS/JS confusion
                   const isChunkError = error?.name === 'ChunkLoadError' || 
                                       (error?.message?.includes('Loading chunk') && 
                                        !error?.message?.includes('.css'));
-                  
+
                   if (!isChunkError || retryCount >= MAX_RETRIES) return false;
-                  
+
                   retryCount++;
                   console.warn('Chunk load error detected, reloading page...');
-                  
+
                   setTimeout(function() {
                     window.location.reload();
                   }, 500);
-                  
+
                   return true;
                 }
-                
+
                 // Only handle unhandled promise rejections for chunk errors
                 window.addEventListener('unhandledrejection', function(event) {
                   if (handleChunkError(event.reason)) {
                     event.preventDefault();
                   }
                 });
-                
+
                 // Reset retry count on navigation
                 window.addEventListener('beforeunload', function() {
                   retryCount = 0;
@@ -241,12 +256,6 @@ export default async function RootLayout({ children }) {
             `,
           }}
         />
-
-        {/* Environment Detection Script - No longer needed since data-env is set on html tag */}
-
-        {/* ⚠️ SECURITY COMPONENTS TEMPORARILY DISABLED FOR TESTING */}
-        {/* <AntiInspection /> */}
-        {/* <AdvancedProtection /> */}
 
         {/* Google Tag Manager (noscript) from default SEO settings */}
         {defaultSeoSettings?.gtmId && (

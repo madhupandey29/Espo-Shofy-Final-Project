@@ -1,6 +1,6 @@
 /**
  * Topic Page API utility for fetching SEO-related data for pages
- * API URL: https://espobackend.vercel.app/api/topicpage
+ * API URL: Uses NEXT_PUBLIC_API_BASE_URL from environment variables
  * 
  * Example response structure:
  * {
@@ -24,7 +24,9 @@
  * }
  */
 
-const TOPIC_PAGE_API_URL = 'https://espobackend.vercel.app/api/topicpage';
+// Get API base URL from environment variable
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://espobackend.vercel.app/api';
+const TOPIC_PAGE_API_URL = `${API_BASE_URL}/topicpage`;
 
 /**
  * Fetch all topic pages from the API

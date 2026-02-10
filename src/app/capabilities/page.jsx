@@ -6,8 +6,9 @@ import Footer from '@/layout/footers/footer';
 import CompactUniversalBreadcrumb from '@/components/breadcrumb/compact-universal-breadcrumb';
 import { BreadcrumbJsonLd } from '@/utils/breadcrumbStructuredData';
 import CapabilitiesClient from './CapabilitiesClient';
-import { getPageSeoMetadata, PAGE_NAMES } from '@/utils/topicPageSeoIntegration';
+import { getPageSeoMetadata, PAGE_NAMES, fetchTopicPageByName } from '@/utils/topicPageSeoIntegration';
 import { generateMetadata as generateSEOMetadata } from '@/utils/seo';
+import { generateCapabilitiesPageStructuredData } from '@/utils/capabilitiesPageStructuredData';
 
 // Revalidate every 60 seconds
 export const revalidate = 60;
@@ -38,7 +39,10 @@ export async function generateMetadata() {
   });
 }
 
-const CapabilitiesPage = () => {
+const CapabilitiesPage = async () => {
+  // Fetch topic page data for structured data
+  const topicPageData = await fetchTopicPageByName(PAGE_NAMES.CAPABILITIES);
+
   const breadcrumbItems = [
     { label: 'Home', href: '/' },
     { label: 'Capabilities' }
@@ -50,10 +54,21 @@ const CapabilitiesPage = () => {
     { name: 'Capabilities', url: '/capabilities' }
   ];
 
+  // Generate Capabilities WebPage JSON-LD
+  const capabilitiesPageJsonLd = generateCapabilitiesPageStructuredData(topicPageData);
+
   return (
     <>
-      {/* Render JSON-LD outside Wrapper for SSR */}
+      {/* Breadcrumb JSON-LD */}
       <BreadcrumbJsonLd breadcrumbItems={breadcrumbStructuredData} />
+      
+      {/* Capabilities WebPage JSON-LD - Server-side rendered */}
+      {capabilitiesPageJsonLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(capabilitiesPageJsonLd) }}
+        />
+      )}
       
       <Wrapper>
         {/* SEO component removed - using generateMetadata instead */}

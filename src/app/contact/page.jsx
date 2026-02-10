@@ -6,7 +6,8 @@ import ContactMap from "@/components/contact/contact-map";
 import Footer from "@/layout/footers/footer";
 import { generateMetadata as generateSEOMetadata, getOptimizedLogoUrl } from "@/utils/seo";
 import { BreadcrumbJsonLd } from "@/utils/breadcrumbStructuredData";
-import { getPageSeoMetadata, PAGE_NAMES } from "@/utils/topicPageSeoIntegration";
+import { getPageSeoMetadata, PAGE_NAMES, fetchTopicPageByName } from "@/utils/topicPageSeoIntegration";
+import { generateContactPageStructuredData } from "@/utils/contactPageStructuredData";
 
 // Revalidate every 60 seconds
 export const revalidate = 60;
@@ -40,17 +41,31 @@ export async function generateMetadata() {
   });
 }
 
-export default function ContactPage() {
+export default async function ContactPage() {
+  // Fetch topic page data for structured data
+  const topicPageData = await fetchTopicPageByName(PAGE_NAMES.CONTACT);
+
   // Breadcrumb structured data
   const breadcrumbStructuredData = [
     { name: 'Home', url: '/' },
     { name: 'Contact', url: '/contact' }
   ];
 
+  // Generate ContactPage JSON-LD
+  const contactPageJsonLd = generateContactPageStructuredData(topicPageData);
+
   return (
     <>
-      {/* Render JSON-LD outside Wrapper for SSR */}
+      {/* Breadcrumb JSON-LD */}
       <BreadcrumbJsonLd breadcrumbItems={breadcrumbStructuredData} />
+      
+      {/* ContactPage JSON-LD - Server-side rendered */}
+      {contactPageJsonLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(contactPageJsonLd) }}
+        />
+      )}
       
       <Wrapper>
         <HeaderTwo style_2={true} />

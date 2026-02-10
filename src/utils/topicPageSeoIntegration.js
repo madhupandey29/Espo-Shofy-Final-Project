@@ -3,7 +3,9 @@
  * Fetches SEO data from the topic page API and formats it for Next.js metadata
  */
 
-const TOPIC_PAGE_API_URL = 'https://espobackend.vercel.app/api/topicpage';
+// Get API base URL from environment variable
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://espobackend.vercel.app/api';
+const TOPIC_PAGE_API_URL = `${API_BASE_URL}/topicpage`;
 
 /**
  * Fetch topic page data by name

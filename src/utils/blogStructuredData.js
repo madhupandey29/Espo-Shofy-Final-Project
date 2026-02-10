@@ -76,8 +76,58 @@ export const generateBlogStructuredData = (blog, author, baseUrl) => {
     structuredData.author.url = authorUrl;
   }
 
+  // Add optional fields from blog API if available
+  if (blog.category) {
+    structuredData.articleSection = blog.category;
+  }
+
+  if (blog.tags && Array.isArray(blog.tags) && blog.tags.length > 0) {
+    structuredData.keywords = blog.tags.join(', ');
+  }
+
+  if (blog.readingTimeMin) {
+    structuredData.timeRequired = `PT${blog.readingTimeMin}M`;
+  }
+
+  // Add word count if available
+  if (blog.wordCount) {
+    structuredData.wordCount = blog.wordCount;
+  }
+
+  // Add inLanguage
+  structuredData.inLanguage = 'en-US';
+
   return structuredData;
 };
+
+/**
+ * BlogPosting JSON-LD Component for Next.js pages
+ * @param {Object} blog - Blog data from API
+ * @param {Object} author - Author data from API
+ * @param {string} baseUrl - Website base URL
+ * @returns {JSX.Element} - Script tag with JSON-LD
+ */
+export function BlogPostingJsonLd({ blog, author, baseUrl }) {
+  // Don't render if blog is completely missing
+  if (!blog) {
+    console.warn('BlogPostingJsonLd: No blog data provided');
+    return null;
+  }
+  
+  const structuredData = generateBlogStructuredData(blog, author, baseUrl);
+  
+  if (!structuredData) {
+    console.warn('BlogPostingJsonLd: Failed to generate structured data');
+    return null;
+  }
+  
+  return (
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+    />
+  );
+}
 
 /**
  * Generate BreadcrumbList structured data for blog details
