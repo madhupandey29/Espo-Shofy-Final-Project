@@ -1,7 +1,9 @@
 "use client";
 import Script from "next/script";
 
-export default function MicrosoftClarity({ clarityId }) {
+export default function MicrosoftClarity() {
+  const clarityId = process.env.NEXT_PUBLIC_CLARITY_ID;
+  
   if (!clarityId) return null;
 
   return (

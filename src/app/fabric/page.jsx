@@ -6,6 +6,7 @@ import ShopArea from "@/components/shop/shop-area";
 import CompactUniversalBreadcrumb from "@/components/breadcrumb/compact-universal-breadcrumb";
 import { generateMetadata as generateSEOMetadata, getOptimizedLogoUrl } from "@/utils/seo";
 import { BreadcrumbJsonLd } from "@/utils/breadcrumbStructuredData";
+import { FabricCollectionJsonLd } from "@/utils/fabricCollectionStructuredData";
 import { getPageSeoMetadata, PAGE_NAMES } from "@/utils/topicPageSeoIntegration";
 
 /* ---------------------------------------------
@@ -209,6 +210,13 @@ export default async function FabricPage() {
     <>
       {/* Render JSON-LD outside Wrapper for SSR */}
       <BreadcrumbJsonLd breadcrumbItems={breadcrumbStructuredData} />
+      <FabricCollectionJsonLd 
+        products={productData.products} 
+        options={{
+          filtered: productData.filtered,
+          filterTag: productData.filterTag
+        }}
+      />
       
       <Wrapper>
         <HeaderTwo style_2 />

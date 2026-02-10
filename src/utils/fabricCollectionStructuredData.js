@@ -1,6 +1,6 @@
 /**
- * Generate Collection ItemList Structured Data (JSON-LD) for SEO
- * Shows related products from the same collection in Mix and Match section
+ * Generate Fabric Collection ItemList Structured Data (JSON-LD) for SEO
+ * Shows all fabric products in the collection page for better search visibility
  */
 
 /**
@@ -34,20 +34,18 @@ const cleanSlug = (slug) => {
  * Get base URL from environment
  */
 const getBaseUrl = () => {
-  // Try multiple environment variables
   return process.env.NEXT_PUBLIC_BASE_URL || 
          process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '') || 
          'https://www.amrita-fashions.com';
 };
 
 /**
- * Generate Collection ItemList structured data from related products
- * @param {Array} products - Array of related products from the collection
- * @param {Object} currentProduct - Current product being viewed
- * @param {Object} collectionData - Collection metadata (optional)
+ * Generate Fabric Collection ItemList structured data
+ * @param {Array} products - Array of all fabric products
+ * @param {Object} options - Additional options (filtered, filterTag, etc.)
  * @returns {Object} ItemList structured data object
  */
-export function generateCollectionItemListStructuredData(products = [], currentProduct = {}, collectionData = null) {
+export function generateFabricCollectionStructuredData(products = [], options = {}) {
   // Don't generate if no products
   if (!Array.isArray(products) || products.length === 0) {
     return null;
@@ -126,53 +124,36 @@ export function generateCollectionItemListStructuredData(products = [], currentP
     return null;
   }
 
-  // Get collection name and description
-  const currentProductTitle = currentProduct?.productTitle || currentProduct?.name || 'Product';
+  // Generate collection name and description
+  const collectionName = options.filtered && options.filterTag
+    ? `${options.filterTag} Fabric Collection`
+    : 'Premium Fabric Collection';
   
-  const collectionName = collectionData?.name || 
-                        collectionData?.collectionName || 
-                        currentProduct?.collection?.name ||
-                        `${currentProductTitle} - Related Fabrics`;
-  
-  const collectionDescription = collectionData?.description || 
-                               collectionData?.collectionDescription ||
-                               currentProduct?.collection?.description ||
-                               `Explore our curated collection of ${itemListElement.length} premium fabrics that complement ${currentProductTitle} perfectly. Mix and match these fabrics for your creative projects.`;
+  const collectionDescription = options.filtered && options.filterTag
+    ? `Explore our curated ${options.filterTag} collection featuring ${itemListElement.length} premium fabrics. High-quality textiles including cotton, mercerized, and designer fabrics for all your creative projects.`
+    : `Discover our complete fabric collection featuring ${itemListElement.length} premium textiles. From cotton to mercerized and designer fabrics, find the perfect material for your creative projects.`;
 
-  // Get current page URL
-  const currentSlug = cleanSlug(
-    currentProduct?.productslug || 
-    currentProduct?.slug || 
-    currentProduct?.aiTempOutput ||
-    currentProduct?.fabricCode ||
-    currentProduct?.id
-  );
-  const currentUrl = currentSlug ? `${baseUrl}/fabric/${currentSlug}` : baseUrl;
-
-  // ItemList is valid Schema.org and helps SEO
-  // Note: Google Rich Results Test may not show it in summary, but it's still working
+  // ItemList structured data
   return {
     "@context": "https://schema.org",
     "@type": "ItemList",
-    "name": stripHtml(String(collectionName)),
-    "description": stripHtml(String(collectionDescription)),
-    "url": currentUrl,
-    "itemListOrder": "https://schema.org/ItemListUnordered",
+    "name": collectionName,
+    "description": stripHtml(collectionDescription),
+    "url": `${baseUrl}/fabric`,
+    "itemListOrder": "http://schema.org/ItemListUnordered",
     "numberOfItems": itemListElement.length,
     "itemListElement": itemListElement
   };
 }
 
 /**
- * Generate Collection ItemList Script Tag for Next.js pages
- * Note: Using ItemList instead of CollectionPage for Google Rich Results support
- * @param {Array} products - Related products from collection
- * @param {Object} currentProduct - Current product being viewed
- * @param {Object} collectionData - Collection metadata
+ * Generate Fabric Collection ItemList Script Tag for Next.js pages
+ * @param {Array} products - All fabric products
+ * @param {Object} options - Additional options
  * @returns {JSX.Element} - Script tag with JSON-LD
  */
-export function CollectionItemListJsonLd({ products, currentProduct, collectionData }) {
-  const structuredData = generateCollectionItemListStructuredData(products, currentProduct, collectionData);
+export function FabricCollectionJsonLd({ products, options = {} }) {
+  const structuredData = generateFabricCollectionStructuredData(products, options);
   
   // Don't render if no valid data
   if (!structuredData) {
