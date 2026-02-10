@@ -272,7 +272,7 @@ export default async function RootLayout({ children }) {
         <ErrorBoundary>
           <Providers>
             {children}
-            {/* Move chatbot inside Providers so it has access to Redux */}
+            {/* Move chatbot inside Providers so it has access to Redux State*/}
             <LazyFloatingChatbot />
           </Providers>
         </ErrorBoundary>
