@@ -342,7 +342,7 @@ const Footer = () => {
                       </Link>
                     </li>
                     <li>
-                      <Link href="/sitemap-page" className="age-link">
+                      <Link href="/sitemap" className="age-link">
                         Sitemap
                       </Link>
                     </li>

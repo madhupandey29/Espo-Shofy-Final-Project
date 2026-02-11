@@ -57,7 +57,7 @@ export function validateSitemapData(sitemapData) {
   const urls = sitemapData.map(entry => entry.url);
   const duplicates = urls.filter((url, index) => urls.indexOf(url) !== index);
   
-  if (duplicates.length > 0) {
+  if (duplicates.length > 0) {/*  */
     }
   
   // Validate URL format

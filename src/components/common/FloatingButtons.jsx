@@ -67,8 +67,13 @@ const FloatingButtons = memo(() => {
   const waDigits = digitsOnly(office?.whatsappNumber) || "919999999999";
   const phoneDigits = digitsOnly(office?.phone1) || digitsOnly(office?.phone2) || "919999999999";
 
-  const whatsappHref = `https://wa.me/${waDigits}`;
+  //const whatsappHref = `https://wa.me/${waDigits}`;
+  const message = "Hello I am interested in your fabrics";
+
+const whatsappHref = `https://api.whatsapp.com/send?phone=${waDigits}&text=${encodeURIComponent(message)}`;
+
   const callHref = `tel:+${phoneDigits}`;
+
 
   return (
     <>
