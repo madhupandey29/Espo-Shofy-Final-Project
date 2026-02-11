@@ -336,7 +336,7 @@ export default function PopularProducts() {
 
                   <div className="tp-popular-product-action">
                     <Link href={detailsHref} className="tp-btn tp-btn-popular">
-                      Explore Details
+                      Fabric Specifications
                       <svg className="tp-btn-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none">
                         <path
                           d="M5 12H19M19 12L12 5M19 12L12 19"

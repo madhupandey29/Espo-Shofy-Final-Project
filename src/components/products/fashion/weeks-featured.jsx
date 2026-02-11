@@ -385,7 +385,7 @@ const WeeksFeatured = () => {
 
                   <div className="quick-action">
                     <Link href={detailsHref} target="_blank" rel="noopener noreferrer" className="quick-view-btn">
-                      <span className="btn-text">Explore</span>
+                      <span className="btn-text">Fabric Specifications</span>
                       <svg className="btn-icon" width="18" height="18" viewBox="0 0 24 24" fill="none">
                         <path
                           d="M14 5L21 12M21 12L14 19M21 12H3"
