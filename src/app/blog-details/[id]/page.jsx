@@ -136,7 +136,7 @@ function tagsToKeywords(blog) {
 export async function generateMetadata({ params }) {
   const blog = await getBlog(params.id);
 
-  const title = blog?.title ? `${blog.title} | Blog` : "Blog Details";
+  const title = blog?.title ? `${blog.title}` : "Blog Details";
   const description =
     blog?.excerpt ||
     "Read our detailed blog post about fabrics, textiles, and fashion trends.";

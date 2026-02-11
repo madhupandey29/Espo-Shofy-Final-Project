@@ -4,7 +4,8 @@
  */
 
 // Get API base URL from environment variable
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://espobackend.vercel.app/api';
+const API_BASE_URL =
+  process.env.API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || "https://espobackend.vercel.app/api";
 const TOPIC_PAGE_API_URL = `${API_BASE_URL}/topicpage`;
 
 /**
@@ -26,11 +27,6 @@ export async function fetchTopicPageByName(pageName) {
       next: { revalidate: 60 }, // Revalidate every 60 seconds
     };
 
-    // In production, ensure we can fetch during build time
-    if (typeof window === 'undefined') {
-      // Server-side: use revalidation
-      fetchOptions.next = { revalidate: 60 };
-    }
 
     const response = await fetch(TOPIC_PAGE_API_URL, fetchOptions);
 
