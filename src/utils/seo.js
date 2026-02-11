@@ -68,7 +68,7 @@ export async function getDefaultSeoSettings() {
  * @returns {string} - Complete Next.js optimized logo URL
  */
 export const getOptimizedLogoUrl = (logoPath = "/assets/img/logo/age.jpg", width = 256, quality = 90) => {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://espo-shofy-final-project.vercel.app";
+ const baseUrl = stripTrailingSlash(process.env.NEXT_PUBLIC_SITE_URL || "https://espo-shofy-final-project.vercel.app");
   return `${baseUrl}/_next/image?url=${encodeURIComponent(logoPath)}&w=${width}&q=${quality}`;
 };
 
