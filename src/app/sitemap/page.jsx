@@ -1,14 +1,15 @@
 import SitemapPageClient from './SitemapPageClient';
 
+const baseUrl = (process.env.NEXT_PUBLIC_SITE_URL || '').replace(/\/$/, '');
+
 export const metadata = {
-  title: 'Sitemap Page',
-  description: 'Complete sitemap of all pages on this Fabric website. Find all products, blog posts, and important pages.',
+  title: 'Sitemap',
+  description: 'Complete sitemap of all pages on Espo Shofy website. Find all products, blog posts, and important pages.',
   keywords: 'sitemap, website map, navigation, pages, products, blog',
   robots: 'index, follow',
 
-  // ✅ Canonical for the UI sitemap page
   alternates: {
-    canonical: '/sitemap',
+    canonical: `${baseUrl}/sitemap`,
   },
 };
 
