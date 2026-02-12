@@ -27,6 +27,7 @@ const inter = Inter({
   display: 'swap',
   variable: '--font-inter',
   preload: true,
+   adjustFontFallback: false,
 });
 
 const poppins = Poppins({
@@ -35,6 +36,7 @@ const poppins = Poppins({
   display: 'swap',
   variable: '--font-poppins',
   preload: true,
+   adjustFontFallback: false,
 });
 
 // Separate viewport export (required for Next.js 14+)
