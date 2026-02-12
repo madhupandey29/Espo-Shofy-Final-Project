@@ -123,9 +123,13 @@ function mapBackendProductToFrontend(p) {
   };
 }
 
-export default function ProductDetailsClient({ slug }) {
+export default function ProductDetailsClient({ slug, initialProduct = null }) {
   // Clean the slug by removing trailing hash character
-  const cleanSlug = slug ? slug.replace(/#$/, '') : slug;
+  // ✅ If server (ISR) already provided product, render immediately (no client fetch)
+if (initialProduct) {
+  const product = mapBackendProductToFrontend(initialProduct?.data ?? initialProduct);
+  return <ProductDetailsArea product={product} />;
+}
   
   // Get product by slug (now uses the fixed API that searches all products)
   const {
