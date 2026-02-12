@@ -237,7 +237,7 @@ export default async function Page({ params }) {
         
         <Wrapper>
           <HeaderTwo style_2 />
-          <ProductClient slug={slug} />
+         <ProductClient slug={slug} initialProduct={product} />
           <Footer primary_style />
         </Wrapper>
       </>

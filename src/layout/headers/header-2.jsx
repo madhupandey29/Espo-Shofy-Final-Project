@@ -268,14 +268,16 @@ const HeaderTwo = ({ style_2 = false }) => {
                   </div>
 
                   {/* Menu */}
-                  <div className="d-none d-xl-block col-xl-5">
+                  <div className="d-none d-xl-block col-xl-4">
+
                     <div className="main-menu menu-style-2">
                       <nav className="tp-main-menu-content"><Menus /></nav>
                     </div>
                   </div>
 
                   {/* Right side */}
-                  <div className="col-6 col-sm-8 col-md-8 col-lg-9 col-xl-5">
+                  <div className="col-6 col-sm-8 col-md-8 col-lg-9 col-xl-6">
+
                     <div className="tp-header-bottom-right d-flex align-items-center justify-content-end header-right">
 
                       {/* ======= DESKTOP SEARCH ======= */}
@@ -293,7 +295,8 @@ const HeaderTwo = ({ style_2 = false }) => {
                             spellCheck={false}
                             inputMode="search"
                             maxLength={200}
-                            className="search-input"
+                         className={`search-input ${searchQuery.trim() ? 'has-clear' : ''}`}
+
                           />
 
                           {searchQuery.trim() && (
@@ -499,7 +502,23 @@ const HeaderTwo = ({ style_2 = false }) => {
           box-shadow: 0 2px 8px rgba(0,0,0,0.1);
           animation: slideDown 0.3s ease-out;
         }
+@media (max-width: 1199px){
+  #header-sticky{
+    position: fixed !important;
+    top: 0 !important;
+    left: 0;
+    right: 0;
+    width: 100%;
+    z-index: 2000;      /* keep above page */
+    background: #fff;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
 
+  /* prevent content hidden behind fixed header */
+  :global(body){
+    padding-top: 72px; /* adjust if your header height differs */
+  }
+}
         @keyframes slideDown {
           from {
             transform: translateY(-100%);
@@ -540,37 +559,41 @@ const HeaderTwo = ({ style_2 = false }) => {
         /* ---------------------------
            Action icon sizing (desktop)
         ---------------------------- */
-        .tp-header-action-btn{
-          position: relative; /* IMPORTANT for badge positioning */
-          width: 44px;
-          height: 44px;
-          border-radius: 12px;
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 20px; /* makes FaUser/FaHeart bigger */
-          line-height: 1;
-        }
+     .tp-header-action-btn{
+  position: relative;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  /* IMPORTANT: fixes SVG baseline / vertical misalignment */
+  line-height: 0;
+  padding: 0;
+}
 
         /* keep template hover styles, only improve feel */
         .tp-header-action-btn:active{ transform: translateY(1px); }
 
-        .tp-header-action-btn :global(svg){
-          width: 20px;
-          height: 20px;
-        }
+       .tp-header-action-btn :global(svg){
+  width: 20px;
+  height: 20px;
+  display: block;     /* IMPORTANT */
+  flex: 0 0 auto;
+}
 
         @media (max-width: 575px){
-          .tp-header-action-btn{
-            width: 40px;
-            height: 40px;
-            font-size: 18px;
-            border-radius: 10px;
-          }
-          .tp-header-action-btn :global(svg){
-            width: 18px;
-            height: 18px;
-          }
+         .tp-header-action-btn{
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+  }
+  .tp-header-action-btn :global(svg){
+    width: 18px;
+    height: 18px;
+    display: block;
+  }
         }
 
         /* Badge fix (0 / counts) */
@@ -619,19 +642,23 @@ const HeaderTwo = ({ style_2 = false }) => {
           z-index: 10;
         }
 
-        .search-input{
-          width: 100%;
-          height: 44px;
-          border-radius: 12px;
-          border: 1px solid #cfd6df;
-          background: #fff;
-          color: #0f172a;
-          font-size: 14px;
-          padding: 0 120px 0 14px; /* space for clear + search */
-          outline: none;
-          cursor: text;
-          position: relative;
-        }
+.search-input{
+  width: 100%;
+  height: 44px;
+  border-radius: 12px;
+  border: 1px solid #cfd6df;
+  background: #fff;
+  color: #0f172a;
+  font-size: 14px;
+  padding: 0 52px 0 14px; /* only space for search icon by default */
+  outline: none;
+  cursor: text;
+  position: relative;
+}
+.search-input.has-clear{
+  padding-right: 120px; /* when Clear button is visible */
+}
+
         .search-input:focus{
           border-color: #3b82f6;
           box-shadow: 0 0 0 3px rgba(59,130,246,.12);
@@ -811,6 +838,19 @@ const HeaderTwo = ({ style_2 = false }) => {
           from{ transform:translateY(-4px); opacity:0; }
           to{ transform:translateY(0); opacity:1; }
         }
+        /* LAPTOP widths: shrink search so menu + icons fit better */
+@media (min-width: 1200px) and (max-width: 1440px){
+  .search-form{
+    width: clamp(220px, 26vw, 420px);
+  }
+  .header-right{
+    gap: 8px;
+  }
+  .header-actions{
+    gap: 6px;
+  }
+}
+
       `}</style>
     </>
   );

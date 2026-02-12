@@ -85,23 +85,23 @@ const OffCanvas = ({ isOffCanvasOpen, setIsCanvasOpen = () => {} }) => {
   ];
 
   // Enhanced close icon
-  const CloseIcon = () => (
-    <svg 
-      width="18" 
-      height="18" 
-      viewBox="0 0 24 24" 
-      fill="none" 
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <path 
-        d="M18 6L6 18M6 6L18 18" 
-        stroke="currentColor" 
-        strokeWidth="2.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
+ const CloseIcon = () => (
+  <svg
+    width="18"
+    height="18"
+    viewBox="0 0 24 24"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path
+      d="M18 6L6 18M6 6L18 18"
+      stroke="currentColor"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
 
   // CSS Styles - Enhanced mobile UI with higher specificity
   const styles = `
@@ -250,6 +250,10 @@ const OffCanvas = ({ isOffCanvasOpen, setIsCanvasOpen = () => {} }) => {
       cursor: pointer !important;
       position: relative !important;
     }
+      .dropdown-toggle.dropdown-toggle::after{
+  display: none !important;
+  content: none !important;
+}
     .dropdown-toggle.dropdown-toggle.active {
       background: #F8FAFC !important;
       color: #2C4C97 !important;
