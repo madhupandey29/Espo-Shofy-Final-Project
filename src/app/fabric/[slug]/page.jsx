@@ -1,4 +1,3 @@
-import Wrapper       from '@/layout/wrapper';
 import HeaderTwo     from '@/layout/headers/header-2';
 import Footer        from '@/layout/footers/footer';
 import ProductClient from './ProductDetailsClient';
@@ -235,23 +234,24 @@ export default async function Page({ params }) {
           collectionData={product?.collection}
         />
         
-        <Wrapper>
-          <HeaderTwo style_2 />
-         <ProductClient slug={slug} initialProduct={product} />
-          <Footer primary_style />
-        </Wrapper>
+       <>
+  <HeaderTwo style_2 />
+  <ProductClient slug={slug} initialProduct={product} />
+  <Footer primary_style />
+</>
+
       </>
     );
   } catch (error) {
     console.error('Error in fabric page:', error);
     
     // Fallback without structured data
-    return (
-      <Wrapper>
-        <HeaderTwo style_2 />
-        <ProductClient slug={slug} />
-        <Footer primary_style />
-      </Wrapper>
-    );
+  return (
+  <>
+    <HeaderTwo style_2 />
+    <ProductClient slug={slug} />
+    <Footer primary_style />
+  </>
+);
   }
 }
