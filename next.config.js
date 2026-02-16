@@ -285,11 +285,11 @@ const nextConfig = {
         ...config.optimization,
         usedExports: true, // Tree-shaking: remove unused exports
         minimize: true, // Minification enabled
-        sideEffects: false, // Enable more aggressive tree shaking
+        sideEffects: true, // Enable more aggressive tree shaking
         splitChunks: {
           chunks: 'all',
-          maxInitialRequests: 5, // Further reduced
-          maxAsyncRequests: 5,   
+          maxInitialRequests: 10, // Further reduced
+          maxAsyncRequests: 10,   
           minSize: 60000,        // Increased minimum chunk size
           maxSize: 120000,       // Smaller maximum chunk size for better distribution
           cacheGroups: {
