@@ -37,7 +37,7 @@ export default function LoginForm() {
       if (decoded.startsWith('/') && !decoded.includes('://')) {
         return decoded;
       }
-    } catch (e) {
+    } catch (e) {/*  */
       }
     
     return '/';
@@ -62,9 +62,6 @@ export default function LoginForm() {
   const API = process.env.NEXT_PUBLIC_API_BASE_URL;
   const KEY = process.env.NEXT_PUBLIC_API_KEY;
 
-  // Explicit verify URL (as requested)
-  const VERIFY_URL = 'https://test.amrita-fashions.com/shopy/users/verify-login-otp';
-
   /* =============== OTP REQUEST (step 1) =============== */
   const handleOtpRequest = async (data) => {
     try {
@@ -72,29 +69,28 @@ export default function LoginForm() {
       const identifier = data.identifier?.trim();
       setSavedIdentifier(identifier);
 
-      const payload = isEmail(identifier)
-        ? { email: identifier }
-        : { phone: identifier };
-
-      const res = await fetch(`${API}/users/request-login-otp`, {
+      // Call login API to send OTP
+      const res = await fetch(`${API}/auth/login`, {
         method: 'POST',
-        credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
-          ...(KEY ? { 'x-api-key': KEY } : {}),
+          ...(KEY && { 'x-api-key': KEY }),
         },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({ email: identifier }),
       });
 
       const json = await res.json();
-      if (!res.ok || !json?.success) throw new Error(json?.message || 'OTP send failed');
+      
+      if (!res.ok) {
+        throw new Error(json.message || 'Failed to send OTP');
+      }
 
-      notifySuccess(json?.message || 'OTP sent successfully');
+      notifySuccess(json.message || `OTP sent to ${identifier}`);
       resetOtpReq();
       setShowVerify(true);
+      setLoading(false);
     } catch (err) {
       notifyError(err?.message || 'OTP request failed');
-    } finally {
       setLoading(false);
     }
   };
@@ -106,57 +102,84 @@ export default function LoginForm() {
     setError('');
 
     try {
-      const payload = isEmail(savedIdentifier)
-        ? { email: savedIdentifier, otp }
-        : { phone: savedIdentifier, otp };
-
-      const res = await fetch(VERIFY_URL, {
+      // Verify OTP with real API
+      const verifyRes = await fetch(`${API}/auth/verify-otp`, {
         method: 'POST',
-        credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
+          ...(KEY && { 'x-api-key': KEY }),
         },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({ 
+          email: savedIdentifier, 
+          otp 
+        }),
       });
 
-      const json = await res.json();
-      // Expected:
-      // { success, message, user: {...}, session: { id, userId } }
-      if (!res.ok || !json?.success) {
-        throw new Error(json?.message || 'Invalid OTP');
+      const verifyData = await verifyRes.json();
+
+      if (!verifyRes.ok) {
+        throw new Error(verifyData.message || 'Invalid OTP');
       }
 
-      const sessionId = json?.session?.id;
-      const userId = json?.session?.userId || json?.user?._id;
+      console.log('✅ OTP verified successfully');
 
-      // ====== Persist Session in localStorage (as requested) ======
+      // Fetch user from EspoCRM API
+      const espoRes = await fetch('https://espobackend.vercel.app/api/customeraccount', {
+        headers: { Accept: 'application/json' },
+      });
+      
+      if (!espoRes.ok) {
+        throw new Error('Failed to fetch users from EspoCRM');
+      }
+      
+      const espoData = await espoRes.json();
+      const allUsers = espoData.data || espoData || [];
+      
+      // Find user by email or phone
+      const currentUser = allUsers.find(u => {
+        const emailMatch = u.emailAddress === savedIdentifier;
+        const phoneMatch = u.phoneNumber === savedIdentifier;
+        const phoneWithCode = u.phoneNumber === `+91${savedIdentifier}`;
+        const phoneWithoutCode = u.phoneNumber === savedIdentifier.replace(/^\+91/, '');
+        
+        return emailMatch || phoneMatch || phoneWithCode || phoneWithoutCode;
+      });
+      
+      if (!currentUser) {
+        throw new Error(`User not found with email/phone: ${savedIdentifier}`);
+      }
+
+      console.log('✅ Found user:', currentUser);
+
+      // Generate session and store real EspoCRM user ID
+      const sessionId = `session_${Date.now()}`;
+      const userId = currentUser.id;
+
       if (typeof window !== 'undefined') {
-        if (sessionId) localStorage.setItem('sessionId', sessionId);
-        if (userId) localStorage.setItem('userId', userId);
+        localStorage.setItem('sessionId', sessionId);
+        localStorage.setItem('userId', userId);
       }
 
-      // Optional: also mirror in a cookie (useful for SSR/middleware)
-      if (sessionId) {
-        Cookies.set('sessionId', sessionId, {
-          expires: 7,
-          sameSite: 'lax',
-          path: '/',
-          // secure: true, // enable on HTTPS
-        });
-      }
-      Cookies.set('userInfo', JSON.stringify({ user: json.user }), {
-        expires: 0.5, // ~12h
+      Cookies.set('sessionId', sessionId, {
+        expires: 7,
         sameSite: 'lax',
         path: '/',
-        // secure: true,
+      });
+      
+      Cookies.set('userInfo', JSON.stringify({ user: currentUser }), {
+        expires: 0.5,
+        sameSite: 'lax',
+        path: '/',
       });
 
-      notifySuccess(json?.message || 'Logged in successfully');
+      console.log('✅ Login successful!');
+      notifySuccess('Logged in successfully');
       setOtp('');
 
       const dest = redirect || '/';
       router.push(dest);
     } catch (err) {
+      console.error('❌ Login error:', err);
       setError(err?.message || 'Login failed. Please try again.');
     } finally {
       setLoading(false);

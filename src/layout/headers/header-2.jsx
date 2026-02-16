@@ -31,23 +31,28 @@ const selectUserIdFromStore = (state) =>
   state?.user?.user?._id ||
   null;
 
-/** Avatar fetch (kept) */
-const SHOPY_API_BASE = 'https://test.amrita-fashions.com/shopy';
+/** Avatar fetch - fetches ALL users and finds by ID */
+const SHOPY_API_BASE = 'https://espobackend.vercel.app/api';
 async function fetchUserAvatarById(userId, signal) {
   if (!userId) return null;
   try {
-    const res = await fetch(`${SHOPY_API_BASE}/users/${encodeURIComponent(userId)}`, {
+    // Fetch ALL users from EspoCRM
+    const res = await fetch(`${SHOPY_API_BASE}/customeraccount`, {
       method: 'GET',
       credentials: 'include',
       signal,
     });
     if (!res.ok) return null;
+    
     const json = await res.json();
-    const url =
-      json?.user?.userImage ||
-      json?.userImage ||
-      json?.data?.user?.userImage ||
-      null;
+    const allUsers = json.data || json || [];
+    
+    // Find user by ID match
+    const currentUser = allUsers.find(u => u.id === userId);
+    if (!currentUser) return null;
+    
+    // Return user image from EspoCRM user object
+    const url = currentUser.userImage || currentUser.avatarUrl || currentUser.avatar || null;
     return typeof url === 'string' && url.trim() ? url.trim() : null;
   } catch {
     return null;
@@ -848,6 +853,171 @@ const HeaderTwo = ({ style_2 = false }) => {
   }
   .header-actions{
     gap: 6px;
+  }
+}
+
+/* ===== RESPONSIVE FIXES ===== */
+
+/* Tablet landscape (1024px - 1199px) */
+@media (min-width: 1024px) and (max-width: 1199px){
+  .logo img{
+    max-width: 120px !important;
+  }
+  .search-form{
+    width: clamp(180px, 24vw, 320px);
+  }
+  .header-right{
+    gap: 6px;
+  }
+  .header-actions{
+    gap: 4px;
+  }
+  .tp-header-action-btn{
+    width: 40px;
+    height: 40px;
+  }
+  .tp-header-action-btn :global(svg){
+    width: 18px;
+    height: 18px;
+  }
+}
+
+/* Tablet portrait (768px - 1023px) */
+@media (min-width: 768px) and (max-width: 1023px){
+  .logo img{
+    max-width: 110px !important;
+  }
+  .search-form{
+    width: 100%;
+    max-width: 280px;
+  }
+  .search-input{
+    height: 40px;
+    font-size: 13px;
+    padding: 0 48px 0 12px;
+  }
+  .search-input.has-clear{
+    padding-right: 110px;
+  }
+  .search-submit{
+    width: 32px;
+    height: 32px;
+  }
+  .search-clear{
+    right: 42px;
+    height: 28px;
+    font-size: 11px;
+  }
+  .header-right{
+    gap: 4px;
+  }
+  .header-actions{
+    gap: 3px;
+  }
+  .tp-header-action-btn{
+    width: 38px;
+    height: 38px;
+  }
+  .tp-header-action-btn :global(svg){
+    width: 17px;
+    height: 17px;
+  }
+}
+
+/* Mobile landscape (576px - 767px) */
+@media (min-width: 576px) and (max-width: 767px){
+  .logo img{
+    max-width: 100px !important;
+  }
+  .header-right{
+    gap: 4px;
+  }
+  .header-actions{
+    gap: 2px;
+  }
+  .tp-header-action-btn{
+    width: 38px;
+    height: 38px;
+  }
+  .tp-header-action-btn :global(svg){
+    width: 17px;
+    height: 17px;
+  }
+  .tp-header-action-badge{
+    top: -4px;
+    right: -4px;
+    min-width: 16px;
+    height: 16px;
+    font-size: 10px;
+  }
+}
+
+/* Mobile portrait (< 576px) */
+@media (max-width: 575px){
+  .logo img{
+    max-width: 90px !important;
+  }
+  .header-right{
+    gap: 2px;
+  }
+  .header-actions{
+    gap: 2px;
+  }
+  .tp-header-action-item{
+    margin-right: 0 !important;
+  }
+  .tp-header-action-item.me-2{
+    margin-right: 4px !important;
+  }
+  .tp-header-action-item.me-3{
+    margin-right: 6px !important;
+  }
+}
+
+/* Extra small devices (< 400px) */
+@media (max-width: 399px){
+  .logo img{
+    max-width: 80px !important;
+  }
+  .tp-header-action-btn{
+    width: 36px;
+    height: 36px;
+  }
+  .tp-header-action-btn :global(svg){
+    width: 16px;
+    height: 16px;
+  }
+  .header-actions{
+    gap: 1px;
+  }
+}
+
+/* Fix container padding on small screens */
+@media (max-width: 767px){
+  .container{
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+}
+
+/* Ensure row doesn't overflow */
+.row{
+  margin-left: -8px;
+  margin-right: -8px;
+}
+.row > [class*="col-"]{
+  padding-left: 8px;
+  padding-right: 8px;
+}
+
+@media (max-width: 575px){
+  .row{
+    margin-left: -4px;
+    margin-right: -4px;
+  }
+  .row > [class*="col-"]{
+    padding-left: 4px;
+    padding-right: 4px;
   }
 }
 

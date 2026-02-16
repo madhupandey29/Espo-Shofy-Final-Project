@@ -12,7 +12,6 @@ const schema = Yup.object().shape({
   firstName:     Yup.string().required('First name is required'),
   lastName:      Yup.string().required('Last name is required'),
   email:         Yup.string().required('Email is required').email('Enter a valid email'),
-  password:      Yup.string().min(8, 'At least 8 characters').required('Password is required'),
   organisation:  Yup.string().required('Organisation is required'),
   phone:         Yup.string().required('Phone number is required'),
   address:       Yup.string(),
@@ -37,25 +36,29 @@ export default function RegisterForm() {
   const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL;
   const API_KEY  = process.env.NEXT_PUBLIC_API_KEY;
 
-  // Send OTP
+  // Send OTP (Register user)
   const onFormSubmit = async (data) => {
     try {
       setEmail(data.email);
-      const res = await fetch(`${API_BASE}/users/request-otp`, {
+      const res = await fetch(`${API_BASE}/auth/register`, {
         method: 'POST',
         credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
-          'x-api-key': API_KEY,
+          ...(API_KEY && { 'x-api-key': API_KEY }),
         },
-        body: JSON.stringify(data), // includes password too
+        body: JSON.stringify({
+          email: data.email,
+          firstName: data.firstName,
+          lastName: data.lastName,
+        }),
       });
       const json = await res.json();
       if (!res.ok) throw new Error(json.message || 'Failed to send OTP');
-      notifySuccess(json.message);
+      notifySuccess(json.message || 'OTP sent successfully');
       setStage('otp');
     } catch (err) {
-      notifyError(err.message);
+      notifyError(err.message || 'Failed to send OTP');
     }
   };
 
@@ -63,18 +66,18 @@ export default function RegisterForm() {
   const onOtpSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch(`${API_BASE}/users/verify-otp`, {
+      const res = await fetch(`${API_BASE}/auth/verify-otp`, {
         method: 'POST',
         credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
-          'x-api-key': API_KEY,
+          ...(API_KEY && { 'x-api-key': API_KEY }),
         },
         body: JSON.stringify({ email: savedEmail, otp }),
       });
       const json = await res.json();
       if (!res.ok) throw new Error(json.message || 'OTP verification failed');
-      notifySuccess(json.message);
+      notifySuccess(json.message || 'Registration successful');
       reset();
       // if redirect is present (modal flow), send to login with same redirect
       if (redirect) {
@@ -83,7 +86,7 @@ export default function RegisterForm() {
         router.push('/login');
       }
     } catch (err) {
-      notifyError(err.message);
+      notifyError(err.message || 'OTP verification failed');
     }
   };
 
@@ -131,20 +134,6 @@ export default function RegisterForm() {
                 className="tp-input"
               />
               <ErrorMsg msg={errors.email?.message}/>
-            </div>
-
-            {/* Password */}
-            <div className="tp-input-box">
-              <label className="tp-label" htmlFor="rf-password">Password</label>
-              <input
-                id="rf-password"
-                {...register('password')}
-                type="password"
-                placeholder="Create a strong password"
-                className="tp-input"
-                autoComplete="new-password"
-              />
-              <ErrorMsg msg={errors.password?.message}/>
             </div>
 
             {/* Organisation */}

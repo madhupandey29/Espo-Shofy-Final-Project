@@ -125,59 +125,75 @@ export const authApi = apiSlice.injectEndpoints({
     }),
 
     /* ──────────────────────────────────────────
-     * Fetch session details (using userId in localStorage)
+     * Fetch session details (DISABLED - using EspoCRM only)
+     * Returns mock data from localStorage/cookies
      * ────────────────────────────────────────── */
     getSessionInfo: builder.query({
-      query: ({ userId } = {}) => {
-        const uid = getUserIdLS(userId);
-        // Prefer explicit userId param if available; fall back to cookie session
-        const url = uid
-          ? `users/session?userId=${encodeURIComponent(uid)}`
-          : "users/session";
-        return { url, credentials: "include" };
+      queryFn: async ({ userId } = {}) => {
+        try {
+          const uid = getUserIdLS(userId);
+          
+          // Get user from cookie
+          const cookieData = Cookies.get('userInfo');
+          if (cookieData) {
+            const parsed = JSON.parse(cookieData);
+            const user = parsed?.user || parsed;
+            
+            return {
+              data: {
+                session: { user },
+                user,
+              }
+            };
+          }
+          
+          // Return minimal session data
+          return {
+            data: {
+              session: { user: { id: uid, _id: uid } },
+              user: { id: uid, _id: uid },
+            }
+          };
+        } catch (err) {
+          return { error: { status: 'CUSTOM_ERROR', error: 'Session not found' } };
+        }
       },
       async onQueryStarted(arg, { queryFulfilled, dispatch }) {
         try {
           const { data } = await queryFulfilled;
-          // normalize: server may return { session: { user } } or { user } or full user
           const user = data?.session?.user || data?.user || data;
-          const userId =
-            user?._id || user?.id || arg?.userId || getUserIdLS() || "";
+          const userId = user?._id || user?.id || arg?.userId || getUserIdLS() || "";
 
-          if (user) {
-            // ensure userId is persisted if gleaned from API
-            if (userId) persistUserIdLS(userId);
+          if (user && userId) {
+            persistUserIdLS(userId);
             dispatch(userLoggedIn({ user, userId }));
           }
         } catch (err) {
-          // Keep this silent-ish to avoid noisy console when not logged in
-          
+          // Silent fail
         }
       },
     }),
 
     /* ──────────────────────────────────────────
-     * LOGOUT using userId from localStorage
-     * Calls: DELETE /users/logout/{userId} (preferred) or /users/logout
+     * LOGOUT (client-side only - no backend call)
+     * Clears localStorage, cookies, and Redux state
      * ────────────────────────────────────────── */
     logoutUser: builder.mutation({
-      query: ({ userId } = {}) => {
-        const uid = getUserIdLS(userId);
-        const url = uid ? `users/logout/${encodeURIComponent(uid)}` : "users/logout";
-        return {
-          url,
-          method: "DELETE", // change to POST if your backend needs POST
-          credentials: "include",
-        };
-      },
-      async onQueryStarted(arg, { queryFulfilled }) {
+      queryFn: async ({ userId } = {}) => {
         try {
-          await queryFulfilled;
-        } catch (err) {
-          // Even if server replies "not found", clear local state to avoid ghost sessions
-          } finally {
+          // Clear all local storage
           clearUserIdLS();
-          Cookies.remove("userInfo");
+          if (typeof window !== 'undefined') {
+            localStorage.removeItem('sessionId');
+          }
+          
+          // Clear cookies
+          Cookies.remove('userInfo');
+          Cookies.remove('sessionId');
+          
+          return { data: { success: true, message: 'Logged out successfully' } };
+        } catch (err) {
+          return { error: { status: 'CUSTOM_ERROR', error: 'Logout failed' } };
         }
       },
     }),

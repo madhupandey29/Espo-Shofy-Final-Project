@@ -68,7 +68,7 @@ export default async function ContactPage() {
       )}
       
       <Wrapper>
-        <HeaderTwo style_2={true} />
+       <HeaderTwo style_2={true} />
       {/* SEO-Optimized H1 for Contact Page */}
       <h1
         style={{

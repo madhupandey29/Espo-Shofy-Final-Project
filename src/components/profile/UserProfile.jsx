@@ -18,6 +18,41 @@ import {
 import { notifyError, notifySuccess } from '@/utils/toast';
 import styles from './UserProfile.module.css';
 
+/* ---------------- EspoCRM Field Mapping ---------------- */
+const mapEspoToProfile = (espoUser) => {
+  if (!espoUser) return null;
+  return {
+    _id: espoUser.id,
+    id: espoUser.id,
+    firstName: espoUser.firstName || '',
+    lastName: espoUser.lastName || '',
+    name: espoUser.name || `${espoUser.firstName || ''} ${espoUser.lastName || ''}`.trim(),
+    email: espoUser.emailAddress || '',
+    phone: espoUser.phoneNumber || '',
+    organisation: espoUser.organizationNameRaw || '',
+    address: espoUser.addressStreet || '',
+    city: espoUser.addressCity || '',
+    state: espoUser.addressState || '',
+    country: espoUser.addressCountry || '',
+    pincode: espoUser.addressPostalCode || '',
+    avatar: null,
+    userImage: null,
+  };
+};
+
+const mapProfileToEspo = (profileData) => ({
+  firstName: profileData.firstName,
+  lastName: profileData.lastName,
+  emailAddress: profileData.email,
+  phoneNumber: profileData.phone,
+  organizationNameRaw: profileData.organisation || '',
+  addressStreet: profileData.address || '',
+  addressCity: profileData.city || '',
+  addressState: profileData.state || '',
+  addressCountry: profileData.country || '',
+  addressPostalCode: profileData.pincode || '',
+});
+
 /* ---------------- helpers ---------------- */
 const pickInitialUser = (reduxUser) => {
   if (reduxUser) return reduxUser;
@@ -142,7 +177,7 @@ export default function UserProfile() {
       const prefetchDomains = [
         'https://restcountries.com',
         'https://countriesnow.space',
-        'https://test.amrita-fashions.com'
+        'https://espobackend.vercel.app'
       ];
       
       prefetchDomains.forEach(domain => {
@@ -156,8 +191,21 @@ export default function UserProfile() {
 
   /* Guard: if no session, redirect */
   useEffect(() => {
-    const sid = getClientSessionId();
-    if (!sid) redirectToLogin();
+    // Small delay to ensure localStorage is set after login redirect
+    const checkAuth = setTimeout(() => {
+      const sid = getClientSessionId();
+      const uid = typeof window !== 'undefined' ? localStorage.getItem('userId') : null;
+      
+      console.log('🔒 Auth Guard Check:', { sessionId: sid, userId: uid });
+      
+      // Must have both sessionId and userId
+      if (!sid || !uid) {
+        console.warn('Missing session or user ID, redirecting to login');
+        redirectToLogin();
+      }
+    }, 100); // 100ms delay
+    
+    return () => clearTimeout(checkAuth);
   }, []);
 
   const authUser = useSelector((s) => s?.auth?.user);
@@ -197,6 +245,7 @@ export default function UserProfile() {
 
   const [active, setActive] = useState('profile');
   const [avatarPreview, setAvatarPreview] = useState(null);
+  const [editingField, setEditingField] = useState(null); // Track which field is being edited
 
   /* Countries + dial codes */
   const [countries, setCountries] = useState([]);
@@ -217,7 +266,7 @@ export default function UserProfile() {
     setOrdersErr(null);
     
     try {
-      const res = await fetch(`https://test.amrita-fashions.com/shopy/orders/user/${userId}`, {
+      const res = await fetch(`https://espobackend.vercel.app/api/orders/user/${userId}`, {
         headers: { Accept: 'application/json' },
         cache: 'no-store',
       });
@@ -284,6 +333,17 @@ export default function UserProfile() {
     if (!userId || userDataLoaded) return;
     
     try {
+      // ====== SECURITY: Verify sessionId and userId match ======
+      const storedSessionId = typeof window !== 'undefined' 
+        ? localStorage.getItem('sessionId') || Cookies.get('sessionId')
+        : null;
+      
+      if (!storedSessionId) {
+        console.warn('No session found, redirecting to login');
+        redirectToLogin();
+        return;
+      }
+      
       // Check cache first
       const cacheKey = `user-${userId}`;
       const cached = sessionStorage.getItem(cacheKey);
@@ -291,30 +351,64 @@ export default function UserProfile() {
         const { data, timestamp } = JSON.parse(cached);
         // Cache for 5 minutes
         if (Date.now() - timestamp < 300000) {
-          const nu = normalizeUserPayload(data);
-          setLocalUser(prev => ({ ...(prev || {}), ...nu }));
-          writeUserInfoCookiePreserving(nu);
+          const nu = mapEspoToProfile(data);
+          if (nu) {
+            setLocalUser(prev => ({ ...(prev || {}), ...nu }));
+            writeUserInfoCookiePreserving(nu);
+          }
           setUserDataLoaded(true);
           return;
         }
       }
 
-      const response = await fetch(`https://test.amrita-fashions.com/shopy/users/${userId}`, {
-        headers: { Accept: 'application/json' },
+      // Fetch ALL users from EspoCRM API and find by ID
+      const response = await fetch(`https://espobackend.vercel.app/api/customeraccount`, {
+        headers: { 
+          Accept: 'application/json',
+          'X-Session-Id': storedSessionId,
+        },
         cache: 'no-store',
       });
-      if (!response.ok) throw new Error('Failed to fetch user data');
+      
+      if (!response.ok) {
+        if (response.status === 401 || response.status === 403) {
+          console.warn('Session invalid, redirecting to login');
+          redirectToLogin();
+          return;
+        }
+        console.warn('Failed to fetch users from API, using cookie data');
+        setUserDataLoaded(true);
+        return;
+      }
+      
       const raw = await response.json();
+      const allUsers = raw.data || raw || [];
+      
+      console.log('📋 Fetched users:', allUsers.length);
+      console.log('🔍 Looking for userId:', userId);
+      
+      // Find user by ID match
+      const currentUser = allUsers.find(u => u.id === userId);
+      
+      if (!currentUser) {
+        console.warn('User not found in API response, using cookie data');
+        setUserDataLoaded(true);
+        return;
+      }
+      
+      console.log('✅ Found user:', currentUser);
       
       // Cache the result
       sessionStorage.setItem(cacheKey, JSON.stringify({
-        data: raw,
+        data: currentUser,
         timestamp: Date.now()
       }));
       
-      const nu = normalizeUserPayload(raw);
-      setLocalUser(prev => ({ ...(prev || {}), ...nu }));
-      writeUserInfoCookiePreserving(nu);
+      const nu = mapEspoToProfile(currentUser);
+      if (nu) {
+        setLocalUser(prev => ({ ...(prev || {}), ...nu }));
+        writeUserInfoCookiePreserving(nu);
+      }
       setUserDataLoaded(true);
     } catch (error) {
       console.warn('Failed to fetch user data:', error);
@@ -594,6 +688,17 @@ export default function UserProfile() {
   const onSubmit = async (data) => {
     if (!userId) { notifyError('Cannot update profile: user not identified.'); return; }
 
+    // ====== SECURITY: Verify session before allowing update ======
+    const storedSessionId = typeof window !== 'undefined' 
+      ? localStorage.getItem('sessionId') || Cookies.get('sessionId')
+      : null;
+    
+    if (!storedSessionId) {
+      notifyError('Session expired. Please login again.');
+      redirectToLogin();
+      return;
+    }
+
     const composedPhone = (dialSelected && phoneLocal)
       ? `${normalizeDial(dialSelected)}${onlyDigits(phoneLocal)}`
       : (data.phone || '');
@@ -614,20 +719,13 @@ export default function UserProfile() {
       pincode: cleanString(data.pincode ?? '')
     };
 
-    let fileToUpload = null;
-    if (selectedFile) {
-      fileToUpload = selectedFile;
-    } else if (avatarPreview && String(avatarPreview).startsWith('data:')) {
-      updateData.avatar = user?.avatar || user?.userImage || '';
-    }
-
     const changed = diffPayload(
       updateData,
       user,
       new Set(['organisation', 'address', 'city', 'state', 'country', 'pincode'])
     );
 
-    if (!Object.keys(changed).length && !fileToUpload) {
+    if (!Object.keys(changed).length && !selectedFile) {
       notifySuccess('Nothing to update');
       setActive('profile');
       return;
@@ -635,47 +733,43 @@ export default function UserProfile() {
 
     let updatedResp = null;
     try {
-      if (fileToUpload) {
-        const formData = new FormData();
-        formData.append('userImage', fileToUpload);
+      // Map to EspoCRM format
+      const espoData = mapProfileToEspo(updateData);
+      
+      // Update via EspoCRM API with session validation
+      const response = await fetch(`https://espobackend.vercel.app/api/customeraccount/${userId}`, {
+        method: 'PUT',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Session-Id': storedSessionId, // Include session for validation
+        },
+        body: JSON.stringify(espoData),
+      });
 
-        Object.keys(changed).forEach(key => {
-          if (changed[key] !== undefined && changed[key] !== null) {
-            formData.append(key, changed[key]);
-          }
-        });
-
-        const baseUrl = (process.env.NEXT_PUBLIC_API_BASE_URL || '').replace(/\/+$/, '');
-        const apiUrl = `${baseUrl}/users/${userId}`.replace(/([^:])(\/\/)/g, '$1/');
-
-        const response = await fetch(apiUrl, {
-          method: 'PUT',
-          credentials: 'include',
-          body: formData,
-        });
-
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}));
-          throw new Error(errorData.message || 'Failed to update profile');
+      if (!response.ok) {
+        if (response.status === 401 || response.status === 403) {
+          notifyError('Session expired. Please login again.');
+          redirectToLogin();
+          return;
         }
-
-        updatedResp = await response.json();
-      } else {
-        updatedResp = await updateProfile({ id: userId, ...changed }).unwrap();
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Failed to update profile');
       }
+
+      updatedResp = await response.json();
     } catch (error) {
       notifyError(error.message || 'Failed to update profile');
       return;
     }
 
-    const respUser = normalizeUserPayload(updatedResp);
+    // Map response back to profile format
+    const respUser = mapEspoToProfile(updatedResp);
     const updatedUser = {
       ...user,
       ...respUser,
-      firstName: respUser.firstName ?? user.firstName,
-      lastName: respUser.lastName ?? user.lastName,
-      userImage: respUser.userImage ?? avatarPreview ?? user.userImage,
-      avatar: respUser.userImage ?? respUser.avatar ?? avatarPreview ?? user.avatar,
+      avatar: avatarPreview || user.avatar,
+      userImage: avatarPreview || user.userImage,
     };
 
     setSelectedFile(null);
@@ -700,6 +794,7 @@ export default function UserProfile() {
     try { await refetchSession?.(); } catch { }
 
     notifySuccess('Profile updated');
+    setEditingField(null); // Reset editing state
     setActive('profile');
   };
 
@@ -783,59 +878,15 @@ export default function UserProfile() {
       <div className={styles.layout}>
         <aside className={styles.sidebar}>
           <SideTab id="profile" label="My Profile" active={active} setActive={setActive} />
-          <SideTab id="edit" label="Edit Profile" active={active} setActive={(id) => { if (userId) localStorage.setItem('userId', String(userId)); setActive(id); }} />
           <SideTab id="booking" label="My Orders" active={active} setActive={setActive} />
           <button type="button" className={styles.sideTab} onClick={handleLogout}>Logout</button>
         </aside>
 
         <main className={styles.main}>
-          {/* My Profile */}
+          {/* Inline Editable Profile */}
           {active === 'profile' && (
-            <div className={styles.form}>
-              <AlignedRead
-                label="Name"
-                value={user?.firstName || user?.lastName
-                  ? `${user.firstName || ''} ${user.lastName || ''}`.trim()
-                  : user?.name || '—'}
-              />
-              <AlignedRead label="Email" value={user?.email || '—'} />
-              <AlignedRead label="Organisation" value={user?.organisation || '—'} />
-
-              <AlignedCustom label="Phone">
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  {derivedReadOnlyFlagPng ? (
-                    <img
-                      src={derivedReadOnlyFlagPng}
-                      alt="Country flag"
-                      title="Country flag"
-                      width={20}
-                      height={14}
-                      loading="lazy"
-                      decoding="async"
-                      style={{ display: 'block', borderRadius: 2, objectFit: 'cover' }}
-                    />
-                  ) : null}
-                  <span>{derivedPrettyPhone === '—' ? '—' : derivedPrettyPhone}</span>
-                </div>
-              </AlignedCustom>
-
-              <AlignedRead label="Address" value={user?.address} />
-
-              <div className={styles.row}>
-                <AlignedRead label="Country" value={user?.country} />
-                <AlignedRead label="State" value={user?.state} />
-              </div>
-
-              <div className={styles.row}>
-                <AlignedRead label="City" value={user?.city} />
-                <AlignedRead label="Pincode" value={user?.pincode} />
-              </div>
-            </div>
-          )}
-
-          {/* Edit */}
-          {active === 'edit' && (
             <form className={styles.form} onSubmit={handleSubmit(onSubmit)}>
+              {/* Avatar Section - Always Editable */}
               <div className={styles.avatarEditor}>
                 <div className={styles.bigAvatar}>
                   {avatarPreview ? (
@@ -868,39 +919,130 @@ export default function UserProfile() {
                 </div>
               </div>
 
-              <AlignedField id="firstName" label="First Name" registerFn={register} error={errors.firstName?.message} />
-              <AlignedField id="lastName" label="Last Name" registerFn={register} error={errors.lastName?.message} />
-              <AlignedField id="email" label="Email" type="email" registerFn={register} disabled note="Email can't be changed" />
-              <AlignedField id="organisation" label="Organisation" registerFn={register} />
+              {/* Name Fields */}
+              <InlineEditField
+                label="First Name"
+                fieldId="firstName"
+                value={user?.firstName || '—'}
+                isEditing={editingField === 'firstName'}
+                onEdit={() => { setEditingField('firstName'); loadCountries(); }}
+                onCancel={() => setEditingField(null)}
+                registerFn={register}
+                error={errors.firstName?.message}
+                required
+              />
 
-              {/* Phone with Country Dial */}
-              <AlignedCustom label="Phone">
-                <div className={styles.row} style={{ gap: 12, width: '100%' }}>
-                  <div
-                    className={styles.input}
-                    style={{
-                      position: 'relative',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 8,
-                      paddingRight: 36,
-                      overflow: 'hidden',
-                      width: '40%',
-                      minWidth: 220
-                    }}
-                  >
+              <InlineEditField
+                label="Last Name"
+                fieldId="lastName"
+                value={user?.lastName || '—'}
+                isEditing={editingField === 'lastName'}
+                onEdit={() => { setEditingField('lastName'); loadCountries(); }}
+                onCancel={() => setEditingField(null)}
+                registerFn={register}
+                error={errors.lastName?.message}
+                required
+              />
+
+              {/* Email - Read Only */}
+              <AlignedRead label="Email" value={user?.email || '—'} />
+
+              {/* Organisation */}
+              <InlineEditField
+                label="Organisation"
+                fieldId="organisation"
+                value={user?.organisation || '—'}
+                isEditing={editingField === 'organisation'}
+                onEdit={() => { setEditingField('organisation'); loadCountries(); }}
+                onCancel={() => setEditingField(null)}
+                registerFn={register}
+              />
+
+              {/* Phone */}
+              {editingField === 'phone' ? (
+                <AlignedCustom label="Phone">
+                  <div className={styles.row} style={{ gap: 12, width: '100%' }}>
                     <div
+                      className={styles.input}
                       style={{
+                        position: 'relative',
                         display: 'flex',
                         alignItems: 'center',
                         gap: 8,
-                        width: '100%',
-                        pointerEvents: 'none'
+                        paddingRight: 36,
+                        overflow: 'hidden',
+                        width: '40%',
+                        minWidth: 220
                       }}
                     >
-                      {countries.find(c => c.dial === dialSelected)?.flagPng ? (
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 8,
+                          width: '100%',
+                          pointerEvents: 'none'
+                        }}
+                      >
+                        {countries.find(c => c.dial === dialSelected)?.flagPng ? (
+                          <img
+                            src={countries.find(c => c.dial === dialSelected)?.flagPng}
+                            alt="Country flag"
+                            title="Country flag"
+                            width={20}
+                            height={14}
+                            loading="lazy"
+                            decoding="async"
+                            style={{ display: 'block', borderRadius: 2, objectFit: 'cover' }}
+                          />
+                        ) : (
+                          <span style={{ width: 20, height: 14 }} />
+                        )}
+                        <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          {countries.find(c => c.dial === dialSelected)
+                            ? `${countries.find(c => c.dial === dialSelected)?.name} (${dialSelected})`
+                            : 'Select country code'}
+                        </span>
+                      </div>
+
+                      <select
+                        aria-label="Country dial code"
+                        value={dialSelected}
+                        onChange={(e) => setDialSelected(e.target.value)}
+                        style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer' }}
+                      >
+                        <option value="">Select code</option>
+                        {countries.map(c => (
+                          <option key={`${c.cca2}-${c.dial}`} value={c.dial}>
+                            {c.name} ({c.dial})
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <input
+                      className={styles.input}
+                      type="tel"
+                      placeholder="Local phone number"
+                      value={phoneLocal}
+                      onChange={(e) => setPhoneLocal(e.target.value)}
+                      inputMode="numeric"
+                      style={{ width: '60%' }}
+                    />
+                  </div>
+                  <input type="hidden" {...register('phone')} />
+                  {errors?.phone?.message ? <p className={styles.err}>{errors.phone.message}</p> : null}
+                  <button type="button" className={styles.linkBtn} onClick={() => setEditingField(null)} style={{ marginTop: 8 }}>
+                    Cancel
+                  </button>
+                </AlignedCustom>
+              ) : (
+                <AlignedCustom label="Phone">
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'space-between' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      {derivedReadOnlyFlagPng ? (
                         <img
-                          src={countries.find(c => c.dial === dialSelected)?.flagPng}
+                          src={derivedReadOnlyFlagPng}
                           alt="Country flag"
                           title="Country flag"
                           width={20}
@@ -909,108 +1051,148 @@ export default function UserProfile() {
                           decoding="async"
                           style={{ display: 'block', borderRadius: 2, objectFit: 'cover' }}
                         />
-                      ) : (
-                        <span style={{ width: 20, height: 14 }} />
-                      )}
-                      <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                        {countries.find(c => c.dial === dialSelected)
-                          ? `${countries.find(c => c.dial === dialSelected)?.name} (${dialSelected})`
-                          : 'Select country code'}
+                      ) : null}
+                      <span className={styles.readInput} style={{ border: 'none', background: 'transparent', padding: 0 }}>
+                        {derivedPrettyPhone === '—' ? '—' : derivedPrettyPhone}
                       </span>
                     </div>
-
-                    <select
-                      aria-label="Country dial code"
-                      value={dialSelected}
-                      onChange={(e) => setDialSelected(e.target.value)}
-                      style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer' }}
+                    <button 
+                      type="button" 
+                      className={styles.linkBtn} 
+                      onClick={() => { setEditingField('phone'); loadCountries(); }}
+                      style={{ fontSize: 14 }}
                     >
-                      <option value="">Select code</option>
-                      {countries.map(c => (
-                        <option key={`${c.cca2}-${c.dial}`} value={c.dial}>
-                          {c.name} ({c.dial})
-                        </option>
-                      ))}
-                    </select>
+                      <FaEdit />
+                    </button>
                   </div>
+                </AlignedCustom>
+              )}
 
-                  <input
-                    className={styles.input}
-                    type="tel"
-                    placeholder="Local phone number"
-                    value={phoneLocal}
-                    onChange={(e) => setPhoneLocal(e.target.value)}
-                    inputMode="numeric"
-                    style={{ width: '60%' }}
-                  />
-                </div>
-
-                <input type="hidden" {...register('phone')} />
-                {errors?.phone?.message ? <p className={styles.err}>{errors.phone.message}</p> : null}
-              </AlignedCustom>
+              {/* Address */}
+              <InlineEditField
+                label="Address"
+                fieldId="address"
+                value={user?.address || '—'}
+                isEditing={editingField === 'address'}
+                onEdit={() => { setEditingField('address'); loadCountries(); }}
+                onCancel={() => setEditingField(null)}
+                registerFn={register}
+              />
 
               {/* Country/State/City */}
-              <AlignedCustom label="Country">
-                <select
-                  className={styles.input}
-                  value={countryName}
-                  onChange={handleCountryChange}
-                  disabled={!countriesLoaded}
-                >
-                  <option value="">
-                    {!countriesLoaded ? 'Loading countries...' : 'Select country'}
-                  </option>
-                  {countries.map(c => (
-                    <option key={c.cca2} value={c.name}>{c.name}</option>
-                  ))}
-                </select>
-              </AlignedCustom>
+              {editingField === 'location' ? (
+                <>
+                  <AlignedCustom label="Country">
+                    <select
+                      className={styles.input}
+                      value={countryName}
+                      onChange={handleCountryChange}
+                      disabled={!countriesLoaded}
+                    >
+                      <option value="">
+                        {!countriesLoaded ? 'Loading countries...' : 'Select country'}
+                      </option>
+                      {countries.map(c => (
+                        <option key={c.cca2} value={c.name}>{c.name}</option>
+                      ))}
+                    </select>
+                  </AlignedCustom>
 
-              <AlignedCustom label="State">
-                <select
-                  className={styles.input}
-                  value={stateName}
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    setStateName(val);
-                    setValue('state', val, { shouldDirty: true });
-                    setCityName('');
-                    setValue('city', '', { shouldDirty: true });
-                  }}
-                >
-                  <option value="">{countryName ? 'Select state' : 'Select country first'}</option>
-                  {states.map((s) => (
-                    <option key={s.name} value={s.name}>{s.name}</option>
-                  ))}
-                </select>
-              </AlignedCustom>
+                  <AlignedCustom label="State">
+                    <select
+                      className={styles.input}
+                      value={stateName}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setStateName(val);
+                        setValue('state', val, { shouldDirty: true });
+                        setCityName('');
+                        setValue('city', '', { shouldDirty: true });
+                      }}
+                    >
+                      <option value="">{countryName ? 'Select state' : 'Select country first'}</option>
+                      {states.map((s) => (
+                        <option key={s.name} value={s.name}>{s.name}</option>
+                      ))}
+                    </select>
+                  </AlignedCustom>
 
-              <AlignedCustom label="City">
-                <select
-                  className={styles.input}
-                  value={cityName}
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    setCityName(val);
-                    setValue('city', val, { shouldDirty: true });
-                  }}
-                >
-                  <option value="">{stateName ? 'Select city' : 'Select state first'}</option>
-                  {cities.map((c) => (
-                    <option key={c} value={c}>{c}</option>
-                  ))}
-                </select>
-              </AlignedCustom>
+                  <AlignedCustom label="City">
+                    <select
+                      className={styles.input}
+                      value={cityName}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setCityName(val);
+                        setValue('city', val, { shouldDirty: true });
+                      }}
+                    >
+                      <option value="">{stateName ? 'Select city' : 'Select state first'}</option>
+                      {cities.map((c) => (
+                        <option key={c} value={c}>{c}</option>
+                      ))}
+                    </select>
+                    <button type="button" className={styles.linkBtn} onClick={() => setEditingField(null)} style={{ marginTop: 8 }}>
+                      Cancel
+                    </button>
+                  </AlignedCustom>
+                </>
+              ) : (
+                <div className={styles.row}>
+                  <AlignedCustom label="Country">
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <span className={styles.readInput} style={{ border: 'none', background: 'transparent', padding: 0 }}>
+                        {user?.country || '—'}
+                      </span>
+                      <button 
+                        type="button" 
+                        className={styles.linkBtn} 
+                        onClick={() => { setEditingField('location'); loadCountries(); }}
+                        style={{ fontSize: 14 }}
+                      >
+                        <FaEdit />
+                      </button>
+                    </div>
+                  </AlignedCustom>
+                  <AlignedRead label="State" value={user?.state} />
+                </div>
+              )}
 
-              <AlignedField id="address" label="Address" registerFn={register} />
-              <AlignedField id="pincode" label="Pincode" registerFn={register} />
+              {editingField !== 'location' && (
+                <div className={styles.row}>
+                  <AlignedRead label="City" value={user?.city} />
+                  <InlineEditField
+                    label="Pincode"
+                    fieldId="pincode"
+                    value={user?.pincode || '—'}
+                    isEditing={editingField === 'pincode'}
+                    onEdit={() => { setEditingField('pincode'); loadCountries(); }}
+                    onCancel={() => setEditingField(null)}
+                    registerFn={register}
+                  />
+                </div>
+              )}
 
-              <div className={styles.formCta}>
-                <button type="button" className={styles.btn} onClick={() => setActive('profile')}>Cancel</button>
-                <button type="submit" className={styles.btn} disabled={saving || !userId}>
-                  {saving ? 'Saving…' : 'Save changes'}
-                </button>
-              </div>
+              {editingField === 'location' && (
+                <InlineEditField
+                  label="Pincode"
+                  fieldId="pincode"
+                  value={user?.pincode || '—'}
+                  isEditing={editingField === 'pincode'}
+                  onEdit={() => { setEditingField('pincode'); loadCountries(); }}
+                  onCancel={() => setEditingField(null)}
+                  registerFn={register}
+                />
+              )}
+
+              {/* Save Button - Only show when editing */}
+              {(editingField || selectedFile) && (
+                <div className={styles.formCta}>
+                  <button type="submit" className={styles.btn} disabled={saving || !userId}>
+                    {saving ? 'Saving…' : 'Save changes'}
+                  </button>
+                </div>
+              )}
             </form>
           )}
 
@@ -1114,6 +1296,36 @@ function AlignedField({ id, label, type = 'text', registerFn, error, disabled, n
         <input id={id} type={type} className={styles.input} disabled={disabled} {...registerFn(id)} />
         {note && <p className={styles.note}>{note}</p>}
         {error && <p className={styles.err}>{error}</p>}
+      </div>
+    </AlignedRow>
+  );
+}
+
+/* ---------------- inline edit field ---------------- */
+function InlineEditField({ label, fieldId, value, isEditing, onEdit, onCancel, registerFn, error, required }) {
+  if (isEditing) {
+    return (
+      <AlignedRow label={<>{label}{required && <span className={styles.required}>*</span>}</>}>
+        <div>
+          <input id={fieldId} type="text" className={styles.input} {...registerFn(fieldId)} autoFocus />
+          {error && <p className={styles.err}>{error}</p>}
+          <button type="button" className={styles.linkBtn} onClick={onCancel} style={{ marginTop: 8 }}>
+            Cancel
+          </button>
+        </div>
+      </AlignedRow>
+    );
+  }
+
+  return (
+    <AlignedRow label={label}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <span className={styles.readInput} style={{ border: 'none', background: 'transparent', padding: 0 }}>
+          {value}
+        </span>
+        <button type="button" className={styles.linkBtn} onClick={onEdit} style={{ fontSize: 14 }}>
+          <FaEdit />
+        </button>
       </div>
     </AlignedRow>
   );

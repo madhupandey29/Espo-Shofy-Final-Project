@@ -5,10 +5,10 @@ import { notifyError, notifySuccess } from "@/utils/toast";
 /* ------------------------- API base helpers ------------------------- */
 const API_BASE = (process.env.NEXT_PUBLIC_API_BASE_URL || "").replace(/\/+$/, "");
 const WISHLIST_BASE = (() => {
-  if (!API_BASE) return "https://test.amrita-fashions.com/shopy";
+  if (!API_BASE) return "https://espobackend.vercel.app/api";
   if (/\/api$/i.test(API_BASE)) return API_BASE.replace(/\/api$/i, "");
   if (/\/shopy$/i.test(API_BASE)) return API_BASE;
-  return `${API_BASE}/shopy`;
+  return `${API_BASE}/api`;
 })();
 
 /* ------------------------------- GET ------------------------------- */
