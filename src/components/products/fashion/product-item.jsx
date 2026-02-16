@@ -171,9 +171,9 @@ const ProductItem = ({ product, index = 0 }) => {
   const imageUrl = useMemo(() => {
     // First check for Cloudinary URLs (direct URLs)
     const cloudinaryFields = [
-      product?.image1CloudUrl,
-      product?.image2CloudUrl,
-      product?.image3CloudUrl,
+      product?.image1CloudUrlWeb,
+      product?.image2CloudUrlWeb,
+      product?.image3CloudUrlWeb,
       product?.imageCloudUrl,
       product?.cloudUrl,
     ];
@@ -391,7 +391,7 @@ const ProductItem = ({ product, index = 0 }) => {
     }
 
     // Fetch collection data if needed
-    if (prd.collectionId && (!prd.collection || !prd.collection.collectionImage1CloudUrl)) {
+    if (prd.collectionId && (!prd.collection || !prd.collection.collectionimage1CloudUrlWeb)) {
       try {
         const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL;
         const API_KEY = process.env.NEXT_PUBLIC_API_KEY;
@@ -418,18 +418,18 @@ const ProductItem = ({ product, index = 0 }) => {
     const processedProduct = {
       ...productWithGroupCode,
       // Map Cloudinary URLs to standard fields, removing trailing hash
-      img: (productWithGroupCode.image1CloudUrl && typeof productWithGroupCode.image1CloudUrl === 'string' 
-        ? productWithGroupCode.image1CloudUrl.replace(/#$/, '') 
-        : productWithGroupCode.image1CloudUrl) || productWithGroupCode.img || productWithGroupCode.image || '',
-      image1: (productWithGroupCode.image1CloudUrl && typeof productWithGroupCode.image1CloudUrl === 'string' 
-        ? productWithGroupCode.image1CloudUrl.replace(/#$/, '') 
-        : productWithGroupCode.image1CloudUrl) || productWithGroupCode.image1 || '',
-      image2: (productWithGroupCode.image2CloudUrl && typeof productWithGroupCode.image2CloudUrl === 'string' 
-        ? productWithGroupCode.image2CloudUrl.replace(/#$/, '') 
-        : productWithGroupCode.image2CloudUrl) || productWithGroupCode.image2 || '',
-      image3: (productWithGroupCode.image3CloudUrl && typeof productWithGroupCode.image3CloudUrl === 'string' 
-        ? productWithGroupCode.image3CloudUrl.replace(/#$/, '') 
-        : productWithGroupCode.image3CloudUrl) || productWithGroupCode.image3 || '',
+      img: (productWithGroupCode.image1CloudUrlWeb && typeof productWithGroupCode.image1CloudUrlWeb === 'string' 
+        ? productWithGroupCode.image1CloudUrlWeb.replace(/#$/, '') 
+        : productWithGroupCode.image1CloudUrlWeb) || productWithGroupCode.img || productWithGroupCode.image || '',
+      image1: (productWithGroupCode.image1CloudUrlWeb && typeof productWithGroupCode.image1CloudUrlWeb === 'string' 
+        ? productWithGroupCode.image1CloudUrlWeb.replace(/#$/, '') 
+        : productWithGroupCode.image1CloudUrlWeb) || productWithGroupCode.image1 || '',
+      image2: (productWithGroupCode.image2CloudUrlWeb && typeof productWithGroupCode.image2CloudUrlWeb === 'string' 
+        ? productWithGroupCode.image2CloudUrlWeb.replace(/#$/, '') 
+        : productWithGroupCode.image2CloudUrlWeb) || productWithGroupCode.image2 || '',
+      image3: (productWithGroupCode.image3CloudUrlWeb && typeof productWithGroupCode.image3CloudUrlWeb === 'string' 
+        ? productWithGroupCode.image3CloudUrlWeb.replace(/#$/, '') 
+        : productWithGroupCode.image3CloudUrlWeb) || productWithGroupCode.image3 || '',
       video: productWithGroupCode.videoURL || productWithGroupCode.videourl || productWithGroupCode.video || '',
       videourl: productWithGroupCode.videoURL || productWithGroupCode.videourl || productWithGroupCode.video || '',
       videoThumbnail: productWithGroupCode.videoThumbnail || '',
@@ -446,7 +446,7 @@ const ProductItem = ({ product, index = 0 }) => {
       hasImage3: !!processedProduct.image3,
       hasVideo: !!processedProduct.video,
       hasCollection: !!processedProduct.collection,
-      collectionImage: processedProduct.collection?.collectionImage1CloudUrl,
+      collectionImage: processedProduct.collection?.collectionimage1CloudUrlWeb,
       collectionVideo: processedProduct.collection?.collectionvideoURL,
     });
 

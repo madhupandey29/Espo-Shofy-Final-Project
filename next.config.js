@@ -73,7 +73,8 @@ const nextConfig = {
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
     minimumCacheTTL: 60,
-    dangerouslyAllowSVG: true,
+    loader: 'default',
+    dangerouslyAllowSVG: false,
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
     // ✅ PERFORMANCE OPTIMIZATION: Image quality is set per-component (quality={75})
   },
@@ -188,12 +189,6 @@ const nextConfig = {
     ignoreBuildErrors: true,
   },
 
-  // ✅ ignore React build errors (including Client Component prop errors)
-  experimental: {
-    missingSuspenseWithCSRBailout: false,
-    serverComponentsExternalPackages: [],
-  },
-
   // ✅ suppress React warnings during build
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production' ? {
@@ -221,6 +216,7 @@ const nextConfig = {
       'react-icons/tb',
       'framer-motion',
       'react-toastify'
+      
     ],
     // Disable aggressive optimizations that can cause chunk issues
     missingSuspenseWithCSRBailout: false,
