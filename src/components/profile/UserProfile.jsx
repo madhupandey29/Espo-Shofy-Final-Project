@@ -190,7 +190,12 @@ export default function UserProfile() {
   }, []);
 
   /* Guard: if no session, redirect */
+  const [authChecked, setAuthChecked] = useState(false);
+  
   useEffect(() => {
+    // Only run auth check once on mount, not on every re-render
+    if (authChecked) return;
+    
     // Small delay to ensure localStorage is set after login redirect
     const checkAuth = setTimeout(() => {
       const sid = getClientSessionId();
@@ -202,11 +207,13 @@ export default function UserProfile() {
       if (!sid || !uid) {
         console.warn('Missing session or user ID, redirecting to login');
         redirectToLogin();
+      } else {
+        setAuthChecked(true);
       }
     }, 100); // 100ms delay
     
     return () => clearTimeout(checkAuth);
-  }, []);
+  }, [authChecked]);
 
   const authUser = useSelector((s) => s?.auth?.user);
   const cookieUser = useMemo(() => pickInitialUser(authUser), [authUser]);
@@ -326,14 +333,14 @@ export default function UserProfile() {
     };
   };
 
-  // Fetch user data with caching optimization
+  // ✅ Load user data from session (cookies/localStorage)
   const [userDataLoaded, setUserDataLoaded] = useState(false);
   
-  const fetchUserData = useCallback(async () => {
+  const loadUserFromSession = useCallback(() => {
     if (!userId || userDataLoaded) return;
     
     try {
-      // ====== SECURITY: Verify sessionId and userId match ======
+      // ====== Load user data from session (cookies) ======
       const storedSessionId = typeof window !== 'undefined' 
         ? localStorage.getItem('sessionId') || Cookies.get('sessionId')
         : null;
@@ -344,81 +351,39 @@ export default function UserProfile() {
         return;
       }
       
-      // Check cache first
-      const cacheKey = `user-${userId}`;
-      const cached = sessionStorage.getItem(cacheKey);
-      if (cached) {
-        const { data, timestamp } = JSON.parse(cached);
-        // Cache for 5 minutes
-        if (Date.now() - timestamp < 300000) {
-          const nu = mapEspoToProfile(data);
-          if (nu) {
-            setLocalUser(prev => ({ ...(prev || {}), ...nu }));
-            writeUserInfoCookiePreserving(nu);
+      // Get user from cookie (stored during login)
+      const cookieData = Cookies.get('userInfo');
+      if (cookieData) {
+        try {
+          const parsed = JSON.parse(cookieData);
+          const sessionUser = parsed?.user || parsed;
+          
+          if (sessionUser && sessionUser.id === userId) {
+            console.log('✅ Loaded user from session:', sessionUser);
+            const nu = mapEspoToProfile(sessionUser);
+            if (nu) {
+              setLocalUser(prev => ({ ...(prev || {}), ...nu }));
+            }
+            setUserDataLoaded(true);
+            return;
           }
-          setUserDataLoaded(true);
-          return;
+        } catch (e) {
+          console.warn('Failed to parse user cookie:', e);
         }
       }
-
-      // Fetch ALL users from EspoCRM API and find by ID
-      const response = await fetch(`https://espobackend.vercel.app/api/customeraccount`, {
-        headers: { 
-          Accept: 'application/json',
-          'X-Session-Id': storedSessionId,
-        },
-        cache: 'no-store',
-      });
       
-      if (!response.ok) {
-        if (response.status === 401 || response.status === 403) {
-          console.warn('Session invalid, redirecting to login');
-          redirectToLogin();
-          return;
-        }
-        console.warn('Failed to fetch users from API, using cookie data');
-        setUserDataLoaded(true);
-        return;
-      }
-      
-      const raw = await response.json();
-      const allUsers = raw.data || raw || [];
-      
-      console.log('📋 Fetched users:', allUsers.length);
-      console.log('🔍 Looking for userId:', userId);
-      
-      // Find user by ID match
-      const currentUser = allUsers.find(u => u.id === userId);
-      
-      if (!currentUser) {
-        console.warn('User not found in API response, using cookie data');
-        setUserDataLoaded(true);
-        return;
-      }
-      
-      console.log('✅ Found user:', currentUser);
-      
-      // Cache the result
-      sessionStorage.setItem(cacheKey, JSON.stringify({
-        data: currentUser,
-        timestamp: Date.now()
-      }));
-      
-      const nu = mapEspoToProfile(currentUser);
-      if (nu) {
-        setLocalUser(prev => ({ ...(prev || {}), ...nu }));
-        writeUserInfoCookiePreserving(nu);
-      }
-      setUserDataLoaded(true);
+      // If no valid session data, redirect to login
+      console.warn('No valid user data in session, redirecting to login');
+      redirectToLogin();
     } catch (error) {
-      console.warn('Failed to fetch user data:', error);
-      setUserDataLoaded(true);
+      console.warn('Failed to load user from session:', error);
+      redirectToLogin();
     }
   }, [userId, userDataLoaded]);
 
   useEffect(() => {
-    fetchUserData();
-  }, [fetchUserData]);
+    loadUserFromSession();
+  }, [loadUserFromSession]);
 
   /* Initialize form when user changes */
   useEffect(() => {
@@ -684,7 +649,7 @@ export default function UserProfile() {
     reader.readAsDataURL(file);
   };
 
-  /* ---------------- Save profile ---------------- */
+  /* ---------------- Save profile (Update via API + Update Session) ---------------- */
   const onSubmit = async (data) => {
     if (!userId) { notifyError('Cannot update profile: user not identified.'); return; }
 
@@ -736,13 +701,13 @@ export default function UserProfile() {
       // Map to EspoCRM format
       const espoData = mapProfileToEspo(updateData);
       
-      // Update via EspoCRM API with session validation
+      // ✅ Update via API (PUT /base/entity/:id)
       const response = await fetch(`https://espobackend.vercel.app/api/customeraccount/${userId}`, {
         method: 'PUT',
         credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
-          'X-Session-Id': storedSessionId, // Include session for validation
+          'X-Session-Id': storedSessionId,
         },
         body: JSON.stringify(espoData),
       });
@@ -758,23 +723,67 @@ export default function UserProfile() {
       }
 
       updatedResp = await response.json();
+      console.log('✅ Profile updated via API:', updatedResp);
     } catch (error) {
       notifyError(error.message || 'Failed to update profile');
       return;
     }
 
-    // Map response back to profile format
-    const respUser = mapEspoToProfile(updatedResp);
+    // ✅ Update session with new user data
+    // Extract user data from API response (handle both formats)
+    const apiUserData = updatedResp?.data || updatedResp;
+    console.log('📦 API Response:', updatedResp);
+    console.log('📦 Extracted User Data:', apiUserData);
+    
+    const respUser = mapEspoToProfile(apiUserData);
+    console.log('📦 Mapped User:', respUser);
+    
+    // CRITICAL: If mapping failed, keep existing user data and just show success
+    if (!respUser || !respUser.id) {
+      console.warn('⚠️ Mapping failed, keeping existing user data');
+      notifySuccess('Profile updated successfully');
+      setEditingField(null);
+      setActive('profile');
+      return;
+    }
+    
+    // Merge with existing user data to ensure nothing is lost
     const updatedUser = {
-      ...user,
-      ...respUser,
-      avatar: avatarPreview || user.avatar,
-      userImage: avatarPreview || user.userImage,
+      ...user, // Start with existing user data
+      ...respUser, // Override with API response
+      // Preserve avatar if not in API response
+      avatar: respUser.userImage || avatarPreview || user.avatar,
+      userImage: respUser.userImage || avatarPreview || user.userImage,
+      // Ensure ID fields are preserved
+      _id: respUser.id || user._id || user.id,
+      id: respUser.id || user.id || user._id,
     };
+    
+    console.log('✅ Final Updated User:', updatedUser);
 
     setSelectedFile(null);
 
-    writeUserInfoCookiePreserving(updatedUser);
+    // CRITICAL: Update cookies BEFORE updating local state
+    // This ensures if component re-renders, it can read from cookies
+    try {
+      Cookies.set('userInfo', JSON.stringify({ user: updatedUser }), { 
+        expires: 7,
+        sameSite: 'lax',
+        path: '/'
+      });
+      Cookies.set('sessionId', storedSessionId, {
+        expires: 7,
+        sameSite: 'lax',
+        path: '/'
+      });
+      console.log('✅ Cookies updated successfully');
+    } catch (error) {
+      console.error('❌ Failed to update cookies:', error);
+      notifyError('Failed to save session');
+      return;
+    }
+    
+    // Update local state AFTER cookies are saved
     setLocalUser(updatedUser);
     setAvatarPreview(updatedUser.avatar || null);
 
@@ -793,19 +802,45 @@ export default function UserProfile() {
 
     try { await refetchSession?.(); } catch { }
 
-    notifySuccess('Profile updated');
-    setEditingField(null); // Reset editing state
+    notifySuccess('Profile updated successfully');
+    setEditingField(null);
     setActive('profile');
   };
 
+  /* ---------------- Logout (Destroy Session) ---------------- */
   const handleLogout = async () => {
     try {
+      // ✅ Destroy session completely
       await logoutUser({ userId }).unwrap();
+      
+      // Clear all session data
       Cookies.remove('userInfo');
-      try { localStorage.removeItem('sessionId'); } catch { }
-      window.location.href = '/login';
+      Cookies.remove('sessionId');
+      
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('sessionId');
+        localStorage.removeItem('userId');
+        sessionStorage.clear(); // Clear all cached data
+      }
+      
+      console.log('✅ Session destroyed, logging out');
+      notifySuccess('Logged out successfully');
+      
+      // Redirect to home page
+      window.location.href = '/';
     } catch (err) {
+      // Even if API fails, clear local session
+      Cookies.remove('userInfo');
+      Cookies.remove('sessionId');
+      
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('sessionId');
+        localStorage.removeItem('userId');
+        sessionStorage.clear();
+      }
+      
       notifyError(err?.data?.message || 'Logout failed');
+      window.location.href = '/';
     }
   };
 

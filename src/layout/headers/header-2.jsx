@@ -31,13 +31,13 @@ const selectUserIdFromStore = (state) =>
   state?.user?.user?._id ||
   null;
 
-/** Avatar fetch - fetches ALL users and finds by ID */
+/** ✅ SECURE: Avatar fetch - fetches ONLY the specific user by ID */
 const SHOPY_API_BASE = 'https://espobackend.vercel.app/api';
 async function fetchUserAvatarById(userId, signal) {
   if (!userId) return null;
   try {
-    // Fetch ALL users from EspoCRM
-    const res = await fetch(`${SHOPY_API_BASE}/customeraccount`, {
+    // Fetch ONLY this specific user by ID
+    const res = await fetch(`${SHOPY_API_BASE}/customeraccount/${userId}`, {
       method: 'GET',
       credentials: 'include',
       signal,
@@ -45,10 +45,8 @@ async function fetchUserAvatarById(userId, signal) {
     if (!res.ok) return null;
     
     const json = await res.json();
-    const allUsers = json.data || json || [];
+    const currentUser = json.data || json;
     
-    // Find user by ID match
-    const currentUser = allUsers.find(u => u.id === userId);
     if (!currentUser) return null;
     
     // Return user image from EspoCRM user object

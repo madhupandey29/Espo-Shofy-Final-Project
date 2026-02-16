@@ -74,7 +74,11 @@ export const authApi = apiSlice.injectEndpoints({
             user?._id || user?.id || data?.userId || data?.id || ""; // ← adjust if your API returns a different field
 
           if (user) {
-            Cookies.set("userInfo", JSON.stringify({ user }), { expires: 0.5 }); // ~12h
+            Cookies.set("userInfo", JSON.stringify({ user }), { 
+              expires: 7, // 7 days
+              sameSite: 'lax',
+              path: '/'
+            });
           }
           if (userId) {
             persistUserIdLS(userId);
@@ -111,7 +115,11 @@ export const authApi = apiSlice.injectEndpoints({
             user?._id || user?.id || data?.userId || data?.id || ""; // ← adjust if needed
 
           if (user) {
-            Cookies.set("userInfo", JSON.stringify({ user }), { expires: 0.5 });
+            Cookies.set("userInfo", JSON.stringify({ user }), { 
+              expires: 7, // 7 days
+              sameSite: 'lax',
+              path: '/'
+            });
           }
           if (userId) {
             persistUserIdLS(userId);

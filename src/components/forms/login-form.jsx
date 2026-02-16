@@ -123,33 +123,14 @@ export default function LoginForm() {
 
       console.log('✅ OTP verified successfully');
 
-      // Fetch user from EspoCRM API
-      const espoRes = await fetch('https://espobackend.vercel.app/api/customeraccount', {
-        headers: { Accept: 'application/json' },
-      });
+      // ✅ SECURE: Backend returns user data in verify-otp response
+      const currentUser = verifyData.user;
       
-      if (!espoRes.ok) {
-        throw new Error('Failed to fetch users from EspoCRM');
-      }
-      
-      const espoData = await espoRes.json();
-      const allUsers = espoData.data || espoData || [];
-      
-      // Find user by email or phone
-      const currentUser = allUsers.find(u => {
-        const emailMatch = u.emailAddress === savedIdentifier;
-        const phoneMatch = u.phoneNumber === savedIdentifier;
-        const phoneWithCode = u.phoneNumber === `+91${savedIdentifier}`;
-        const phoneWithoutCode = u.phoneNumber === savedIdentifier.replace(/^\+91/, '');
-        
-        return emailMatch || phoneMatch || phoneWithCode || phoneWithoutCode;
-      });
-      
-      if (!currentUser) {
-        throw new Error(`User not found with email/phone: ${savedIdentifier}`);
+      if (!currentUser || !currentUser.id) {
+        throw new Error('User data not returned from OTP verification');
       }
 
-      console.log('✅ Found user:', currentUser);
+      console.log('✅ User data received from OTP verification:', currentUser);
 
       // Generate session and store real EspoCRM user ID
       const sessionId = `session_${Date.now()}`;
@@ -167,7 +148,7 @@ export default function LoginForm() {
       });
       
       Cookies.set('userInfo', JSON.stringify({ user: currentUser }), {
-        expires: 0.5,
+        expires: 7, // Changed from 0.5 to 7 days
         sameSite: 'lax',
         path: '/',
       });

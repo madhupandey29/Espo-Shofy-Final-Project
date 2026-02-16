@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as Yup from 'yup';
 import { useRouter, useSearchParams } from 'next/navigation';
+import Cookies from 'js-cookie';
 import ErrorMsg from '../common/error-msg';
 import { notifyError, notifySuccess } from '@/utils/toast';
 
@@ -62,7 +63,7 @@ export default function RegisterForm() {
     }
   };
 
-  // Verify OTP & register
+  // Verify OTP & register - Auto login after successful registration
   const onOtpSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -77,14 +78,42 @@ export default function RegisterForm() {
       });
       const json = await res.json();
       if (!res.ok) throw new Error(json.message || 'OTP verification failed');
-      notifySuccess(json.message || 'Registration successful');
-      reset();
-      // if redirect is present (modal flow), send to login with same redirect
-      if (redirect) {
-        router.push(`/login?redirect=${encodeURIComponent(redirect)}`);
-      } else {
-        router.push('/login');
+      
+      // ✅ Auto-login: Get user data from response
+      const currentUser = json.user;
+      
+      if (!currentUser || !currentUser.id) {
+        throw new Error('User data not returned after registration');
       }
+
+      // Generate session and store user data
+      const sessionId = `session_${Date.now()}`;
+      const userId = currentUser.id;
+
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('sessionId', sessionId);
+        localStorage.setItem('userId', userId);
+      }
+
+      Cookies.set('sessionId', sessionId, {
+        expires: 7,
+        sameSite: 'lax',
+        path: '/',
+      });
+      
+      Cookies.set('userInfo', JSON.stringify({ user: currentUser }), {
+        expires: 7, // Changed from 0.5 to 7 days
+        sameSite: 'lax',
+        path: '/',
+      });
+
+      console.log('✅ Registration & Auto-login successful!');
+      notifySuccess('Registration successful! Welcome!');
+      reset();
+      
+      // ✅ Redirect to home page (not login page)
+      const dest = redirect || '/';
+      router.push(dest);
     } catch (err) {
       notifyError(err.message || 'OTP verification failed');
     }

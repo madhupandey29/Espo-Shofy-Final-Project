@@ -11,10 +11,10 @@ import { useGetSingleNewProductQuery, useGetSingleNewProductByIdQuery } from '@/
 
 function mapBackendProductToFrontend(p) {
   // Handle Cloudinary image URLs - use correct API field names and remove trailing hash
-  const mainImg = (p.image1CloudUrl && typeof p.image1CloudUrl === 'string' ? p.image1CloudUrl.replace(/#$/, '') : p.image1CloudUrl) || p.img || p.image || '';
-  const img1 = (p.image1CloudUrl && typeof p.image1CloudUrl === 'string' ? p.image1CloudUrl.replace(/#$/, '') : p.image1CloudUrl) || p.image1 || '';
-  const img2 = (p.image2CloudUrl && typeof p.image2CloudUrl === 'string' ? p.image2CloudUrl.replace(/#$/, '') : p.image2CloudUrl) || p.image2 || '';
-  const img3 = (p.image3CloudUrl && typeof p.image3CloudUrl === 'string' ? p.image3CloudUrl.replace(/#$/, '') : p.image3CloudUrl) || p.image3 || '';
+  const mainImg = (p.image1CloudUrlWeb && typeof p.image1CloudUrlWeb === 'string' ? p.image1CloudUrlWeb.replace(/#$/, '') : p.image1CloudUrlWeb) || p.img || p.image || '';
+  const img1 = (p.image1CloudUrlWeb && typeof p.image1CloudUrlWeb === 'string' ? p.image1CloudUrlWeb.replace(/#$/, '') : p.image1CloudUrlWeb) || p.image1 || '';
+  const img2 = (p.image2CloudUrlWeb && typeof p.image2CloudUrlWeb === 'string' ? p.image2CloudUrlWeb.replace(/#$/, '') : p.image2CloudUrlWeb) || p.image2 || '';
+  const img3 = (p.image3CloudUrlWeb && typeof p.image3CloudUrlWeb === 'string' ? p.image3CloudUrlWeb.replace(/#$/, '') : p.image3CloudUrlWeb) || p.image3 || '';
   const videoUrl = p.videoURL || p.videourl || p.video || '';
   const poster = p.videoThumbnail || '';
 
