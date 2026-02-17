@@ -2,11 +2,8 @@
    Fashion Banner — Premium Typography + Responsive
 ---------------------------------------- */
 
-/* import fonts once (module-safe) */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700;800&display=swap');
-
 /* base container */
-.wrap { position: relative; z-index: 1; font-family: 'Inter', sans-serif; }
+.wrap { position: relative; z-index: 1; font-family: var(--font-inter), system-ui, -apple-system, sans-serif; }
 .swiper { position: relative; }
 
 /* slide */
@@ -82,7 +79,7 @@
 /* title */
 .title {
   margin: 0 0 .6rem;
-  font-family: 'Playfair Display', serif;
+  font-family: var(--font-inter), Georgia, serif;
   font-weight: 800; line-height: 1.08;
   font-size: clamp(2.2rem, 6.8vw, 4.8rem);
   letter-spacing: -.01em; color: #fff;

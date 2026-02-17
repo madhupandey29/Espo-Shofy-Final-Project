@@ -153,7 +153,16 @@ const nextConfig = {
         ],
       },
       {
-        source: '/assets/fonts/:path*',
+        source: '/assets/fonts/:path*.woff2',
+        headers: [
+          {
+            key: 'Content-Type',
+            value: 'font/woff2',
+          },
+        ],
+      },
+      {
+        source: '/assets/fonts/:path*.ttf',
         headers: [
           {
             key: 'Content-Type',
