@@ -82,7 +82,7 @@ const ShopListItem = ({ product }) => {
       // Check for Cloudinary URLs in the product object
       const p = product?.product || product;
       const cloudinaryFields = [
-        p?.image1CloudUrl, p?.image2CloudUrl, p?.image3CloudUrl,
+        p?.image1CloudUrlWeb, p?.image2CloudUrl, p?.image3CloudUrl,
         p?.imageCloudUrl, p?.cloudUrl
       ];
 
@@ -249,12 +249,12 @@ const ShopListItem = ({ product }) => {
                 const processedProduct = {
                   ...product,
                   // Map Cloudinary URLs to standard fields, removing trailing hash
-                  img: (product.image1CloudUrl && typeof product.image1CloudUrl === 'string' 
-                    ? product.image1CloudUrl.replace(/#$/, '') 
-                    : product.image1CloudUrl) || product.img || product.image || '',
-                  image1: (product.image1CloudUrl && typeof product.image1CloudUrl === 'string' 
-                    ? product.image1CloudUrl.replace(/#$/, '') 
-                    : product.image1CloudUrl) || product.image1 || '',
+                  img: (product.image1CloudUrlWeb && typeof product.image1CloudUrlWeb === 'string' 
+                    ? product.image1CloudUrlWeb.replace(/#$/, '') 
+                    : product.image1CloudUrlWeb) || product.img || product.image || '',
+                  image1: (product.image1CloudUrlWeb && typeof product.image1CloudUrlWeb === 'string' 
+                    ? product.image1CloudUrlWeb.replace(/#$/, '') 
+                    : product.image1CloudUrlWeb) || product.image1 || '',
                   image2: (product.image2CloudUrl && typeof product.image2CloudUrl === 'string' 
                     ? product.image2CloudUrl.replace(/#$/, '') 
                     : product.image2CloudUrl) || product.image2 || '',

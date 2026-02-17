@@ -17,7 +17,7 @@ const TopRatedProducts = () => {
     
     // First check for Cloudinary URLs (direct URLs) - check all image fields
     const cloudinaryFields = [
-      p?.image1CloudUrl, p?.image2CloudUrl, p?.image3CloudUrl,
+      p?.image1CloudUrlWeb, p?.image2CloudUrlWeb, p?.image3CloudUrlWeb,
       p?.imageCloudUrl, p?.cloudUrl
     ];
 

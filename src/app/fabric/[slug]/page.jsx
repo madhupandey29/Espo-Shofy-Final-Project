@@ -175,8 +175,8 @@ export async function generateMetadata({ params }) {
     ? productKeywords.join(', ') 
     : productKeywords || "fabric, textile, premium quality, materials";
 
-  // ✅ OG image should be "image1CloudUrl" field (your requirement)
-  const ogImageUrl = pick(product?.image1CloudUrl, product?.image1, product?.img, product?.image, '');
+  // ✅ OG image should be "image1CloudUrlWeb" field (your requirement)
+  const ogImageUrl = pick(product?.image1CloudUrlWeb, product?.image1, product?.img, product?.image, '');
 
   // Dynamic robots tag - index if product exists, noindex if not found
   const robotsTag = product ? "index, follow" : "noindex, nofollow";

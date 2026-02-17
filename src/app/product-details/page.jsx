@@ -40,7 +40,7 @@ export async function generateMetadata({ searchParams }) {
   const product = await getProductData(productId);
   
   // Extract first image URL and remove trailing hash
-  const firstImage = (product?.image1CloudUrl && typeof product.image1CloudUrl === 'string' ? product.image1CloudUrl.replace(/#$/, '') : product?.image1CloudUrl) || 
+  const firstImage = (product?.image1CloudUrlWeb && typeof product.image1CloudUrlWeb === 'string' ? product.image1CloudUrlWeb.replace(/#$/, '') : product?.image1CloudUrlWeb) || 
                     product?.img || 
                     product?.image || 
                     product?.image1 || 

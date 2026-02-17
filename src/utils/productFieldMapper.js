@@ -162,9 +162,9 @@ export const getProductImages = (product) => {
   const images = {};
   
   // New API format - detailed image objects
-  if (product?.image1CloudUrl) {
+  if (product?.image1CloudUrlWeb) {
     images.image1 = {
-      url: cleanImageUrl(product.image1CloudUrl),
+      url: cleanImageUrl(product.image1CloudUrlWeb),
       alt: product.altTextImage1 || product.altimg1 || '',
       thumb: cleanImageUrl(product.image1ThumbUrl),
       width: product.image1Width,
