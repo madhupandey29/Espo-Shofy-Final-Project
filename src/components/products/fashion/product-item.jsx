@@ -391,7 +391,7 @@ const ProductItem = ({ product, index = 0 }) => {
     }
 
     // Fetch collection data if needed
-    if (prd.collectionId && (!prd.collection || !prd.collection.collectionimage1CloudUrlWeb)) {
+    if (prd.collectionId && (!prd.collection || !prd.collection.collectionimage1CloudUrl)) {
       try {
         const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL;
         const API_KEY = process.env.NEXT_PUBLIC_API_KEY;
@@ -446,7 +446,7 @@ const ProductItem = ({ product, index = 0 }) => {
       hasImage3: !!processedProduct.image3,
       hasVideo: !!processedProduct.video,
       hasCollection: !!processedProduct.collection,
-      collectionImage: processedProduct.collection?.collectionimage1CloudUrlWeb,
+      collectionImage: processedProduct.collection?.collectionimage1CloudUrl,
       collectionVideo: processedProduct.collection?.collectionvideoURL,
     });
 
