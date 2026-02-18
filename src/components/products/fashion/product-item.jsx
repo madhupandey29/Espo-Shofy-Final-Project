@@ -355,7 +355,7 @@ const ProductItem = ({ product, index = 0 }) => {
         : { product: prd, productId: getAnyId(prd) };
 
     try {
-      await dispatch(toggleWishlistItem({ userId, product: formatted })).unwrap();
+      await dispatch(toggleWishlistItem({ customerAccountId: userId, product: formatted })).unwrap();
     } catch (err) {
       }
   };

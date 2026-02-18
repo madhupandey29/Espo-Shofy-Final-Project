@@ -297,7 +297,7 @@ const WishlistItem = ({ product }) => {
 
       await dispatch(
         removeWishlistItem({
-          userId,
+          customerAccountId: userId,
           productId: String(_id),
           title: getDisplayTitle,
         })
@@ -340,7 +340,7 @@ const WishlistItem = ({ product }) => {
     try {
       await dispatch(
         removeWishlistItem({
-          userId,
+          customerAccountId: userId,
           productId: String(prd?.id || prd?._id),
           title: getDisplayTitle,
         })
@@ -363,11 +363,17 @@ const WishlistItem = ({ product }) => {
   };
 
   const rawImg =
+    valueToUrlString(product?.image1CloudUrl) ||
+    valueToUrlString(product?.image2CloudUrl) ||
+    valueToUrlString(product?.image3CloudUrl) ||
+    valueToUrlString(product?.imageCloudUrl) ||
     valueToUrlString(product?.img) ||
     valueToUrlString(product?.image) ||
     valueToUrlString(product?.image1) ||
     valueToUrlString(product?.image2) ||
+    valueToUrlString(product?.product?.image1CloudUrl) ||
     valueToUrlString(product?.product?.img) ||
+    valueToUrlString(hydrated?.image1CloudUrl) ||
     valueToUrlString(hydrated?.img) ||
     '';
 
