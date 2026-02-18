@@ -31,6 +31,9 @@ export const generateProductStructuredData = (product) => {
 
   // Collect all available images (filter out empty values)
   const images = [
+    product.image1CloudUrlWeb,
+    product.image2CloudUrlWeb,
+    product.image3CloudUrlWeb,
     product.image1CloudUrl,
     product.image2CloudUrl,
     product.image3CloudUrl,

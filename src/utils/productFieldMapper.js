@@ -178,9 +178,9 @@ export const getProductImages = (product) => {
     };
   }
   
-  if (product?.image2CloudUrl) {
+  if (product?.image2CloudUrlWeb) {
     images.image2 = {
-      url: cleanImageUrl(product.image2CloudUrl),
+      url: cleanImageUrl(product.image2CloudUrlWeb),
       alt: product.altTextImage2 || product.altimg2 || '',
       thumb: cleanImageUrl(product.image2ThumbUrl),
       width: product.image2Width,
@@ -193,9 +193,9 @@ export const getProductImages = (product) => {
     };
   }
   
-  if (product?.image3CloudUrl) {
+  if (product?.image3CloudUrlWeb) {
     images.image3 = {
-      url: cleanImageUrl(product.image3CloudUrl),
+      url: cleanImageUrl(product.image3CloudUrlWeb),
       alt: product.altTextImage3 || product.altimg3 || '',
       thumb: cleanImageUrl(product.image3ThumbUrl),
       width: product.image3Width,

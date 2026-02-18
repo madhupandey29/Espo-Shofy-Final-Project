@@ -83,7 +83,7 @@ export const getCollectionMediaForProduct = async (product) => {
   // First, try to get collection data directly from product response
   if (product.collection) {
     return {
-      image: product.collection.collectionImage1CloudUrl || null,
+      image: product.collection.collectionImage1CloudUrlWeb || product.collection.collectionImage1CloudUrl || null,
       video: product.collection.collectionvideoURL || null,
       collectionName: product.collection.name || null,
       altText: product.collection.altTextCollectionImage1 || null,
@@ -117,7 +117,7 @@ export const getCollectionMediaForProduct = async (product) => {
   }
   
   return {
-    image: collection.collectionImage1CloudUrl || null,
+    image: collection.collectionImage1CloudUrlWeb || collection.collectionImage1CloudUrl || null,
     video: collection.collectionvideoURL || null,
     collectionName: collection.name || null,
     altText: collection.altTextCollectionImage1 || null,
@@ -144,7 +144,7 @@ export const useCollectionMedia = () => {
       // Create a map of collection ID to collection data
       collections.forEach(collection => {
         newMap.set(collection.id, {
-          image: collection.collectionImage1CloudUrl || null,
+          image: collection.collectionImage1CloudUrlWeb || collection.collectionImage1CloudUrl || null,
           video: collection.collectionvideoURL || null,
           collectionName: collection.name || null,
           altText: collection.altTextCollectionImage1 || null,

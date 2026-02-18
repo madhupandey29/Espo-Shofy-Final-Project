@@ -33,6 +33,7 @@ function mapBackendProductToFrontend(p) {
     _id: p.id || p._id,
     slug: p.productslug || p.slug,
     title: p.name || p.productTitle || p.title,
+    productTitle: p.productTitle,
     img: mainImg,
     image1: img1,
     image2: img2,

@@ -69,7 +69,7 @@ export function generateFabricCollectionStructuredData(products = [], options = 
     );
 
     // Get product image
-    const productImage = product?.image1CloudUrl || product?.image1 || product?.img || product?.image || '';
+    const productImage = product?.image1CloudUrlWeb || product?.image1CloudUrl || product?.image1 || product?.img || product?.image || '';
 
     // Get rating data
     const ratingValue = product?.ratingValue;

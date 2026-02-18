@@ -82,7 +82,7 @@ const ShopListItem = ({ product }) => {
       // Check for Cloudinary URLs in the product object
       const p = product?.product || product;
       const cloudinaryFields = [
-        p?.image1CloudUrlWeb, p?.image2CloudUrl, p?.image3CloudUrl,
+        p?.image1CloudUrlWeb, p?.image2CloudUrlWeb, p?.image3CloudUrlWeb,
         p?.imageCloudUrl, p?.cloudUrl
       ];
 
@@ -255,12 +255,12 @@ const ShopListItem = ({ product }) => {
                   image1: (product.image1CloudUrlWeb && typeof product.image1CloudUrlWeb === 'string' 
                     ? product.image1CloudUrlWeb.replace(/#$/, '') 
                     : product.image1CloudUrlWeb) || product.image1 || '',
-                  image2: (product.image2CloudUrl && typeof product.image2CloudUrl === 'string' 
-                    ? product.image2CloudUrl.replace(/#$/, '') 
-                    : product.image2CloudUrl) || product.image2 || '',
-                  image3: (product.image3CloudUrl && typeof product.image3CloudUrl === 'string' 
-                    ? product.image3CloudUrl.replace(/#$/, '') 
-                    : product.image3CloudUrl) || product.image3 || '',
+                  image2: (product.image2CloudUrlWeb && typeof product.image2CloudUrlWeb === 'string' 
+                    ? product.image2CloudUrlWeb.replace(/#$/, '') 
+                    : product.image2CloudUrlWeb) || product.image2 || '',
+                  image3: (product.image3CloudUrlWeb && typeof product.image3CloudUrlWeb === 'string' 
+                    ? product.image3CloudUrlWeb.replace(/#$/, '') 
+                    : product.image3CloudUrlWeb) || product.image3 || '',
                   video: product.videoURL || product.videourl || product.video || '',
                   videourl: product.videoURL || product.videourl || product.video || '',
                   videoThumbnail: product.videoThumbnail || '',

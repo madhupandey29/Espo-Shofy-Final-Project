@@ -145,9 +145,9 @@ const ProductItem = ({ product, index = 0 }) => {
         const media = await getCollectionMediaForProduct(product);
         if (media.image || media.video) {
           setCollectionMedia(media);
-          } else {
+          } else {/*  */
           }
-      } catch (error) {
+      } catch (error) {/*  */
         }
     };
 

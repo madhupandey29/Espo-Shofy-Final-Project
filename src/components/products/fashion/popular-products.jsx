@@ -90,7 +90,7 @@ function getItemImage(item) {
 
   // First check for Cloudinary URLs (direct URLs)
   const cloudinaryFields = [
-    p?.image1CloudUrl, p?.image2CloudUrl, p?.image3CloudUrl,
+    p?.image1CloudUrlWeb, p?.image2CloudUrlWeb, p?.image3CloudUrlWeb,
     p?.imageCloudUrl, p?.cloudUrl
   ];
 

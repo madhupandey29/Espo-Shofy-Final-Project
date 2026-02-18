@@ -42,7 +42,7 @@ async function getProductBySlug(slug) {
     // Clean the slug by removing trailing hash character
     const cleanSlug = slug ? slug.replace(/#$/, '') : slug;
     // ✅ FIX: Since the slug endpoint is broken, get all products and search client-side
-    const res = await fetch(`${API_BASE}/product?limit=150`, {
+    const res = await fetch(`${API_BASE}/product`, {
       next: { revalidate },
     });
     
