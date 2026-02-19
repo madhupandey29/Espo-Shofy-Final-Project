@@ -167,38 +167,17 @@ const CartItem = ({ product }) => {
   const PID = (nested && nested._id) || (typeof productId === 'string' ? productId : null) || _id || id || '';
 
   // Hydrate like wishlist (for labels)
+  // DISABLED: Unified API already returns full product data in the response
+  // No need to fetch individual products - this was causing 404 errors
   const [hydrated, setHydrated] = useState(null);
   const apiBase = (process.env.NEXT_PUBLIC_API_BASE_URL || '').replace(/\/+$/, '');
+  
+  // Skip hydration - product data is already complete from unified API
   useEffect(() => {
-    let ignore = false;
-    (async () => {
-      if (!PID && !(nested?.slug || slug)) return;
-      const pslug = nested?.slug || slug || product?.product?.slug;
-      const endpoints = [
-        PID ? `${apiBase}/products/${PID}` : null,
-        PID ? `${apiBase}/product/${PID}` : null,
-        PID ? `${apiBase}/product/single/${PID}` : null,
-        PID ? `${apiBase}/api/products/${PID}` : null,
-        PID ? `${apiBase}/api/product/${PID}` : null,
-        pslug ? `${apiBase}/products/slug/${pslug}` : null,
-        pslug ? `${apiBase}/product/slug/${pslug}` : null,
-        pslug ? `${apiBase}/api/products/slug/${pslug}` : null,
-      ].filter(Boolean);
-      for (const url of endpoints) {
-        try {
-          const res = await fetch(url, { credentials: 'include' });
-          if (!res.ok) continue;
-          const json = await res.json();
-          const data = json?.data ?? json;
-          if (data && typeof data === 'object' && !ignore) {
-            setHydrated(data);
-            break;
-          }
-        } catch { /* noop */ }
-      }
-    })();
-    return () => { ignore = true; };
-  }, [PID, slug, nested, product, apiBase]);
+    // Product data is already in the nested object from unified API
+    // No need to fetch separately
+    return () => {};
+  }, []);
 
   const seoDoc = null; // Removed SEO API call
 
@@ -299,17 +278,37 @@ const CartItem = ({ product }) => {
   // actions
   const removeFromCart = useCallback(
     async (productIdToRemove) => {
-      const url = `https://test.amrita-fashions.com/shopy/cart/remove/${productIdToRemove}`;
+      const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "https://espobackend.vercel.app/api";
+      
+      // We need the cart item ID (not product ID) for DELETE
+      // The cartItemId should be in the product prop
+      const itemId = product?.cartItemId || product?.__originalCartItem?.id || productIdToRemove;
+      
+      console.log('🗑️ Remove from cart:', { itemId, productIdToRemove, userId });
+      
+      const url = `${API_BASE}/wishlist/${encodeURIComponent(itemId)}`;
       const res = await fetch(url, {
         method: 'DELETE',
         headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ userId }),
+        body: JSON.stringify({ 
+          customerAccountId: userId,
+          productId: productIdToRemove
+        }),
       });
-      if (!res.ok) throw new Error('Cart remove failed');
-      await res.json().catch(() => ({}));
+      
+      console.log('🗑️ Remove response status:', res.status);
+      
+      if (!res.ok) {
+        const errorText = await res.text().catch(() => '');
+        console.error('🗑️ Remove error:', errorText);
+        throw new Error('Cart remove failed');
+      }
+      
+      const result = await res.json().catch(() => ({}));
+      console.log('🗑️ Remove success:', result);
     },
-    [userId]
+    [userId, product]
   );
 
   const addToWishlist = useCallback(async (uId, pId) => {

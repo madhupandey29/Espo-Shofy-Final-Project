@@ -49,26 +49,72 @@ export const fetch_cart_products = createAsyncThunk(
   async ({ userId }, { rejectWithValue }) => {
     try {
       if (!userId) return rejectWithValue("Missing userId");
-      const res = await fetch(`${API_BASE}/api/cart/user/${userId}`, {
+      
+      // Using unified API endpoint (same as wishlist)
+      const API_BASE_UNIFIED = process.env.NEXT_PUBLIC_API_BASE_URL || "https://espobackend.vercel.app/api";
+      const url = `${API_BASE_UNIFIED}/wishlist/fieldname/customerAccountId/${encodeURIComponent(userId)}`;
+      
+      const res = await fetch(url, {
         method: "GET",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "Accept": "application/json"
+        },
+        credentials: "include",
         cache: "no-store",
       });
+      
       if (!res.ok) {
         const txt = await res.text().catch(() => "");
         return rejectWithValue(`HTTP ${res.status}: ${txt || "Failed to load cart"}`);
       }
+      
       const json = await res.json();
+      
+      console.log('🛒 FETCH CART - Raw response:', json);
+      
       if (!json?.success) return rejectWithValue(json?.message || "Cart API success=false");
 
-      const items = Array.isArray(json?.data?.items)
-        ? json.data.items
-        : Array.isArray(json?.items)
-        ? json.items
-        : [];
+      // Filter only cart items (itemType === "cart")
+      const allItems = Array.isArray(json?.data) ? json.data : [];
+      const cartItems = allItems.filter(item => item.itemType === 'cart');
+      
+      console.log('🛒 Filtered cart items:', cartItems.length, 'out of', allItems.length);
 
-      return normalizeItems(items);
+      // Transform cart items to include product data
+      const transformedItems = cartItems.map(item => ({
+        // Cart metadata
+        _id: item.productId,
+        id: item.productId,
+        productId: item.productId,
+        cartItemId: item.id, // For update/delete operations
+        
+        // Cart-specific fields
+        orderQuantity: item.qty || 1,
+        qty: item.qty || 1,
+        quantity: item.qty || 1,
+        price: parseFloat(item.price) || 0,
+        priceCurrency: item.priceCurrency || 'USD',
+        priceConverted: item.priceConverted,
+        itemType: item.itemType,
+        
+        // Product data from nested object
+        ...(item.product || {}),
+        
+        // Override with top-level fields
+        title: item.productName || item.product?.name || 'Product',
+        name: item.productName || item.product?.name || 'Product',
+        image: item.product?.image1CloudUrl || item.product?.img || '',
+        
+        // Keep original for reference
+        __originalCartItem: item,
+      }));
+
+      console.log('🛒 Transformed cart items:', transformedItems);
+
+      return transformedItems;
     } catch (e) {
+      console.error('🛒 FETCH CART Error:', e);
       return rejectWithValue(e?.message || "Unknown error fetching cart");
     }
   }
@@ -76,23 +122,51 @@ export const fetch_cart_products = createAsyncThunk(
 
 export const add_to_cart = createAsyncThunk(
   "cart/add_to_cart",
-  async ({ userId, productId, quantity = 1 }, { dispatch, rejectWithValue }) => {
+  async ({ userId, productId, quantity = 1, price = null, priceCurrency = 'USD' }, { dispatch, rejectWithValue }) => {
     try {
       if (!userId || !productId) return rejectWithValue("Missing userId or productId");
-      const res = await fetch(`${API_BASE}/api/cart/add`, {
+      
+      console.log('🛒 ADD TO CART:', { userId, productId, quantity, price, priceCurrency });
+      
+      // Using unified API endpoint (same as wishlist)
+      const API_BASE_UNIFIED = process.env.NEXT_PUBLIC_API_BASE_URL || "https://espobackend.vercel.app/api";
+      const url = `${API_BASE_UNIFIED}/wishlist`;
+      
+      const res = await fetch(url, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId, productId, quantity }),
+        headers: { 
+          "Content-Type": "application/json",
+          "Accept": "application/json"
+        },
+        credentials: "include",
+        body: JSON.stringify({ 
+          customerAccountId: userId,
+          productId: productId,
+          itemType: 'cart',
+          qty: quantity,
+          price: price || '0.00',
+          priceCurrency: priceCurrency
+        }),
       });
+      
+      console.log('🛒 ADD TO CART Response status:', res.status);
+      
       if (!res.ok) {
         const txt = await res.text().catch(() => "");
+        console.error('🛒 ADD TO CART Error:', txt);
         return rejectWithValue(`HTTP ${res.status}: ${txt || "Failed to add to cart"}`);
       }
+      
       const json = await res.json();
+      console.log('🛒 ADD TO CART Response:', json);
+      
       if (!json?.success) return rejectWithValue(json?.message || "Add to cart failed");
+      
+      // Refetch cart to get updated data
       await dispatch(fetch_cart_products({ userId }));
       return true;
     } catch (e) {
+      console.error('🛒 ADD TO CART Exception:', e);
       return rejectWithValue(e?.message || "Unknown error adding to cart");
     }
   }

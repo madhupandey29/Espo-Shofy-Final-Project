@@ -13,22 +13,64 @@ export const cartApi = apiSlice.injectEndpoints({
   overrideExisting: true,
   endpoints: (builder) => ({
 
-    // GET /cart/user/:userId
+    // GET unified API - filter by itemType: "cart"
     getCartData: builder.query({
       query: (userId) => {
-        return { url: `cart/user/${userId}`, method: "GET", cache: 'no-store' };
+        const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "https://espobackend.vercel.app/api";
+        const url = `${API_BASE}/wishlist/fieldname/customerAccountId/${encodeURIComponent(userId)}`;
+        
+        return { 
+          url: url,
+          method: "GET",
+          credentials: 'include',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          }
+        };
+      },
+      transformResponse: (response) => {
+        console.log('🛒 RTK Query - Raw response:', response);
+        
+        // Filter only cart items
+        const allItems = Array.isArray(response?.data) ? response.data : [];
+        const cartItems = allItems.filter(item => item.itemType === 'cart');
+        
+        console.log('🛒 RTK Query - Filtered cart items:', cartItems.length, 'out of', allItems.length);
+        
+        // Transform to match expected format
+        const transformedItems = cartItems.map(item => ({
+          _id: item.id, // cart item ID
+          productId: {
+            _id: item.productId,
+            name: item.productName || item.product?.name,
+            ...(item.product || {}),
+          },
+          quantity: item.qty || 1,
+          price: parseFloat(item.price) || 0,
+          priceCurrency: item.priceCurrency || 'USD',
+        }));
+        
+        return {
+          success: true,
+          data: {
+            items: transformedItems,
+            cartTotal: transformedItems.reduce((sum, item) => sum + (item.price * item.quantity), 0)
+          }
+        };
       },
       providesTags: (result, error, userId) => [{ type: "Cart", id: userId ?? "UNKNOWN" }],
       keepUnusedDataFor: 60,
-      // With RTKQ, returning true forces a refetch when same arg remounts
       forceRefetch({ currentArg, previousArg }) {
         return currentArg === previousArg;
       },
       async onQueryStarted(userId, { queryFulfilled }) {
         try {
           const result = await queryFulfilled;
-          } catch (err) {
-          }
+          console.log('🛒 RTK Query - Success:', result);
+        } catch (err) {
+          console.error('🛒 RTK Query - Error:', err);
+        }
       },
     }),
 
@@ -50,21 +92,39 @@ export const cartApi = apiSlice.injectEndpoints({
       },
     }),
 
-    // DELETE /cart/remove/:productId
+    // DELETE /wishlist/:itemId - Remove cart item
     removeCartItem: builder.mutation({
-      query: ({ productId, userId }) => {
+      query: ({ productId, userId, cartItemId }) => {
+        const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "https://espobackend.vercel.app/api";
+        
+        // If we have cartItemId, use it directly; otherwise we need to find it
+        const itemId = cartItemId || productId;
+        const url = `${API_BASE}/wishlist/${encodeURIComponent(itemId)}`;
+        
+        console.log('🗑️ RTK Query - Remove cart item:', { url, productId, userId, cartItemId });
+        
         return {
-          url: `cart/remove/${productId}`,
+          url: url,
           method: "DELETE",
-          body: { userId },
+          credentials: 'include',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ 
+            customerAccountId: userId,
+            productId: productId
+          }),
         };
       },
       invalidatesTags: (result, error, { userId }) => [{ type: "Cart", id: userId ?? "UNKNOWN" }],
       async onQueryStarted({ productId }, { queryFulfilled }) {
         try {
           const result = await queryFulfilled;
-          } catch (err) {
-          }
+          console.log('🗑️ RTK Query - Remove success:', result);
+        } catch (err) {
+          console.error('🗑️ RTK Query - Remove error:', err);
+        }
       },
     }),
 

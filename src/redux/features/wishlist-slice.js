@@ -292,12 +292,19 @@ export const wishlistSlice = createSlice({
         console.log('📥 FETCH WISHLIST - Raw payload:', payload);
         
         // Transform API response to match component expectations
-        // Each item has: id (wishlist ID), productId, product (full object)
-        state.wishlist = (Array.isArray(payload) ? payload : []).map((item) => {
+        // Filter only wishlist items (itemType === "wishlist")
+        const wishlistItems = (Array.isArray(payload) ? payload : []).filter(
+          item => item.itemType === 'wishlist'
+        );
+        
+        console.log('📥 Filtered wishlist items:', wishlistItems.length, 'out of', payload?.length || 0);
+        
+        state.wishlist = wishlistItems.map((item) => {
           const transformed = {
             // Wishlist metadata
             wishlistItemId: item.id,           // For DELETE operations
             customerAccountId: item.customerAccountId,
+            itemType: item.itemType,           // Keep itemType
             
             // Product data (flatten for compatibility)
             _id: item.productId,               // Components expect _id
@@ -319,7 +326,8 @@ export const wishlistSlice = createSlice({
             wishlistItemId: transformed.wishlistItemId,
             productId: transformed.productId,
             _id: transformed._id,
-            name: transformed.name
+            name: transformed.name,
+            itemType: transformed.itemType
           });
           
           return transformed;
