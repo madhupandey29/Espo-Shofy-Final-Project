@@ -122,11 +122,24 @@ export const fetch_cart_products = createAsyncThunk(
 
 export const add_to_cart = createAsyncThunk(
   "cart/add_to_cart",
-  async ({ userId, productId, quantity = 1, price = null, priceCurrency = 'USD' }, { dispatch, rejectWithValue }) => {
+  async ({ userId, productId, quantity = 1, price = null, priceCurrency = 'USD' }, { dispatch, getState, rejectWithValue }) => {
     try {
       if (!userId || !productId) return rejectWithValue("Missing userId or productId");
       
       console.log('🛒 ADD TO CART:', { userId, productId, quantity, price, priceCurrency });
+      
+      // Check if item already exists in cart (double-check before API call)
+      const state = getState();
+      const cartItems = state.cart?.cart_products || [];
+      const existingItem = cartItems.find(item => {
+        const itemId = String(item.productId || item._id || item.id);
+        return itemId === String(productId);
+      });
+      
+      if (existingItem) {
+        console.log('🛒 Item already in cart (client-side check), preventing duplicate');
+        return rejectWithValue("Item already in cart");
+      }
       
       // Using unified API endpoint (same as wishlist)
       const API_BASE_UNIFIED = process.env.NEXT_PUBLIC_API_BASE_URL || "https://espobackend.vercel.app/api";
@@ -154,15 +167,28 @@ export const add_to_cart = createAsyncThunk(
       if (!res.ok) {
         const txt = await res.text().catch(() => "");
         console.error('🛒 ADD TO CART Error:', txt);
+        
+        // Check if backend says item already exists
+        if (txt.includes('already') || txt.includes('duplicate') || txt.includes('exists')) {
+          return rejectWithValue("Item already in cart");
+        }
+        
         return rejectWithValue(`HTTP ${res.status}: ${txt || "Failed to add to cart"}`);
       }
       
       const json = await res.json();
       console.log('🛒 ADD TO CART Response:', json);
       
-      if (!json?.success) return rejectWithValue(json?.message || "Add to cart failed");
+      if (!json?.success) {
+        // Check if backend message indicates duplicate
+        const msg = json?.message || "";
+        if (msg.includes('already') || msg.includes('duplicate') || msg.includes('exists')) {
+          return rejectWithValue("Item already in cart");
+        }
+        return rejectWithValue(msg || "Add to cart failed");
+      }
       
-      // Refetch cart to get updated data
+      // Refetch cart to get updated data and ensure UI is in sync
       await dispatch(fetch_cart_products({ userId }));
       return true;
     } catch (e) {

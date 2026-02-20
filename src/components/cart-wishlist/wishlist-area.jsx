@@ -42,7 +42,7 @@ const WishlistArea = () => {
           )}
 
           {hasItems && (
-            <div className="wishlist-content">
+            <>
               <div className="wishlist-header">
                 <div className="header-info">
                   <h2>My Wishlist</h2>
@@ -70,10 +70,13 @@ const WishlistArea = () => {
 
               <div className="wishlist-grid">
                 {wishlist.map((item, i) => (
-                  <WishlistItem key={(item?._id || item?.id || i) + '_wl'} product={item} />
+                  <WishlistItem 
+                    key={item?.wishlistItemId || item?.cartItemId || `${item?._id || item?.id}-${i}_wl`} 
+                    product={item} 
+                  />
                 ))}
               </div>
-            </div>
+            </>
           )}
         </div>
       </section>
@@ -81,7 +84,7 @@ const WishlistArea = () => {
       {/* Styles */}
       <style jsx>{`
         .modern-wishlist-area {
-          padding: 40px 0 80px;
+          padding: 30px 0 60px;
           background: var(--tp-grey-1);
           min-height: calc(100vh - 200px);
         }
@@ -114,20 +117,13 @@ const WishlistArea = () => {
           font-size: 16px;
         }
 
-        .wishlist-content {
-          background: var(--tp-common-white);
-          border-radius: 16px;
-          overflow: hidden;
-          box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-        }
-
         .wishlist-header {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          padding: 24px;
-          border-bottom: 1px solid var(--tp-grey-2);
-          background: var(--tp-common-white);
+          padding: 20px 0;
+          margin-bottom: 20px;
+          border-bottom: 2px solid var(--tp-grey-2);
           flex-wrap: wrap;
           gap: 16px;
         }
@@ -190,7 +186,6 @@ const WishlistArea = () => {
           display: grid;
           grid-template-columns: repeat(5, 1fr);
           gap: 16px;
-          padding: 24px;
         }
 
         .btn-primary-modern {
@@ -236,7 +231,7 @@ const WishlistArea = () => {
         @media (max-width: 992px) {
           .wishlist-grid {
             grid-template-columns: repeat(3, 1fr);
-            gap: 14px;
+            gap: 16px;
           }
         }
 
@@ -248,7 +243,8 @@ const WishlistArea = () => {
           .wishlist-header {
             flex-direction: column;
             align-items: flex-start;
-            padding: 20px;
+            padding: 20px 0;
+            margin-bottom: 20px;
             gap: 16px;
           }
 
@@ -263,8 +259,7 @@ const WishlistArea = () => {
 
           .wishlist-grid {
             grid-template-columns: repeat(2, 1fr);
-            gap: 12px;
-            padding: 20px;
+            gap: 14px;
           }
         }
 
@@ -275,7 +270,7 @@ const WishlistArea = () => {
           }
 
           .wishlist-header {
-            padding: 16px;
+            padding: 16px 0;
           }
 
           .header-info h2 {
@@ -299,8 +294,7 @@ const WishlistArea = () => {
 
           .wishlist-grid {
             grid-template-columns: repeat(2, 1fr);
-            padding: 16px;
-            gap: 10px;
+            gap: 12px;
           }
         }
       `}</style>

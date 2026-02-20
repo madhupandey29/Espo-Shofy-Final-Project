@@ -134,6 +134,7 @@ const HeaderTwo = ({ style_2 = false }) => {
   const [hasSession, setHasSession] = useState(false);
   const [userOpen, setUserOpen] = useState(false);
   const [userImage, setUserImage] = useState(null);
+  const [userName, setUserName] = useState('');
   const userBtnRef = useRef(null);
   const userMenuRef = useRef(null);
 
@@ -145,6 +146,13 @@ const HeaderTwo = ({ style_2 = false }) => {
   useEffect(() => {
     if (userData?.user?.userImage) setUserImage(userData.user.userImage);
     else if (userData?.user?.avatar) setUserImage(userData.user.avatar);
+    
+    // Extract username
+    if (userData?.user?.name) setUserName(userData.user.name);
+    else if (userData?.user?.firstName) {
+      const fullName = `${userData.user.firstName} ${userData.user.lastName || ''}`.trim();
+      setUserName(fullName);
+    }
   }, [userData]);
 
   useEffect(() => {
@@ -251,40 +259,72 @@ const HeaderTwo = ({ style_2 = false }) => {
           >
             <div className="container" style={{ overflow: 'visible' }}>
               <div className="tp-mega-menu-wrapper p-relative" style={{ overflow: 'visible' }}>
-                <div className="row align-items-center">
-                  {/* Logo */}
-                  <div className="col-6 col-sm-4 col-md-4 col-lg-3 col-xl-2">
-                    <div className="logo d-flex align-items-center" style={{ gap: '12px' }}>
-                      <Link href="/" className="d-flex align-items-center" style={{ gap: '12px' }}>
+                <div className="row align-items-center mobile-header-row">
+                  
+                  {/* Mobile: Hamburger + Logo on Left */}
+                  <div className="col-xl-2 col-lg-2 col-md-3 col-6 d-xl-none mobile-left-section">
+                    <div className="d-flex align-items-center" style={{ gap: '12px' }}>
+                      {/* Mobile hamburger - LEFT SIDE */}
+                      <button 
+                        onClick={() => setIsCanvasOpen(true)} 
+                        type="button" 
+                        className="tp-offcanvas-open-btn mobile-menu-btn" 
+                        aria-label="Open menu"
+                      >
+                        <FiMenu />
+                      </button>
+                      
+                      {/* Logo */}
+                      <Link href="/" className="d-flex align-items-center mobile-logo-link">
                         <Image
                           src="/assets/img/logo/age.jpg"
                           alt="Company Logo"
-                          width={140}
-                          height={44}
+                          width={180}
+                          height={56}
                           priority
                           quality={90}
-                          sizes="(max-width: 600px) 110px, 140px"
-                          style={{ height: 'auto', width: 'auto', maxWidth: '140px', maxHeight: '44px' }}
+                          sizes="(max-width: 600px) 130px, (max-width: 768px) 150px, 180px"
+                          style={{ height: 'auto', width: 'auto' }}
+                          className="header-logo mobile-logo"
+                        />
+                      </Link>
+                    </div>
+                  </div>
+                  
+                  {/* Desktop: Logo Only */}
+                  <div className="col-xl-2 col-lg-2 col-md-3 d-none d-xl-block">
+                    <div className="logo d-flex align-items-center">
+                      <Link href="/" className="d-flex align-items-center">
+                        <Image
+                          src="/assets/img/logo/age.jpg"
+                          alt="Company Logo"
+                          width={180}
+                          height={56}
+                          priority
+                          quality={90}
+                          sizes="180px"
+                          style={{ height: 'auto', width: 'auto', maxWidth: '180px', maxHeight: '56px' }}
+                          className="header-logo"
                         />
                       </Link>
                     </div>
                   </div>
 
-                  {/* Menu */}
-                  <div className="d-none d-xl-block col-xl-4">
-
-                    <div className="main-menu menu-style-2">
-                      <nav className="tp-main-menu-content"><Menus /></nav>
+                  {/* Centered Menu - Desktop Only */}
+                  <div className="d-none d-xl-block col-xl-6">
+                    <div className="main-menu menu-style-2 text-center">
+                      <nav className="tp-main-menu-content d-flex justify-content-center">
+                        <Menus />
+                      </nav>
                     </div>
                   </div>
 
-                  {/* Right side */}
-                  <div className="col-6 col-sm-8 col-md-8 col-lg-9 col-xl-6">
-
+                  {/* Right side - Search, Cart, Profile */}
+                  <div className="col-xl-4 col-lg-10 col-md-9 col-6">
                     <div className="tp-header-bottom-right d-flex align-items-center justify-content-end header-right">
 
                       {/* ======= DESKTOP SEARCH ======= */}
-                      <div className="tp-header-search-2 d-none d-md-block me-3 search-wrap" ref={desktopSearchWrapRef}>
+                      <div className="tp-header-search-2 d-none d-lg-block me-3 search-wrap" ref={desktopSearchWrapRef}>
                         <form onSubmit={onSearchSubmit} className="search-form">
                           <input
                             ref={searchInputRef}
@@ -298,8 +338,7 @@ const HeaderTwo = ({ style_2 = false }) => {
                             spellCheck={false}
                             inputMode="search"
                             maxLength={200}
-                         className={`search-input ${searchQuery.trim() ? 'has-clear' : ''}`}
-
+                            className={`search-input ${searchQuery.trim() ? 'has-clear' : ''}`}
                           />
 
                           {searchQuery.trim() && (
@@ -330,7 +369,7 @@ const HeaderTwo = ({ style_2 = false }) => {
                       </div>
 
                       {/* ======= MOBILE SEARCH BAR (EXPANDABLE) ======= */}
-                      <div className={`tp-header-search-mobile d-md-none ${mobileSearchOpen ? 'expanded' : ''}`} ref={mobileSearchWrapRef}>
+                      <div className={`tp-header-search-mobile d-lg-none ${mobileSearchOpen ? 'expanded' : ''}`} ref={mobileSearchWrapRef}>
                         {mobileSearchOpen && (
                           <form onSubmit={onSearchSubmit} className="mobile-search-form">
                             <input
@@ -367,7 +406,7 @@ const HeaderTwo = ({ style_2 = false }) => {
                       <div className="tp-header-action d-flex align-items-center header-actions">
 
                         {/* ======= MOBILE SEARCH ICON ======= */}
-                        <div className="tp-header-action-item d-md-none me-2">
+                        <div className="tp-header-action-item d-lg-none">
                           <button
                             onClick={() => setMobileSearchOpen(!mobileSearchOpen)}
                             className="tp-header-action-btn"
@@ -378,45 +417,60 @@ const HeaderTwo = ({ style_2 = false }) => {
                           </button>
                         </div>
 
-                        {/* User / Auth */}
-                        <div className="tp-header-action-item me-2 position-relative" style={{ overflow: 'visible' }}>
+                        {/* Wishlist - Hidden on small mobile and when not logged in */}
+                        {hasSession && (
+                          <div className="tp-header-action-item d-none d-sm-block">
+                            <Link href="/wishlist" className="tp-header-action-btn" aria-label="Wishlist" prefetch>
+                              <FaHeart />
+                              <span className="tp-header-action-badge">{wishlistCount}</span>
+                            </Link>
+                          </div>
+                        )}
+
+                        {/* Cart */}
+                        {hasSession && (
+                          <div className="tp-header-action-item">
+                            <button onClick={onOpenCart} className="tp-header-action-btn cartmini-open-btn" aria-label="Open cart" type="button">
+                              <CartTwo />
+                              <span className="tp-header-action-badge" key={`cart-${distinctCount}`}>{distinctCount}</span>
+                            </button>
+                          </div>
+                        )}
+
+                        {/* User / Auth - WITH USERNAME */}
+                        <div className="tp-header-action-item position-relative" style={{ overflow: 'visible' }}>
                           {hasSession ? (
                             <>
                               <button
                                 ref={userBtnRef}
                                 onClick={() => setUserOpen((v) => !v)}
-                                className="tp-header-action-btn"
+                                className="tp-header-action-btn profile-btn-with-name"
                                 aria-haspopup="menu"
                                 aria-expanded={userOpen}
                                 aria-label="Account menu"
                                 type="button"
-                                style={userImage ? { padding: 0, overflow: 'hidden', borderRadius: '50%' } : {}}
                               >
                                 {userImage ? (
-                                  <>
-                                    <Image
-                                      src={userImage}
-                                      alt="Profile"
-                                      width={36}
-                                      height={36}
-                                      quality={85}
-                                      style={{
-                                        width: '36px',
-                                        height: '36px',
-                                        objectFit: 'cover',
-                                        borderRadius: '50%',
-                                        border: '1px solid rgba(0,0,0,0.1)',
-                                      }}
-                                      onError={(e) => {
-                                        e.currentTarget.style.display = 'none';
-                                        const sib = e.currentTarget.nextElementSibling;
-                                        if (sib && sib.style) sib.style.display = 'inline-flex';
-                                      }}
-                                    />
-                                    <FaUser style={{ display: 'none' }} />
-                                  </>
+                                  <Image
+                                    src={userImage}
+                                    alt="Profile"
+                                    width={32}
+                                    height={32}
+                                    quality={85}
+                                    className="profile-avatar"
+                                    onError={(e) => {
+                                      e.currentTarget.style.display = 'none';
+                                      const sib = e.currentTarget.nextElementSibling;
+                                      if (sib && sib.style) sib.style.display = 'inline-flex';
+                                    }}
+                                  />
                                 ) : (
-                                  <FaUser />
+                                  <FaUser className="profile-icon" />
+                                )}
+                                {userName && (
+                                  <span className="profile-username d-none d-lg-inline-block">
+                                    {userName.length > 15 ? `${userName.substring(0, 15)}...` : userName}
+                                  </span>
                                 )}
                               </button>
 
@@ -437,39 +491,16 @@ const HeaderTwo = ({ style_2 = false }) => {
                           ) : (
                             <Link
                               href={pathname === '/login' ? '/login' : `/login?redirect=${encodeURIComponent(currentUrl)}`}
-                              className="tp-header-action-btn"
-                              aria-label="Login or Sign Up"
+                              className="tp-header-action-btn signin-btn"
+                              aria-label="Sign in"
                               prefetch
                             >
-                              <FaUser />
+                              <FaUser className="signin-icon" />
+                              <span className="signin-text">Sign in</span>
                             </Link>
                           )}
                         </div>
 
-                        {/* Wishlist */}
-                        <div className="tp-header-action-item d-none d-lg-block me-2">
-                          <Link href="/wishlist" className="tp-header-action-btn" aria-label="Wishlist" prefetch>
-                            <FaHeart />
-                            <span className="tp-header-action-badge">{wishlistCount}</span>
-                          </Link>
-                        </div>
-
-                        {/* Cart */}
-                        {hasSession && (
-                          <div className="tp-header-action-item me-2">
-                            <button onClick={onOpenCart} className="tp-header-action-btn cartmini-open-btn" aria-label="Open cart" type="button">
-                              <CartTwo />
-                              <span className="tp-header-action-badge" key={`cart-${distinctCount}`}>{distinctCount}</span>
-                            </button>
-                          </div>
-                        )}
-
-                        {/* Mobile hamburger */}
-                        <div className="tp-header-action-item tp-header-hamburger d-xl-none">
-                          <button onClick={() => setIsCanvasOpen(true)} type="button" className="tp-offcanvas-open-btn" aria-label="Open menu">
-                            <FiMenu />
-                          </button>
-                        </div>
                       </div>
 
                     </div>
@@ -519,7 +550,28 @@ const HeaderTwo = ({ style_2 = false }) => {
 
   /* prevent content hidden behind fixed header */
   :global(body){
-    padding-top: 72px; /* adjust if your header height differs */
+    padding-top: 70px; /* adjust if your header height differs */
+  }
+}
+
+/* Mobile header height optimization */
+@media (max-width: 767px){
+  .tp-header-bottom-2{
+    padding: 10px 0 !important;
+  }
+  
+  :global(body){
+    padding-top: 65px;
+  }
+}
+
+@media (max-width: 575px){
+  .tp-header-bottom-2{
+    padding: 8px 0 !important;
+  }
+  
+  :global(body){
+    padding-top: 60px;
   }
 }
         @keyframes slideDown {
@@ -564,9 +616,9 @@ const HeaderTwo = ({ style_2 = false }) => {
         ---------------------------- */
      .tp-header-action-btn{
   position: relative;
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -574,6 +626,112 @@ const HeaderTwo = ({ style_2 = false }) => {
   /* IMPORTANT: fixes SVG baseline / vertical misalignment */
   line-height: 0;
   padding: 0;
+  transition: all 0.2s ease;
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+}
+
+.tp-header-action-btn:hover{
+  background: #e5e7eb;
+  border-color: #d1d5db;
+}
+
+/* Profile button with username */
+:global(.profile-btn-with-name){
+  width: auto !important;
+  min-width: 44px;
+  height: 40px !important;
+  padding: 0 14px !important;
+  gap: 10px;
+  background: #f3f4f6 !important;
+  border: 1px solid #e5e7eb !important;
+  transition: all 0.3s ease;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 8px !important;
+  box-shadow: none !important;
+}
+
+:global(.profile-btn-with-name:hover){
+  background: #e5e7eb !important;
+  border-color: #d1d5db !important;
+  box-shadow: none !important;
+}
+
+/* Sign in button (logged out state) */
+:global(.signin-btn.signin-btn){
+  width: auto !important;
+  min-width: 44px;
+  height: 40px !important;
+  padding: 0 18px !important;
+  gap: 8px;
+  background: #ffffff !important;
+  border: 1px solid #2C4C97 !important;
+  color: #2C4C97 !important;
+  transition: all 0.3s ease;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 8px !important;
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgba(44, 76, 151, 0.1);
+  margin-left: 4px;
+}
+
+:global(.signin-btn.signin-btn:hover){
+  background: #f8fafc !important;
+  border-color: #1e3a7a !important;
+  color: #1e3a7a !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(44, 76, 151, 0.2);
+}
+
+:global(.signin-btn.signin-btn:active){
+  transform: translateY(0);
+  box-shadow: 0 1px 3px rgba(44, 76, 151, 0.2);
+}
+
+:global(.signin-icon){
+  width: 16px !important;
+  height: 16px !important;
+  flex-shrink: 0;
+  color: #2C4C97 !important;
+}
+
+:global(.signin-text){
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  color: #2C4C97 !important;
+  white-space: nowrap;
+  line-height: 1.4;
+  letter-spacing: 0.01em;
+}
+
+:global(.profile-avatar){
+  width: 32px !important;
+  height: 32px !important;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #e5e7eb;
+  flex-shrink: 0;
+}
+
+:global(.profile-icon){
+  width: 20px !important;
+  height: 20px !important;
+  flex-shrink: 0;
+}
+
+:global(.profile-username){
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  color: #0f172a !important;
+  white-space: nowrap;
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.4;
 }
 
         /* keep template hover styles, only improve feel */
@@ -597,13 +755,202 @@ const HeaderTwo = ({ style_2 = false }) => {
     height: 18px;
     display: block;
   }
+  
+  .profile-btn-with-name{
+    width: 40px !important;
+    min-width: 40px;
+    padding: 0 !important;
+  }
+  
+  .signin-btn{
+    width: 40px !important;
+    min-width: 40px;
+    padding: 0 !important;
+    background: #2C4C97 !important;
+  }
+  
+  .profile-avatar{
+    width: 28px !important;
+    height: 28px !important;
+  }
+  
+  /* Mobile header improvements */
+  .header-right{
+    gap: 3px !important;
+  }
+  
+  .header-actions{
+    gap: 3px !important;
+  }
+  
+  /* Mobile logo - MAXIMUM SIZE */
+  .mobile-logo{
+    max-width: 280px !important;
+    max-height: 87px !important;
+  }
+  
+  /* Mobile action buttons - SMALLER */
+  .tp-header-action-btn{
+    width: 36px !important;
+    height: 36px !important;
+    border-radius: 10px !important;
+  }
+  
+  .tp-header-action-btn :global(svg){
+    width: 18px !important;
+    height: 18px !important;
+  }
+  
+  /* Profile button - SMALLER on mobile */
+  :global(.profile-btn-with-name){
+    width: 36px !important;
+    min-width: 36px !important;
+    height: 36px !important;
+    padding: 0 !important;
+  }
+  
+  :global(.signin-btn){
+    width: auto !important;
+    min-width: 80px !important;
+    height: 36px !important;
+    padding: 0 12px !important;
+    gap: 6px !important;
+    background: #ffffff !important;
+    border: 1px solid #2C4C97 !important;
+    color: #2C4C97 !important;
+    margin-left: 4px !important;
+  }
+  
+  :global(.signin-btn:hover){
+    background: #f8fafc !important;
+    border-color: #1e3a7a !important;
+    color: #1e3a7a !important;
+  }
+  
+  :global(.signin-text){
+    font-size: 13px !important;
+    display: inline-block !important;
+    color: #2C4C97 !important;
+  }
+  
+  :global(.signin-icon){
+    width: 16px !important;
+    height: 16px !important;
+    color: #2C4C97 !important;
+  }
+  
+  /* Mobile menu button on left - SMALLER */
+  .mobile-menu-btn{
+    width: 36px !important;
+    height: 36px !important;
+    border: 1px solid #e5e7eb;
+    background: #f3f4f6;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 0;
+    color: #0f172a;
+    border-radius: 10px;
+    transition: all 0.2s ease;
+  }
+  
+  .mobile-menu-btn:hover{
+    background: #e5e7eb;
+    border-color: #d1d5db;
+  }
+  
+  .mobile-menu-btn :global(svg){
+    width: 20px !important;
+    height: 20px !important;
+  }
+  
+  .mobile-left-section{
+    padding-right: 8px;
+  }
+  
+  /* Minimal margins - small defined gaps */
+  .tp-header-action-item{
+    margin-right: 0px !important;
+    margin-left: 0px !important;
+  }
+  
+  .tp-header-action-item:last-child{
+    margin-right: 0 !important;
+  }
+  
+  /* Mobile header row */
+  .mobile-header-row{
+    margin: 0 !important;
+  }
+  
+  .profile-avatar{
+    width: 24px !important;
+    height: 24px !important;
+  }
+        }
+        
+        /* Mobile landscape and small tablets */
+        @media (min-width: 576px) and (max-width: 767px){
+          .tp-header-action-btn{
+            width: 38px !important;
+            height: 38px !important;
+          }
+          
+          .header-right{
+            gap: 6px;
+          }
+          
+          .header-actions{
+            gap: 5px;
+          }
+          
+          .mobile-logo{
+            max-width: 220px !important;
+            max-height: 68px !important;
+          }
+          
+          .mobile-menu-btn{
+            width: 38px !important;
+            height: 38px !important;
+          }
+          
+          .tp-header-action-item{
+            margin-right: 5px !important;
+          }
+        }
+        
+        /* Tablet */
+        @media (min-width: 768px) and (max-width: 1199px){
+          .mobile-logo{
+            max-width: 240px !important;
+            max-height: 74px !important;
+          }
+          
+          .mobile-menu-btn{
+            width: 40px !important;
+            height: 40px !important;
+          }
+          
+          .tp-header-action-btn{
+            width: 40px !important;
+            height: 40px !important;
+          }
+          
+          .header-right{
+            gap: 8px;
+          }
+          
+          .header-actions{
+            gap: 6px;
+          }
         }
 
         /* Badge fix (0 / counts) */
         .tp-header-action-badge{
           position: absolute;
-          top: -6px;
-          right: -6px;
+          top: -4px;
+          right: -4px;
           min-width: 18px;
           height: 18px;
           padding: 0 5px;
@@ -611,20 +958,34 @@ const HeaderTwo = ({ style_2 = false }) => {
           display: inline-flex;
           align-items: center;
           justify-content: center;
-          font-size: 11px;
+          font-size: 10px;
           font-weight: 700;
           line-height: 1;
           background: #ef4444;
           color: #fff;
           pointer-events: none;
+          border: 2px solid #fff;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+          z-index: 1;
         }
+        
+        /* Ensure consistent badge positioning for all icons */
+        .tp-header-action-item{
+          position: relative;
+        }
+        
+        .tp-header-action-btn{
+          position: relative;
+        }
+        
         @media (max-width: 575px){
           .tp-header-action-badge{
-            top: -5px;
-            right: -5px;
+            top: -3px;
+            right: -3px;
             min-width: 16px;
             height: 16px;
-            font-size: 10px;
+            font-size: 9px;
+            border: 1.5px solid #fff;
           }
         }
 
@@ -634,47 +995,53 @@ const HeaderTwo = ({ style_2 = false }) => {
         .search-wrap{
           position: relative;
           z-index: 10;
-          flex: 1 1 auto;
-          min-width: 220px;
+          flex: 0 1 auto;
+          min-width: 180px;
+          max-width: 280px;
         }
 
         .search-form{
           position: relative;
-          width: clamp(240px, 36vw, 560px);
+          width: 100%;
           max-width: 100%;
           z-index: 10;
         }
 
 .search-input{
   width: 100%;
-  height: 44px;
-  border-radius: 12px;
-  border: 1px solid #cfd6df;
-  background: #fff;
+  height: 40px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  background: #f9fafb;
   color: #0f172a;
-  font-size: 14px;
-  padding: 0 52px 0 14px; /* only space for search icon by default */
+  font-size: 13px;
+  padding: 0 42px 0 14px;
   outline: none;
   cursor: text;
   position: relative;
+  transition: all 0.2s ease;
 }
 .search-input.has-clear{
-  padding-right: 120px; /* when Clear button is visible */
+  padding-right: 110px;
 }
 
         .search-input:focus{
-          border-color: #3b82f6;
-          box-shadow: 0 0 0 3px rgba(59,130,246,.12);
+          border-color: #2C4C97;
+          background: #fff;
+          box-shadow: 0 0 0 3px rgba(44, 76, 151, 0.1);
         }
-        .search-input::placeholder{ color: #6b7280; }
+        .search-input::placeholder{ 
+          color: #9ca3af;
+          font-size: 13px;
+        }
 
         .search-submit{
           position: absolute;
-          right: 10px;
+          right: 8px;
           top: 50%;
           transform: translateY(-50%);
-          height: 34px;
-          width: 34px;
+          height: 30px;
+          width: 30px;
           border: 0;
           background: transparent;
           display: inline-flex;
@@ -683,33 +1050,39 @@ const HeaderTwo = ({ style_2 = false }) => {
           cursor: pointer;
           padding: 0;
           z-index: 2;
+          color: #6b7280;
+          transition: color 0.2s ease;
+        }
+        
+        .search-submit:hover{
+          color: #2C4C97;
         }
 
         .search-clear{
           position: absolute;
-          right: 46px;
+          right: 40px;
           top: 50%;
           transform: translateY(-50%);
-          height: 30px;
+          height: 26px;
           padding: 0 8px;
           border: 1px solid #e5e7eb;
-          background: #f8fafc;
+          background: #fff;
           cursor: pointer;
-          font-size: 12px;
+          font-size: 11px;
           font-weight: 600;
           line-height: 1;
           color: #6b7280;
           display: inline-flex;
           align-items: center;
           justify-content: center;
-          border-radius: 8px;
+          border-radius: 6px;
           z-index: 2;
           white-space: nowrap;
           transition: all .2s ease;
         }
         .search-clear:hover{
           color: #111827;
-          background: #e5e7eb;
+          background: #f3f4f6;
           border-color: #d1d5db;
         }
 
@@ -843,14 +1216,17 @@ const HeaderTwo = ({ style_2 = false }) => {
         }
         /* LAPTOP widths: shrink search so menu + icons fit better */
 @media (min-width: 1200px) and (max-width: 1440px){
-  .search-form{
-    width: clamp(220px, 26vw, 420px);
+  .search-wrap{
+    max-width: 240px;
   }
   .header-right{
     gap: 8px;
   }
   .header-actions{
     gap: 6px;
+  }
+  .profile-username{
+    max-width: 100px;
   }
 }
 
@@ -859,10 +1235,10 @@ const HeaderTwo = ({ style_2 = false }) => {
 /* Tablet landscape (1024px - 1199px) */
 @media (min-width: 1024px) and (max-width: 1199px){
   .logo img{
-    max-width: 120px !important;
+    max-width: 140px !important;
   }
-  .search-form{
-    width: clamp(180px, 24vw, 320px);
+  .search-wrap{
+    max-width: 200px;
   }
   .header-right{
     gap: 6px;
@@ -871,8 +1247,8 @@ const HeaderTwo = ({ style_2 = false }) => {
     gap: 4px;
   }
   .tp-header-action-btn{
-    width: 40px;
-    height: 40px;
+    width: 38px;
+    height: 38px;
   }
   .tp-header-action-btn :global(svg){
     width: 18px;
@@ -883,16 +1259,15 @@ const HeaderTwo = ({ style_2 = false }) => {
 /* Tablet portrait (768px - 1023px) */
 @media (min-width: 768px) and (max-width: 1023px){
   .logo img{
-    max-width: 110px !important;
+    max-width: 120px !important;
   }
-  .search-form{
-    width: 100%;
-    max-width: 280px;
+  .search-wrap{
+    max-width: 180px;
   }
   .search-input{
-    height: 40px;
+    height: 38px;
     font-size: 13px;
-    padding: 0 48px 0 12px;
+    padding: 0 40px 0 12px;
   }
   .search-input.has-clear{
     padding-right: 110px;

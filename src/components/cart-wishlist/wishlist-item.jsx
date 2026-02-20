@@ -133,7 +133,7 @@ const WishlistItem = ({ product }) => {
 
   const [moving, setMoving] = useState(false);
   const [authModal, setAuthModal] = useState(null);
-  const [showDetails, setShowDetails] = useState(false);
+
 
   /* ---- HYDRATE ---- */
   const [hydrated, setHydrated] = useState(null);
@@ -418,9 +418,25 @@ const WishlistItem = ({ product }) => {
     return parts.length ? parts.join(' ') + ' Fabric' : 'Product';
   }, [product, hydrated, seoDoc, _id]);
 
-  const slug = product?.slug || product?.product?.slug || hydrated?.slug || _id;
+  const slug = product?.slug || product?.product?.slug || hydrated?.slug;
+  
+  // Generate slug from product name if no slug exists
+  const generateSlug = (name) => {
+    if (!name) return null;
+    return String(name)
+      .toLowerCase()
+      .trim()
+      .replace(/[^\w\s-]/g, '') // Remove special characters
+      .replace(/\s+/g, '-')      // Replace spaces with hyphens
+      .replace(/-+/g, '-')       // Replace multiple hyphens with single hyphen
+      .replace(/^-+|-+$/g, '');  // Remove leading/trailing hyphens
+  };
+  
+  const fallbackSlug = generateSlug(getDisplayTitle) || _id;
+  const finalSlug = slug || fallbackSlug;
+  
   // Clean the slug by removing trailing hash character
-  const cleanSlug = slug ? String(slug).replace(/#$/, '') : slug;
+  const cleanSlug = finalSlug ? String(finalSlug).replace(/#$/, '') : finalSlug;
 
   const src =
     hydrated || product || product?.product || {};
@@ -464,14 +480,22 @@ const WishlistItem = ({ product }) => {
   );
   const row2Parts = [weightVal, widthVal].filter((v) => nonEmpty(v) && !isNoneish(v));
 
+  // Get price and rating
+  const price = product?.price || product?.product?.price || hydrated?.price || null;
+  const salesPrice = product?.salesPrice || product?.product?.salesPrice || hydrated?.salesPrice || null;
+  const displayPrice = salesPrice || price;
+  
+  const ratingValue = product?.ratingValue || product?.product?.ratingValue || hydrated?.ratingValue || null;
+  const ratingCount = product?.ratingCount || product?.product?.ratingCount || hydrated?.ratingCount || null;
+
   return (
     <>
       <div
-        className={`myntra-wishlist-card ${hidden ? 'hidden' : ''}`}
+        className={`wishlist-card ${hidden ? 'hidden' : ''}`}
         ref={rowRef}
         aria-hidden={hidden ? 'true' : 'false'}
       >
-        <div className="card-image-container">
+        <div className="card-image-wrapper">
           <Link href={`/fabric/${cleanSlug}`} target="_blank" rel="noopener noreferrer" className="image-link">
             {!!imageUrl && (
               <img
@@ -487,73 +511,56 @@ const WishlistItem = ({ product }) => {
             className="remove-btn"
             type="button"
             title="Remove from wishlist"
+            aria-label="Remove from wishlist"
           >
             <Close />
           </button>
         </div>
 
-        <div className="card-content">
-          <Link href={`/fabric/${cleanSlug}`} target="_blank" rel="noopener noreferrer" className="product-name">
-            {getDisplayTitle || 'Product'}
-          </Link>
+        <div className="card-body">
+          <div className="title-rating-row">
+            <Link href={`/fabric/${cleanSlug}`} target="_blank" rel="noopener noreferrer" className="product-title">
+              {getDisplayTitle || 'Product'}
+            </Link>
+            {ratingValue && (
+              <div className="rating-display">
+                <span className="star-icon">★</span>
+                <span className="rating-value">{Number(ratingValue).toFixed(1)}</span>
+                {ratingCount && (
+                  <span className="rating-count">({ratingCount})</span>
+                )}
+              </div>
+            )}
+          </div>
 
-          {(row1Parts.length > 0 || row2Parts.length > 0) && (
-            <button
-              className="details-toggle"
-              onClick={() => setShowDetails(!showDetails)}
-              type="button"
-            >
-              <span className="toggle-text">
-                {showDetails ? 'Hide Details' : 'Show Details'}
-              </span>
-              <span className="toggle-icon">
-                {showDetails ? '−' : '+'}
-              </span>
-            </button>
-          )}
-
-          {showDetails && (row1Parts.length > 0 || row2Parts.length > 0) && (
-            <div className="product-details">
-              {row1Parts.length > 0 && (
-                <div className="detail-row">
-                  {row1Parts.slice(0, 2).map((txt, i) => (
-                    <span className="detail-item" key={`r1-${i}`}>
-                      {txt}
-                    </span>
-                  ))}
-                </div>
-              )}
-              {row1Parts.length > 2 && (
-                <div className="detail-row">
-                  {row1Parts.slice(2, 4).map((txt, i) => (
-                    <span className="detail-item" key={`r1b-${i}`}>
-                      {txt}
-                    </span>
-                  ))}
-                </div>
-              )}
-              {row2Parts.length > 0 && (
-                <div className="detail-row specs">
-                  {row2Parts.map((txt, i) => (
-                    <span className="detail-item" key={`r2-${i}`}>
-                      {txt}
-                    </span>
-                  ))}
-                </div>
-              )}
+          {/* Price Row */}
+          {displayPrice && (
+            <div className="price-display">
+              ${Number(displayPrice).toFixed(2)}
             </div>
           )}
 
-          <button
+          {(row1Parts.length > 0 || row2Parts.length > 0) && (
+            <div className="product-specs">
+              <div className="specs-row">
+                {[...row1Parts, ...row2Parts].map((txt, i) => (
+                  <span className="spec-badge" key={`spec-${i}`}>
+                    {txt}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <span
             onClick={handleAddProduct}
-            type="button"
-            className={`move-to-bag-btn ${moving ? 'loading' : ''} ${isInCart ? 'in-cart' : ''}`}
-            aria-busy={moving ? 'true' : 'false'}
+            className={`move-to-cart-link ${moving ? 'loading' : ''} ${isInCart ? 'in-cart' : ''}`}
+            role="button"
+            tabIndex={isInCart && !moving ? -1 : 0}
             title="Move to Cart"
-            disabled={!!isInCart && !moving}
           >
-            {moving ? 'Moving...' : isInCart ? 'In Cart' : 'MOVE TO CART'}
-          </button>
+            {moving ? 'Moving...' : isInCart ? 'In Cart' : 'Move to Cart'}
+          </span>
         </div>
       </div>
 
@@ -566,7 +573,7 @@ const WishlistItem = ({ product }) => {
       )}
 
       <style jsx>{`
-        .myntra-wishlist-card {
+        .wishlist-card {
           background: var(--tp-common-white);
           border-radius: 8px;
           overflow: hidden;
@@ -579,19 +586,21 @@ const WishlistItem = ({ product }) => {
           border: 1px solid #f0f0f0;
         }
 
-        .myntra-wishlist-card:hover {
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+        .wishlist-card:hover {
+          box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+          transform: translateY(-4px);
         }
 
-        .myntra-wishlist-card.hidden {
+        .wishlist-card.hidden {
           display: none;
         }
 
-        .card-image-container {
+        .card-image-wrapper {
           position: relative;
-          aspect-ratio: 1/1;
+          width: 100%;
+          height: 170px;
           overflow: hidden;
-          background: #fafafa;
+          background: var(--tp-grey-1);
           flex-shrink: 0;
         }
 
@@ -608,17 +617,17 @@ const WishlistItem = ({ product }) => {
           transition: transform 0.3s ease;
         }
 
-        .myntra-wishlist-card:hover .product-image {
-          transform: scale(1.02);
+        .wishlist-card:hover .product-image {
+          transform: scale(1.05);
         }
 
         .remove-btn {
           position: absolute;
           top: 8px;
           right: 8px;
-          width: 28px;
-          height: 28px;
-          background: rgba(255, 255, 255, 0.9);
+          width: 32px;
+          height: 32px;
+          background: rgba(255, 255, 255, 0.95);
           border: none;
           border-radius: 50%;
           display: flex;
@@ -632,242 +641,258 @@ const WishlistItem = ({ product }) => {
         }
 
         .remove-btn:hover {
-          background: var(--tp-theme-primary);
+          background: #ef4444;
           color: white;
           transform: scale(1.1);
         }
 
-        .card-content {
+        .card-body {
           padding: 12px;
           flex: 1;
           display: flex;
           flex-direction: column;
+          gap: 8px;
         }
 
-        .product-name {
+        .title-rating-row {
+          display: flex;
+          align-items: flex-start;
+          justify-content: space-between;
+          gap: 8px;
+          margin-bottom: 4px;
+        }
+
+        .product-title {
           display: block;
-          font-weight: 700;
+          font-weight: 800;
           font-size: 16px;
           line-height: 1.3;
-          color: var(--tp-theme-primary);
+          color: var(--tp-text-1);
           text-decoration: none;
-          margin-bottom: 12px;
           overflow: hidden;
           display: -webkit-box;
           -webkit-line-clamp: 2;
           -webkit-box-orient: vertical;
-          min-height: 42px;
+          flex: 1;
+          transition: color 0.2s ease;
         }
 
-        .product-name:hover {
-          color: color-mix(in srgb, var(--tp-theme-primary) 80%, black);
-        }
-
-        .price-section {
-          margin-bottom: 8px;
-        }
-
-        .product-price {
-          font-weight: 700;
-          font-size: 14px;
-          color: #282c3f;
-        }
-
-        .details-toggle {
-          background: var(--tp-grey-1);
-          border: 1px solid var(--tp-grey-3);
+        .product-title:hover {
           color: var(--tp-theme-primary);
+        }
+
+        .price-display {
+          font-size: 17px;
+          font-weight: 700;
+          color: var(--tp-theme-primary);
+          margin-bottom: 4px;
+        }
+
+        .rating-display {
+          display: flex;
+          align-items: center;
+          gap: 3px;
           font-size: 13px;
-          font-weight: 600;
-          cursor: pointer;
-          padding: 8px 12px;
-          margin-bottom: 12px;
-          border-radius: 6px;
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          transition: all 0.2s ease;
-          width: 100%;
+          color: var(--tp-text-1);
+          flex-shrink: 0;
+          white-space: nowrap;
         }
 
-        .details-toggle:hover {
-          background: var(--tp-theme-primary);
-          color: var(--tp-common-white);
-          border-color: var(--tp-theme-primary);
-        }
-
-        .toggle-icon {
-          font-size: 18px;
-          font-weight: 300;
+        .star-icon {
+          color: #fbbf24;
+          font-size: 15px;
           line-height: 1;
-          width: 20px;
-          height: 20px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          background: var(--tp-theme-primary);
-          color: var(--tp-common-white);
-          border-radius: 50%;
-          transition: all 0.2s ease;
         }
 
-        .details-toggle:hover .toggle-icon {
-          background: var(--tp-common-white);
-          color: var(--tp-theme-primary);
-        }
-
-        .product-details {
-          background: #f8f9fa;
-          border-radius: 8px;
-          padding: 12px;
-          margin-bottom: 16px;
-          font-size: 12px;
-          animation: slideDown 0.3s ease;
-          border: 1px solid var(--tp-grey-2);
-        }
-
-        @keyframes slideDown {
-          from {
-            opacity: 0;
-            transform: translateY(-10px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-
-        .detail-row {
-          margin-bottom: 6px;
-          line-height: 1.4;
-        }
-
-        .detail-row:last-child {
-          margin-bottom: 0;
-        }
-
-        .detail-row.specs {
-          color: #666;
-          font-weight: 500;
-        }
-
-        .detail-item {
-          position: relative;
-          color: #666;
-        }
-
-        .detail-item:not(:last-child)::after {
-          content: ' • ';
-          margin: 0 4px;
-          color: #999;
-        }
-
-        .move-to-bag-btn {
-          width: 100%;
-          background: var(--tp-theme-primary);
-          color: var(--tp-common-white);
-          border: none;
-          border-radius: 6px;
-          padding: 10px 12px;
-          font-size: 12px;
+        .rating-value {
           font-weight: 700;
+          font-size: 13px;
+        }
+
+        .rating-count {
+          color: var(--tp-text-2);
+          font-size: 11px;
+        }
+
+        .product-specs {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+        }
+
+        .specs-row {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 5px;
+        }
+
+        .spec-badge {
+          font-size: 11px;
+          color: var(--tp-text-2);
+          background: var(--tp-grey-1);
+          padding: 5px 9px;
+          border-radius: 4px;
+          border: 1px solid var(--tp-grey-3);
+          font-weight: 500;
+          line-height: 1.2;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          max-width: 100%;
+        }
+
+        .move-to-cart-link {
+          display: inline-block;
+          width: 100%;
+          text-align: center;
+          background: transparent;
+          color: var(--tp-theme-primary);
+          border: none;
+          padding: 10px 12px;
+          font-size: 14px;
+          font-weight: 600;
           cursor: pointer;
           transition: all 0.2s ease;
           margin-top: auto;
-          text-transform: uppercase;
-          letter-spacing: 0.5px;
+          text-decoration: none;
+          position: relative;
         }
 
-        .move-to-bag-btn:hover:not(:disabled) {
-          background: color-mix(in srgb, var(--tp-theme-primary) 85%, black);
-          transform: translateY(-1px);
-          box-shadow: 0 4px 12px rgba(44, 76, 151, 0.3);
+        .move-to-cart-link::after {
+          content: '';
+          position: absolute;
+          bottom: 8px;
+          left: 50%;
+          transform: translateX(-50%);
+          width: 0;
+          height: 2px;
+          background: var(--tp-theme-primary);
+          transition: width 0.2s ease;
         }
 
-        .move-to-bag-btn.loading {
-          opacity: 0.7;
+        .move-to-cart-link:hover:not(.loading):not(.in-cart) {
+          color: #1e3a7a;
+        }
+
+        .move-to-cart-link:hover:not(.loading):not(.in-cart)::after {
+          width: 80%;
+        }
+
+        .move-to-cart-link.loading {
+          opacity: 0.5;
           cursor: not-allowed;
         }
 
-        .move-to-bag-btn.in-cart {
-          background: #03a685;
-          color: white;
+        .move-to-cart-link.in-cart {
+          color: #10b981;
           cursor: default;
         }
 
-        .move-to-bag-btn:disabled {
-          opacity: 0.6;
-          cursor: not-allowed;
+        .move-to-cart-link.in-cart::after {
+          display: none;
         }
 
         /* Mobile responsive */
         @media (max-width: 768px) {
-          .card-content {
+          .card-image-wrapper {
+            height: 150px;
+          }
+
+          .card-body {
             padding: 10px;
+            gap: 6px;
           }
 
-          .product-name {
-            font-size: 15px;
-            min-height: 38px;
-            margin-bottom: 10px;
+          .product-title {
+            font-size: 13px;
+            font-weight: 700;
+            line-height: 1.3;
           }
 
-          .details-toggle {
+          .price-display {
+            font-size: 14px;
+          }
+
+          .rating-display {
+            font-size: 11px;
+          }
+
+          .star-icon {
             font-size: 12px;
-            padding: 6px 10px;
-            margin-bottom: 10px;
           }
 
-          .toggle-icon {
-            width: 18px;
-            height: 18px;
-            font-size: 16px;
-          }
-
-          .product-details {
-            padding: 10px;
+          .rating-value {
             font-size: 11px;
-            margin-bottom: 12px;
           }
 
-          .move-to-bag-btn {
+          .rating-count {
+            font-size: 9px;
+          }
+
+          .spec-badge {
+            font-size: 9px;
+            padding: 3px 6px;
+          }
+
+          .move-to-cart-link {
             padding: 8px 10px;
-            font-size: 11px;
+            font-size: 13px;
           }
         }
 
         @media (max-width: 480px) {
-          .card-content {
+          .card-image-wrapper {
+            height: 130px;
+          }
+
+          .card-body {
             padding: 8px;
+            gap: 5px;
           }
 
-          .product-name {
-            font-size: 14px;
-            min-height: 36px;
-            margin-bottom: 8px;
+          .product-title {
+            font-size: 12px;
+            font-weight: 700;
+            line-height: 1.2;
           }
 
-          .details-toggle {
+          .price-display {
+            font-size: 13px;
+          }
+
+          .rating-display {
+            font-size: 10px;
+          }
+
+          .star-icon {
             font-size: 11px;
-            padding: 6px 8px;
-            margin-bottom: 8px;
           }
 
-          .toggle-icon {
-            width: 16px;
-            height: 16px;
-            font-size: 14px;
-          }
-
-          .product-details {
-            padding: 8px;
+          .rating-value {
             font-size: 10px;
-            margin-bottom: 10px;
           }
 
-          .move-to-bag-btn {
+          .rating-count {
+            font-size: 9px;
+          }
+
+          .spec-badge {
+            font-size: 8px;
+            padding: 2px 5px;
+          }
+
+          .move-to-cart-link {
             padding: 7px 8px;
-            font-size: 10px;
+            font-size: 12px;
+          }
+          }
+
+          .remove-btn {
+            width: 28px;
+            height: 28px;
+            top: 6px;
+            right: 6px;
           }
         }
       `}</style>

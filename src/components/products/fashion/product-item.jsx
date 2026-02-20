@@ -5,6 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useDispatch, useSelector } from 'react-redux';
+import { toast } from 'react-toastify';
 
 import { formatProductForCart, formatProductForWishlist } from '@/utils/authUtils';
 import { add_to_cart, openCartMini, fetch_cart_products } from '@/redux/features/cartSlice';
@@ -128,7 +129,6 @@ const ProductItem = ({ product, index = 0 }) => {
   const [showActions, setShowActions] = useState(false);
   const [supportsHover, setSupportsHover] = useState(true);
   const [addingCart, setAddingCart] = useState(false);
-  const [optimisticInCart, setOptimisticInCart] = useState(false);
   const [collectionMedia, setCollectionMedia] = useState(null);
   const [showCollectionMedia, setShowCollectionMedia] = useState(false);
 
@@ -304,8 +304,7 @@ const ProductItem = ({ product, index = 0 }) => {
   const cartItems = useSelector((s) => s.cart?.cart_products || []);
   const wishlistItems = useSelector((s) => s.wishlist?.wishlist || []);
 
-  const inCartReal = cartItems.some((it) => String(getAnyId(it)) === String(productId));
-  const inCart = inCartReal || optimisticInCart;
+  const inCart = cartItems.some((it) => String(getAnyId(it)) === String(productId));
   const inWishlist = wishlistItems.some((it) => String(getAnyId(it)) === String(productId));
 
   /* above-the-fold: priority */
@@ -315,7 +314,24 @@ const ProductItem = ({ product, index = 0 }) => {
   const handleAddProduct = async (prd, e) => {
     e?.stopPropagation?.();
     e?.preventDefault?.();
+    
+    // Prevent multiple clicks while processing
     if (addingCart) return;
+
+    // Check if already in cart - use the real cart state
+    if (inCart) {
+      toast.info('Product already in cart', {
+        position: 'top-center',
+        autoClose: 2000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        theme: 'light',
+      });
+      return;
+    }
+
     setAddingCart(true);
 
     try {
@@ -325,17 +341,53 @@ const ProductItem = ({ product, index = 0 }) => {
 
       if (!userId) {
         router.push('/login');
+        setAddingCart(false);
         return;
       }
 
+      // Add to cart via API
       await dispatch(add_to_cart({ userId, productId: mapped.productId, quantity: mapped.qty })).unwrap();
+      
+      // Refresh cart data to ensure UI is in sync
       await dispatch(fetch_cart_products({ userId }));
 
-      setOptimisticInCart(true);
       dispatch(openCartMini());
       setShowActions(true);
+      
+      toast.success('Added to cart', {
+        position: 'top-center',
+        autoClose: 2000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        theme: 'light',
+      });
     } catch (err) {
-      } finally {
+      // Check if error is about duplicate item
+      const errorMsg = err?.message || String(err);
+      if (errorMsg.includes('already in cart')) {
+        toast.info('Product already in cart', {
+          position: 'top-center',
+          autoClose: 2000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          theme: 'light',
+        });
+      } else {
+        toast.error('Failed to add to cart', {
+          position: 'top-center',
+          autoClose: 2000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          theme: 'light',
+        });
+      }
+    } finally {
       setAddingCart(false);
     }
   };
@@ -349,6 +401,34 @@ const ProductItem = ({ product, index = 0 }) => {
       return;
     }
 
+    // Check if already in wishlist
+    if (inWishlist) {
+      toast.info('Product already in wishlist', {
+        position: 'top-center',
+        autoClose: 2000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        theme: 'light',
+      });
+      return;
+    }
+
+    // Priority logic: If product is in cart, don't add to wishlist
+    if (inCart) {
+      toast.info('Product is already in cart', {
+        position: 'top-center',
+        autoClose: 2000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        theme: 'light',
+      });
+      return;
+    }
+
     const formatted =
       typeof formatProductForWishlist === 'function'
         ? formatProductForWishlist(prd)
@@ -357,7 +437,16 @@ const ProductItem = ({ product, index = 0 }) => {
     try {
       await dispatch(toggleWishlistItem({ customerAccountId: userId, product: formatted })).unwrap();
     } catch (err) {
-      }
+      toast.error('Failed to update wishlist', {
+        position: 'top-center',
+        autoClose: 2000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        theme: 'light',
+      });
+    }
   };
 
   const openQuickView = async (prd, e) => {

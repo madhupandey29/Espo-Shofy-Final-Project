@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-toastify';
+import Cookies from 'js-cookie';
 import { selectUserId } from '@/utils/userSelectors';
 
 const CheckoutArea = () => {
@@ -28,37 +29,164 @@ const CheckoutArea = () => {
     notes: ''
   });
 
-  // Fetch cart items
+  // Load user data from cookies immediately on mount
   useEffect(() => {
-    if (!userId) return;
+    try {
+      const userInfoCookie = Cookies.get('userInfo');
+      if (userInfoCookie) {
+        const parsed = JSON.parse(userInfoCookie);
+        const user = parsed?.user;
+        
+        if (user) {
+          console.log('🍪 Loading initial data from cookie:', user);
+          setFormData({
+            firstName: user.firstName || '',
+            lastName: user.lastName || '',
+            email: user.email || '',
+            phone: user.phone || '',
+            company: user.organisation || '',
+            address: user.address || '',
+            city: user.city || '',
+            state: user.state || '',
+            zipCode: user.pincode || '',
+            country: user.country || '',
+            notes: ''
+          });
+        }
+      }
+    } catch (e) {
+      console.warn('Failed to load cookie data:', e);
+    }
+  }, []);
+
+  // Fetch user profile and cart items
+  useEffect(() => {
+    if (!userId) {
+      console.log('❌ No userId found');
+      setLoading(false);
+      return;
+    }
     
-    const fetchCart = async () => {
+    console.log('🔍 Fetching data for userId:', userId);
+    
+    const fetchData = async () => {
       try {
         const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "https://espobackend.vercel.app/api";
-        const url = `${API_BASE}/wishlist/fieldname/customerAccountId/${encodeURIComponent(userId)}`;
+        console.log('🌐 API Base:', API_BASE);
         
-        const res = await fetch(url, {
+        // Try to get user data from cookies first as fallback
+        let userDataFromCookie = null;
+        try {
+          const userInfoCookie = Cookies.get('userInfo');
+          if (userInfoCookie) {
+            const parsed = JSON.parse(userInfoCookie);
+            userDataFromCookie = parsed?.user;
+            console.log('🍪 User data from cookie:', userDataFromCookie);
+          }
+        } catch (e) {
+          console.warn('Failed to parse cookie:', e);
+        }
+        
+        // Fetch user profile from API
+        const profileUrl = `${API_BASE}/account/${encodeURIComponent(userId)}`;
+        console.log('� Fetching profile from:', profileUrl);
+        
+        const profileRes = await fetch(profileUrl, {
           method: "GET",
           credentials: "include",
           headers: { "Accept": "application/json" }
         });
         
-        if (!res.ok) throw new Error('Failed to fetch cart');
+        console.log('📥 Profile response status:', profileRes.status);
         
-        const json = await res.json();
+        if (profileRes.ok) {
+          const profileData = await profileRes.json();
+          console.log('✅ Profile data received:', profileData);
+          
+          const user = profileData?.data || profileData;
+          console.log('👤 User object:', user);
+          
+          // Auto-fill form with user profile data
+          const updatedFormData = {
+            firstName: user.firstName || userDataFromCookie?.firstName || '',
+            lastName: user.lastName || userDataFromCookie?.lastName || '',
+            email: user.emailAddress || userDataFromCookie?.email || '',
+            phone: user.phoneNumber || userDataFromCookie?.phone || '',
+            company: user.organizationNameRaw || userDataFromCookie?.organisation || '',
+            address: user.addressStreet || userDataFromCookie?.address || '',
+            city: user.addressCity || userDataFromCookie?.city || '',
+            state: user.addressState || userDataFromCookie?.state || '',
+            zipCode: user.addressPostalCode || userDataFromCookie?.pincode || '',
+            country: user.addressCountry || userDataFromCookie?.country || '',
+            notes: ''
+          };
+          
+          console.log('📝 Setting form data:', updatedFormData);
+          setFormData(updatedFormData);
+          
+          // Check if any data was actually filled
+          const hasData = Object.values(updatedFormData).some(val => val && val !== '');
+          if (hasData) {
+            toast.success('Profile data loaded successfully!');
+          } else {
+            toast.info('No profile data found. Please fill in your details.');
+          }
+        } else {
+          console.warn('⚠️ Profile fetch failed with status:', profileRes.status);
+          
+          // Use cookie data as fallback
+          if (userDataFromCookie) {
+            const fallbackFormData = {
+              firstName: userDataFromCookie.firstName || '',
+              lastName: userDataFromCookie.lastName || '',
+              email: userDataFromCookie.email || '',
+              phone: userDataFromCookie.phone || '',
+              company: userDataFromCookie.organisation || '',
+              address: userDataFromCookie.address || '',
+              city: userDataFromCookie.city || '',
+              state: userDataFromCookie.state || '',
+              zipCode: userDataFromCookie.pincode || '',
+              country: userDataFromCookie.country || '',
+              notes: ''
+            };
+            setFormData(fallbackFormData);
+            toast.info('Using cached profile data');
+          } else {
+            toast.warning('Could not load profile data. Please fill in manually.');
+          }
+        }
+        
+        // Fetch cart items
+        const cartUrl = `${API_BASE}/wishlist/fieldname/customerAccountId/${encodeURIComponent(userId)}`;
+        console.log('📡 Fetching cart from:', cartUrl);
+        
+        const cartRes = await fetch(cartUrl, {
+          method: "GET",
+          credentials: "include",
+          headers: { "Accept": "application/json" }
+        });
+        
+        console.log('📥 Cart response status:', cartRes.status);
+        
+        if (!cartRes.ok) throw new Error('Failed to fetch cart');
+        
+        const json = await cartRes.json();
+        console.log('🛒 Cart data received:', json);
+        
         const allItems = Array.isArray(json?.data) ? json.data : [];
         const cartItems = allItems.filter(item => item.itemType === 'cart');
         
+        console.log('✅ Cart items filtered:', cartItems);
         setCartItems(cartItems);
       } catch (error) {
-        console.error('Error fetching cart:', error);
-        toast.error('Failed to load cart items');
+        console.error('❌ Error fetching data:', error);
+        toast.error('Failed to load checkout data');
       } finally {
         setLoading(false);
       }
     };
     
-    fetchCart();
+    fetchData();
   }, [userId]);
 
   const handleInputChange = (e) => {
@@ -209,469 +337,544 @@ const CheckoutArea = () => {
 
   return (
     <>
-      <section className="checkout-area pb-120 pt-80">
-        <div className="container">
-          <form onSubmit={handlePlaceOrder}>
-            <div className="row">
-              {/* Billing Details */}
-              <div className="col-lg-7">
-                <div className="checkout-billing-details">
-                  <h3 className="checkout-title">Billing Details</h3>
-                  
-                  <div className="row">
-                    <div className="col-md-6">
-                      <div className="checkout-form-group">
-                        <label>First Name <span className="required">*</span></label>
-                        <input
-                          type="text"
-                          name="firstName"
-                          value={formData.firstName}
-                          onChange={handleInputChange}
-                          required
-                          className="checkout-input"
-                        />
-                      </div>
+      <section className="checkout-area-modern">
+        <div className="container-fluid px-4">
+          <form onSubmit={handlePlaceOrder} className="checkout-form-modern">
+            
+            {/* Header */}
+            <div className="checkout-header">
+              <h2>Checkout</h2>
+              <p>Complete your order in a few simple steps</p>
+            </div>
+
+            <div className="checkout-grid">
+              
+              {/* Left Column - Shipping Address */}
+              <div className="shipping-section">
+                <div className="section-header">
+                  <h3>📦 Shipping Address</h3>
+                </div>
+
+                <div className="form-grid">
+                  <div className="form-row-2">
+                    <div className="form-field">
+                      <label>First Name <span className="req">*</span></label>
+                      <input
+                        type="text"
+                        name="firstName"
+                        value={formData.firstName}
+                        onChange={handleInputChange}
+                        required
+                        placeholder="Enter first name"
+                      />
                     </div>
                     
-                    <div className="col-md-6">
-                      <div className="checkout-form-group">
-                        <label>Last Name <span className="required">*</span></label>
-                        <input
-                          type="text"
-                          name="lastName"
-                          value={formData.lastName}
-                          onChange={handleInputChange}
-                          required
-                          className="checkout-input"
-                        />
-                      </div>
+                    <div className="form-field">
+                      <label>Last Name <span className="req">*</span></label>
+                      <input
+                        type="text"
+                        name="lastName"
+                        value={formData.lastName}
+                        onChange={handleInputChange}
+                        required
+                        placeholder="Enter last name"
+                      />
                     </div>
                   </div>
 
-                  <div className="checkout-form-group">
-                    <label>Company Name (Optional)</label>
+                  <div className="form-row-2">
+                    <div className="form-field">
+                      <label>Email <span className="req">*</span></label>
+                      <input
+                        type="email"
+                        name="email"
+                        value={formData.email}
+                        onChange={handleInputChange}
+                        required
+                        placeholder="your@email.com"
+                      />
+                    </div>
+
+                    <div className="form-field">
+                      <label>Phone <span className="req">*</span></label>
+                      <input
+                        type="tel"
+                        name="phone"
+                        value={formData.phone}
+                        onChange={handleInputChange}
+                        required
+                        placeholder="+1 (555) 000-0000"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="form-field">
+                    <label>Company (Optional)</label>
                     <input
                       type="text"
                       name="company"
                       value={formData.company}
                       onChange={handleInputChange}
-                      className="checkout-input"
+                      placeholder="Company name"
                     />
                   </div>
 
-                  <div className="checkout-form-group">
-                    <label>Email Address <span className="required">*</span></label>
-                    <input
-                      type="email"
-                      name="email"
-                      value={formData.email}
-                      onChange={handleInputChange}
-                      required
-                      className="checkout-input"
-                    />
-                  </div>
-
-                  <div className="checkout-form-group">
-                    <label>Phone <span className="required">*</span></label>
-                    <input
-                      type="tel"
-                      name="phone"
-                      value={formData.phone}
-                      onChange={handleInputChange}
-                      required
-                      className="checkout-input"
-                    />
-                  </div>
-
-                  <div className="checkout-form-group">
-                    <label>Street Address <span className="required">*</span></label>
+                  <div className="form-field">
+                    <label>Street Address <span className="req">*</span></label>
                     <input
                       type="text"
                       name="address"
                       value={formData.address}
                       onChange={handleInputChange}
                       required
-                      className="checkout-input"
                       placeholder="House number and street name"
                     />
                   </div>
 
-                  <div className="row">
-                    <div className="col-md-6">
-                      <div className="checkout-form-group">
-                        <label>Town / City <span className="required">*</span></label>
-                        <input
-                          type="text"
-                          name="city"
-                          value={formData.city}
-                          onChange={handleInputChange}
-                          required
-                          className="checkout-input"
-                        />
-                      </div>
+                  <div className="form-row-3">
+                    <div className="form-field">
+                      <label>City <span className="req">*</span></label>
+                      <input
+                        type="text"
+                        name="city"
+                        value={formData.city}
+                        onChange={handleInputChange}
+                        required
+                        placeholder="City"
+                      />
                     </div>
                     
-                    <div className="col-md-6">
-                      <div className="checkout-form-group">
-                        <label>State / Province</label>
-                        <input
-                          type="text"
-                          name="state"
-                          value={formData.state}
-                          onChange={handleInputChange}
-                          className="checkout-input"
-                        />
-                      </div>
+                    <div className="form-field">
+                      <label>State</label>
+                      <input
+                        type="text"
+                        name="state"
+                        value={formData.state}
+                        onChange={handleInputChange}
+                        placeholder="State"
+                      />
+                    </div>
+
+                    <div className="form-field">
+                      <label>ZIP Code</label>
+                      <input
+                        type="text"
+                        name="zipCode"
+                        value={formData.zipCode}
+                        onChange={handleInputChange}
+                        placeholder="ZIP"
+                      />
                     </div>
                   </div>
 
-                  <div className="row">
-                    <div className="col-md-6">
-                      <div className="checkout-form-group">
-                        <label>Postcode / ZIP</label>
-                        <input
-                          type="text"
-                          name="zipCode"
-                          value={formData.zipCode}
-                          onChange={handleInputChange}
-                          className="checkout-input"
-                        />
-                      </div>
-                    </div>
-                    
-                    <div className="col-md-6">
-                      <div className="checkout-form-group">
-                        <label>Country</label>
-                        <input
-                          type="text"
-                          name="country"
-                          value={formData.country}
-                          onChange={handleInputChange}
-                          className="checkout-input"
-                        />
-                      </div>
-                    </div>
+                  <div className="form-field">
+                    <label>Country</label>
+                    <input
+                      type="text"
+                      name="country"
+                      value={formData.country}
+                      onChange={handleInputChange}
+                      placeholder="Country"
+                    />
                   </div>
 
-                  <div className="checkout-form-group">
+                  <div className="form-field">
                     <label>Order Notes (Optional)</label>
                     <textarea
                       name="notes"
                       value={formData.notes}
                       onChange={handleInputChange}
-                      className="checkout-textarea"
-                      rows="4"
-                      placeholder="Notes about your order, e.g. special notes for delivery"
+                      rows="3"
+                      placeholder="Special instructions for delivery..."
                     ></textarea>
                   </div>
                 </div>
               </div>
 
-              {/* Order Summary */}
-              <div className="col-lg-5">
-                <div className="checkout-order-summary">
-                  <h3 className="checkout-title">Your Order</h3>
-                  
-                  <div className="order-summary-table">
-                    <div className="order-summary-header">
-                      <span>Product</span>
-                      <span>Subtotal</span>
-                    </div>
-                    
-                    {cartItems.map((item, index) => (
-                      <div key={item.id || index} className="order-summary-item">
-                        <div className="item-details">
-                          <span className="item-name">{item.productName}</span>
-                          <span className="item-qty">× {item.qty}</span>
-                        </div>
-                        <span className="item-price">
-                          {item.priceCurrency} {(parseFloat(item.price) * item.qty).toFixed(2)}
-                        </span>
-                      </div>
-                    ))}
-                    
-                    <div className="order-summary-subtotal">
-                      <span>Subtotal</span>
-                      <span>${total.toFixed(2)}</span>
-                    </div>
-                    
-                    <div className="order-summary-total">
-                      <span>Total</span>
-                      <span className="total-amount">${total.toFixed(2)}</span>
-                    </div>
-                  </div>
-
-                  <div className="payment-info">
-                    <p className="payment-note">
-                      <strong>Note:</strong> Payment will be processed offline. Our team will contact you for payment details.
-                    </p>
-                  </div>
-
-                  <button
-                    type="submit"
-                    className="btn-place-order"
-                    disabled={submitting}
-                  >
-                    {submitting ? 'Placing Order...' : 'Place Order'}
-                  </button>
+              {/* Right Column - Order Summary */}
+              <div className="order-section">
+                <div className="section-header">
+                  <h3>🛍️ Your Order</h3>
                 </div>
+
+                <div className="order-items">
+                  {cartItems.map((item, index) => (
+                    <div key={item.id || index} className="order-item">
+                      <div className="item-info">
+                        <span className="item-name">{item.productName}</span>
+                        <span className="item-qty">Qty: {item.qty}</span>
+                      </div>
+                      <span className="item-price">
+                        {item.priceCurrency} {(parseFloat(item.price) * item.qty).toFixed(2)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="order-totals">
+                  <div className="total-row">
+                    <span>Subtotal</span>
+                    <span>${total.toFixed(2)}</span>
+                  </div>
+                  <div className="total-row total-final">
+                    <span>Total</span>
+                    <span>${total.toFixed(2)}</span>
+                  </div>
+                </div>
+
+                <div className="payment-notice">
+                  <p>💳 Payment will be processed offline. Our team will contact you for payment details.</p>
+                </div>
+
+                <button
+                  type="submit"
+                  className="btn-checkout"
+                  disabled={submitting}
+                >
+                  {submitting ? (
+                    <>
+                      <span className="btn-spinner"></span>
+                      Processing...
+                    </>
+                  ) : (
+                    <>
+                      Place Order
+                      <span className="btn-arrow">→</span>
+                    </>
+                  )}
+                </button>
               </div>
+
             </div>
           </form>
         </div>
       </section>
 
       <style jsx>{`
-        .checkout-area {
-          background: var(--tp-grey-1);
-          min-height: calc(100vh - 200px);
+        /* Modern Checkout Styles - No White Cards */
+        .checkout-area-modern {
+          background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+          min-height: 100vh;
+          padding: 40px 0 80px;
         }
 
-        .checkout-billing-details,
-        .checkout-order-summary {
-          background: var(--tp-common-white);
-          border-radius: 16px;
-          padding: 32px;
-          box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-          margin-bottom: 24px;
+        .checkout-header {
+          text-align: center;
+          margin-bottom: 40px;
         }
 
-        .checkout-title {
-          font-size: 24px;
-          font-weight: 700;
-          color: var(--tp-text-1);
-          margin-bottom: 24px;
-          padding-bottom: 16px;
-          border-bottom: 2px solid var(--tp-grey-2);
-        }
-
-        .checkout-form-group {
-          margin-bottom: 20px;
-        }
-
-        .checkout-form-group label {
-          display: block;
-          font-weight: 600;
-          color: var(--tp-text-1);
+        .checkout-header h2 {
+          font-size: 36px;
+          font-weight: 800;
+          color: #1a1a1a;
           margin-bottom: 8px;
+        }
+
+        .checkout-header p {
+          color: #6c757d;
+          font-size: 16px;
+        }
+
+        .checkout-grid {
+          display: grid;
+          grid-template-columns: 1.5fr 1fr;
+          gap: 30px;
+          max-width: 1400px;
+          margin: 0 auto;
+        }
+
+        .shipping-section,
+        .order-section {
+          background: transparent;
+        }
+
+        .section-header {
+          margin-bottom: 24px;
+        }
+
+        .section-header h3 {
+          font-size: 22px;
+          font-weight: 700;
+          color: #1a1a1a;
+          margin: 0;
+          padding-bottom: 12px;
+          border-bottom: 3px solid var(--tp-theme-primary);
+          display: inline-block;
+        }
+
+        /* Form Styles */
+        .form-grid {
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
+        }
+
+        .form-row-2 {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 16px;
+        }
+
+        .form-row-3 {
+          display: grid;
+          grid-template-columns: 2fr 1fr 1fr;
+          gap: 16px;
+        }
+
+        .form-field {
+          display: flex;
+          flex-direction: column;
+        }
+
+        .form-field label {
           font-size: 14px;
+          font-weight: 600;
+          color: #495057;
+          margin-bottom: 6px;
         }
 
-        .required {
-          color: #ef4444;
+        .req {
+          color: #dc3545;
+          font-weight: 700;
         }
 
-        .checkout-input,
-        .checkout-textarea {
-          width: 100%;
+        .form-field input,
+        .form-field textarea {
           padding: 12px 16px;
-          border: 1px solid var(--tp-grey-3);
+          border: 2px solid #dee2e6;
           border-radius: 8px;
-          font-size: 14px;
+          font-size: 15px;
+          font-family: inherit;
           transition: all 0.2s ease;
+          background: white;
         }
 
-        .checkout-input:focus,
-        .checkout-textarea:focus {
+        .form-field input:focus,
+        .form-field textarea:focus {
           outline: none;
           border-color: var(--tp-theme-primary);
           box-shadow: 0 0 0 3px rgba(44, 76, 151, 0.1);
         }
 
-        .checkout-textarea {
+        .form-field textarea {
           resize: vertical;
+          min-height: 80px;
         }
 
-        .order-summary-table {
-          margin-bottom: 24px;
+        /* Order Summary */
+        .order-items {
+          background: white;
+          border-radius: 12px;
+          padding: 20px;
+          margin-bottom: 20px;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.06);
         }
 
-        .order-summary-header {
+        .order-item {
           display: flex;
           justify-content: space-between;
-          padding: 12px 0;
-          border-bottom: 2px solid var(--tp-grey-2);
-          font-weight: 600;
-          color: var(--tp-text-1);
-          font-size: 14px;
-        }
-
-        .order-summary-item {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
+          align-items: flex-start;
           padding: 16px 0;
-          border-bottom: 1px solid var(--tp-grey-2);
+          border-bottom: 1px solid #e9ecef;
         }
 
-        .item-details {
-          flex: 1;
+        .order-item:last-child {
+          border-bottom: none;
+        }
+
+        .item-info {
           display: flex;
           flex-direction: column;
           gap: 4px;
         }
 
         .item-name {
-          font-weight: 500;
-          color: var(--tp-text-1);
-          font-size: 14px;
+          font-weight: 600;
+          color: #1a1a1a;
+          font-size: 15px;
         }
 
         .item-qty {
           font-size: 13px;
-          color: var(--tp-text-2);
+          color: #6c757d;
         }
 
         .item-price {
-          font-weight: 600;
-          color: var(--tp-text-1);
-        }
-
-        .order-summary-subtotal {
-          display: flex;
-          justify-content: space-between;
-          padding: 16px 0;
-          font-size: 15px;
-          color: var(--tp-text-1);
-        }
-
-        .order-summary-total {
-          display: flex;
-          justify-content: space-between;
-          padding: 20px 0;
-          border-top: 2px solid var(--tp-grey-2);
-          font-size: 18px;
           font-weight: 700;
-          color: var(--tp-text-1);
+          color: var(--tp-theme-primary);
+          font-size: 16px;
         }
 
-        .total-amount {
+        .order-totals {
+          background: white;
+          border-radius: 12px;
+          padding: 20px;
+          margin-bottom: 20px;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+
+        .total-row {
+          display: flex;
+          justify-content: space-between;
+          padding: 12px 0;
+          font-size: 15px;
+          color: #495057;
+        }
+
+        .total-final {
+          border-top: 2px solid #e9ecef;
+          margin-top: 8px;
+          padding-top: 16px;
+          font-size: 20px;
+          font-weight: 700;
+          color: #1a1a1a;
+        }
+
+        .total-final span:last-child {
           color: var(--tp-theme-primary);
         }
 
-        .payment-info {
-          background: #fef3c7;
-          border: 1px solid #fbbf24;
-          border-radius: 8px;
+        .payment-notice {
+          background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+          border-radius: 12px;
           padding: 16px;
-          margin-bottom: 24px;
+          margin-bottom: 20px;
         }
 
-        .payment-note {
+        .payment-notice p {
           margin: 0;
           font-size: 14px;
-          color: #92400e;
+          color: #856404;
           line-height: 1.6;
         }
 
-        .btn-place-order {
+        .btn-checkout {
           width: 100%;
-          background: var(--tp-theme-primary);
-          color: var(--tp-common-white);
+          background: linear-gradient(135deg, var(--tp-theme-primary) 0%, #1e3a8a 100%);
+          color: white;
           border: none;
-          border-radius: 8px;
-          padding: 16px;
-          font-size: 16px;
+          border-radius: 12px;
+          padding: 18px;
+          font-size: 17px;
           font-weight: 700;
           cursor: pointer;
-          transition: all 0.2s ease;
-          text-transform: uppercase;
-          letter-spacing: 0.5px;
+          transition: all 0.3s ease;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 10px;
+          box-shadow: 0 4px 15px rgba(44, 76, 151, 0.3);
         }
 
-        .btn-place-order:hover:not(:disabled) {
-          background: color-mix(in srgb, var(--tp-theme-primary) 90%, black);
+        .btn-checkout:hover:not(:disabled) {
           transform: translateY(-2px);
-          box-shadow: 0 8px 25px rgba(44, 76, 151, 0.3);
+          box-shadow: 0 6px 20px rgba(44, 76, 151, 0.4);
         }
 
-        .btn-place-order:disabled {
+        .btn-checkout:disabled {
           opacity: 0.7;
           cursor: not-allowed;
         }
 
+        .btn-arrow {
+          font-size: 20px;
+          transition: transform 0.3s ease;
+        }
+
+        .btn-checkout:hover .btn-arrow {
+          transform: translateX(4px);
+        }
+
+        .btn-spinner {
+          width: 16px;
+          height: 16px;
+          border: 2px solid rgba(255,255,255,0.3);
+          border-top-color: white;
+          border-radius: 50%;
+          animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+          to { transform: rotate(360deg); }
+        }
+
+        .spinner {
+          border: 4px solid #e9ecef;
+          border-top: 4px solid var(--tp-theme-primary);
+          border-radius: 50%;
+          width: 50px;
+          height: 50px;
+          animation: spin 1s linear infinite;
+          margin: 0 auto;
+        }
+
         .empty-cart-state {
           text-align: center;
-          padding: 60px 20px;
-          background: var(--tp-common-white);
+          padding: 80px 20px;
+          background: white;
           border-radius: 16px;
           box-shadow: 0 4px 20px rgba(0,0,0,0.08);
         }
 
         .empty-cart-state h3 {
-          font-size: 24px;
+          font-size: 28px;
           font-weight: 700;
-          color: var(--tp-text-1);
-          margin-bottom: 12px;
+          color: #1a1a1a;
+          margin-bottom: 16px;
         }
 
         .empty-cart-state p {
-          color: var(--tp-text-2);
-          margin-bottom: 24px;
+          color: #6c757d;
+          margin-bottom: 30px;
+          font-size: 16px;
         }
 
         .btn-primary-modern {
-          background: var(--tp-theme-primary);
-          color: var(--tp-common-white);
+          background: linear-gradient(135deg, var(--tp-theme-primary) 0%, #1e3a8a 100%);
+          color: white;
           border: none;
-          border-radius: 8px;
-          padding: 12px 24px;
-          font-size: 14px;
+          border-radius: 12px;
+          padding: 14px 32px;
+          font-size: 15px;
           font-weight: 600;
           cursor: pointer;
-          transition: all 0.2s ease;
+          transition: all 0.3s ease;
+          box-shadow: 0 4px 15px rgba(44, 76, 151, 0.3);
         }
 
         .btn-primary-modern:hover {
-          background: color-mix(in srgb, var(--tp-theme-primary) 90%, black);
-          transform: translateY(-1px);
+          transform: translateY(-2px);
+          box-shadow: 0 6px 20px rgba(44, 76, 151, 0.4);
         }
 
-        .spinner {
-          border: 3px solid var(--tp-grey-3);
-          border-top: 3px solid var(--tp-theme-primary);
-          border-radius: 50%;
-          width: 40px;
-          height: 40px;
-          animation: spin 1s linear infinite;
-          margin: 0 auto;
-        }
-
-        @keyframes spin {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
-        }
-
-        @media (max-width: 991px) {
-          .checkout-billing-details,
-          .checkout-order-summary {
-            padding: 24px;
+        /* Responsive */
+        @media (max-width: 1024px) {
+          .checkout-grid {
+            grid-template-columns: 1fr;
+            gap: 30px;
           }
 
-          .checkout-title {
+          .form-row-3 {
+            grid-template-columns: 1fr 1fr;
+          }
+        }
+
+        @media (max-width: 768px) {
+          .checkout-header h2 {
+            font-size: 28px;
+          }
+
+          .form-row-2,
+          .form-row-3 {
+            grid-template-columns: 1fr;
+          }
+
+          .section-header h3 {
             font-size: 20px;
           }
-        }
 
-        @media (max-width: 767px) {
-          .checkout-billing-details,
-          .checkout-order-summary {
-            padding: 20px;
-          }
-
-          .checkout-title {
-            font-size: 18px;
-            margin-bottom: 20px;
-          }
-
-          .order-summary-item {
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 8px;
-          }
-
-          .item-price {
-            align-self: flex-end;
+          .checkout-area-modern {
+            padding: 30px 0 60px;
           }
         }
       `}</style>

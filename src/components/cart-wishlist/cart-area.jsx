@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { useRouter } from 'next/navigation';
 
-import CartItem from './cart-item';
+import CartItem from './cart-item-new';
 import { selectUserId } from '@/utils/userSelectors';
 import {
   useGetCartDataQuery,

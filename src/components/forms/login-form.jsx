@@ -130,11 +130,62 @@ export default function LoginForm() {
         throw new Error('User data not returned from OTP verification');
       }
 
-      console.log('✅ User data received from OTP verification:', currentUser);
+      console.log('✅ User data received from OTP verification (basic):', currentUser);
+
+      const userId = currentUser.id;
+
+      // 🆕 FETCH FULL USER DATA FROM ESPOCRM
+      console.log('🔄 Fetching full user data from EspoCRM...');
+      const espoRes = await fetch(
+        `https://espobackend.vercel.app/api/customeraccount/${userId}`,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      if (!espoRes.ok) {
+        console.warn('⚠️ Failed to fetch full user data from EspoCRM, using basic data');
+        // Fallback to basic user data if EspoCRM fetch fails
+      } else {
+        const espoData = await espoRes.json();
+        console.log('✅ EspoCRM Response:', espoData);
+        
+        // EspoCRM returns: { data: {...}, entity: "CCustomerAccount", success: true }
+        // OR directly the user object
+        const fullUserData = espoData.data || espoData;
+        
+        if (fullUserData && fullUserData.id) {
+          // Use full data from EspoCRM
+          Object.assign(currentUser, fullUserData);
+          console.log('✅ Merged with EspoCRM data:', currentUser);
+        }
+      }
+
+      // Map EspoCRM format to our internal format
+      const mappedUser = {
+        _id: currentUser.id,
+        id: currentUser.id,
+        firstName: currentUser.firstName || '',
+        lastName: currentUser.lastName || '',
+        name: currentUser.name || `${currentUser.firstName || ''} ${currentUser.lastName || ''}`.trim(),
+        email: currentUser.emailAddress || currentUser.email || '',
+        phone: currentUser.phoneNumber || '',
+        organisation: currentUser.organizationNameRaw || '',
+        address: currentUser.addressStreet || '',
+        city: currentUser.addressCity || '',
+        state: currentUser.addressState || '',
+        country: currentUser.addressCountry || '',
+        pincode: currentUser.addressPostalCode || '',
+        avatar: null,
+        userImage: null,
+      };
+
+      console.log('✅ Mapped user data (internal format):', mappedUser);
 
       // Generate session and store real EspoCRM user ID
       const sessionId = `session_${Date.now()}`;
-      const userId = currentUser.id;
 
       if (typeof window !== 'undefined') {
         localStorage.setItem('sessionId', sessionId);
@@ -147,8 +198,9 @@ export default function LoginForm() {
         path: '/',
       });
       
-      Cookies.set('userInfo', JSON.stringify({ user: currentUser }), {
-        expires: 7, // Changed from 0.5 to 7 days
+      // Store mapped user data in cookie
+      Cookies.set('userInfo', JSON.stringify({ user: mappedUser }), {
+        expires: 7,
         sameSite: 'lax',
         path: '/',
       });

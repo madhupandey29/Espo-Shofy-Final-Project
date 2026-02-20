@@ -39,17 +39,24 @@ export const cartApi = apiSlice.injectEndpoints({
         console.log('🛒 RTK Query - Filtered cart items:', cartItems.length, 'out of', allItems.length);
         
         // Transform to match expected format
-        const transformedItems = cartItems.map(item => ({
-          _id: item.id, // cart item ID
-          productId: {
-            _id: item.productId,
-            name: item.productName || item.product?.name,
-            ...(item.product || {}),
-          },
-          quantity: item.qty || 1,
-          price: parseFloat(item.price) || 0,
-          priceCurrency: item.priceCurrency || 'USD',
-        }));
+        const transformedItems = cartItems.map(item => {
+          console.log('🛒 Transforming item:', { id: item.id, productId: item.productId, qty: item.qty });
+          
+          return {
+            _id: item.id, // cart item ID (THIS IS THE KEY FOR UPDATES!)
+            productId: {
+              _id: item.productId,
+              name: item.productName || item.product?.name,
+              ...(item.product || {}),
+            },
+            quantity: item.qty || 1,
+            price: parseFloat(item.price) || 0,
+            priceCurrency: item.priceCurrency || 'USD',
+            priceConverted: item.priceConverted || parseFloat(item.price) || 0,
+          };
+        });
+        
+        console.log('🛒 RTK Query - Transformed items:', transformedItems);
         
         return {
           success: true,

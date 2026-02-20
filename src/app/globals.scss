@@ -286,6 +286,32 @@ html, body {
   .tp-header-action-item {
     margin: 0 4px;
   }
+
+  /* Hamburger Menu Button Styles */
+  .tp-offcanvas-open-btn,
+  .mobile-menu-btn {
+    background: transparent;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #2C4C97;
+    transition: all 0.2s ease;
+  }
+
+  .tp-offcanvas-open-btn:hover,
+  .mobile-menu-btn:hover {
+    color: #1e3a7a;
+  }
+
+  .tp-offcanvas-open-btn svg,
+  .mobile-menu-btn svg {
+    width: 20px !important;
+    height: 20px !important;
+    font-size: 20px !important;
+  }
 }
 
 /* ===========================
@@ -1960,7 +1986,7 @@ body.modal-open .tp-header-action-item {
 
 /* Brand text visibility */
 .brand-text.brand-text.brand-text {
-  font-size: 32px !important;
+  font-size: 20px !important;
   font-weight: 900 !important;
   color: #2C4C97 !important;
   display: block !important;
@@ -1973,8 +1999,8 @@ body.modal-open .tp-header-action-item {
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  width: 48px !important;
-  height: 48px !important;
+  width: 30px !important;
+  height: 30px !important;
   background: #F7F9FC !important;
   border: 2px solid #2C4C97 !important;
   color: #2C4C97 !important;

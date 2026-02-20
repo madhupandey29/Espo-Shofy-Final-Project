@@ -5,7 +5,7 @@ import Footer from '@/layout/footers/footer';
 import UserProfile from '@/components/profile/UserProfile';
 
 export const metadata = {
-  title: "Shofy - Profile Page",
+  title: 'Shofy - Profile Page',
   robots: {
     index: false,
     follow: true,
@@ -13,9 +13,9 @@ export const metadata = {
 };
 
 // Force SSR for profile for latest user info
-export const dynamic = "force-dynamic";
+export const dynamic = 'force-dynamic';
 export const revalidate = 0;
-export const fetchCache = "default-no-store";
+export const fetchCache = 'default-no-store';
 export const runtime = 'nodejs';
 export const preferredRegion = 'auto';
 

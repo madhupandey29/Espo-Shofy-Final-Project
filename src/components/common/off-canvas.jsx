@@ -137,8 +137,8 @@ const OffCanvas = ({ isOffCanvasOpen, setIsCanvasOpen = () => {} }) => {
       padding: 0 !important;
     }
     .offcanvas__header.offcanvas__header {
-      padding: 25px !important;
-      border-bottom: 1px solid #F1F5F9 !important;
+      padding: 14px 20px !important;
+      border-bottom: 1px solid #E6ECF2 !important;
       display: flex !important;
       justify-content: space-between !important;
       align-items: center !important;
@@ -146,41 +146,47 @@ const OffCanvas = ({ isOffCanvasOpen, setIsCanvasOpen = () => {} }) => {
       position: sticky !important;
       top: 0 !important;
       z-index: 10002 !important;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05) !important;
-      min-height: 80px !important;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06) !important;
+      min-height: 50px !important;
     }
+    
     .offcanvas__close-btn.offcanvas__close-btn {
-      background: #F7F9FC !important;
-      border: 2px solid #2C4C97 !important;
+      background: #f3f4f6 !important;
+      border: 1px solid #e5e7eb !important;
       cursor: pointer !important;
-      padding: 10px !important;
-      border-radius: 10px !important;
-      color: #2C4C97 !important;
-      width: 40px !important;
-      height: 40px !important;
+      padding: 0 !important;
+      border-radius: 6px !important;
+      color: #64748B !important;
+      width: 34px !important;
+      height: 34px !important;
       display: flex !important;
       align-items: center !important;
       justify-content: center !important;
-      transition: all 0.3s ease !important;
-      box-shadow: 0 4px 12px rgba(44, 76, 151, 0.2) !important;
+      transition: all 0.2s ease !important;
+      box-shadow: none !important;
     }
     .offcanvas__close-btn.offcanvas__close-btn:hover {
-      background: #2C4C97 !important;
-      color: #ffffff !important;
-      transform: scale(1.05) !important;
+      background: #e5e7eb !important;
+      border-color: #cbd5e1 !important;
+      color: #0f172a !important;
+    }
+    .offcanvas__close-btn svg{
+      width: 16px !important;
+      height: 16px !important;
     }
     .brand-text.brand-text {
-      font-family: 'Poppins', 'Jost', system-ui, sans-serif !important;
-      font-size: 32px !important;
-      font-weight: 900 !important;
+      font-family: 'Jost', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
+      font-size: 20px !important;
+      font-weight: 700 !important;
       color: #2C4C97 !important;
-      text-shadow: 0 2px 4px rgba(44, 76, 151, 0.2) !important;
-      letter-spacing: -0.8px !important;
+      text-shadow: none !important;
+      letter-spacing: 2px !important;
       line-height: 1 !important;
+      text-transform: uppercase !important;
     }
     .mobile-menu-list.mobile-menu-list {
       list-style: none !important;
-      padding: 20px 0 !important;
+      padding: 0 !important;
       margin: 0 !important;
       background: #ffffff !important;
     }
@@ -190,14 +196,15 @@ const OffCanvas = ({ isOffCanvasOpen, setIsCanvasOpen = () => {} }) => {
     .mobile-menu-link.mobile-menu-link {
       display: flex !important;
       align-items: center !important;
-      padding: 18px 25px !important;
+      padding: 14px 20px !important;
       color: #0F2235 !important;
       text-decoration: none !important;
-      font-family: 'Hind', 'Jost', system-ui, sans-serif !important;
+      font-family: 'Jost', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
       font-weight: 500 !important;
-      font-size: 16px !important;
+      font-size: 15px !important;
       background: #ffffff !important;
-      border-left: 4px solid transparent !important;
+      border-left: 3px solid transparent !important;
+      border-bottom: 2px solid #CBD5E1 !important;
       transition: all 0.3s ease !important;
       position: relative !important;
     }
@@ -207,7 +214,7 @@ const OffCanvas = ({ isOffCanvasOpen, setIsCanvasOpen = () => {} }) => {
       border-left-color: #2C4C97 !important;
     }
     .mobile-menu-item:not(:last-child) .mobile-menu-link {
-      border-bottom: 1px solid #F7F9FC !important;
+      border-bottom: 2px solid #CBD5E1 !important;
     }
     .body-overlay.body-overlay {
       position: fixed !important;
@@ -249,6 +256,14 @@ const OffCanvas = ({ isOffCanvasOpen, setIsCanvasOpen = () => {} }) => {
       text-align: left !important;
       cursor: pointer !important;
       position: relative !important;
+      border-bottom: 2px solid #CBD5E1 !important;
+      padding: 14px 20px !important;
+      color: #0F2235 !important;
+      font-family: 'Jost', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
+      font-weight: 500 !important;
+      font-size: 15px !important;
+      border-left: 3px solid transparent !important;
+      transition: all 0.3s ease !important;
     }
       .dropdown-toggle.dropdown-toggle::after{
   display: none !important;
@@ -261,13 +276,22 @@ const OffCanvas = ({ isOffCanvasOpen, setIsCanvasOpen = () => {} }) => {
     }
     .dropdown-arrow.dropdown-arrow {
       transition: transform 0.3s ease !important;
-      color: #64748B !important;
+      color: #475569 !important;
       margin-left: auto !important;
       flex-shrink: 0 !important;
+      width: 20px !important;
+      height: 20px !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
     }
     .dropdown-arrow.dropdown-arrow.rotated {
       transform: rotate(180deg) !important;
       color: #2C4C97 !important;
+    }
+    .dropdown-arrow svg{
+      width: 18px !important;
+      height: 18px !important;
     }
     .mobile-submenu.mobile-submenu {
       list-style: none !important;
@@ -291,9 +315,9 @@ const OffCanvas = ({ isOffCanvasOpen, setIsCanvasOpen = () => {} }) => {
       padding: 14px 25px 14px 50px !important;
       color: #475569 !important;
       text-decoration: none !important;
-      font-family: 'Hind', 'Jost', system-ui, sans-serif !important;
+      font-family: 'Jost', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
       font-weight: 400 !important;
-      font-size: 15px !important;
+      font-size: 14px !important;
       background: #F8FAFC !important;
       border-left: 3px solid transparent !important;
       transition: all 0.3s ease !important;
@@ -352,13 +376,15 @@ const OffCanvas = ({ isOffCanvasOpen, setIsCanvasOpen = () => {} }) => {
           <div className="offcanvas__content">
             {/* Header */}
             <div className="offcanvas__header">
-              <span className="brand-text">AGE</span>
+              <span className="brand-text">Menu</span>
               <button 
                 onClick={handleCloseCanvas} 
                 className="offcanvas__close-btn"
                 aria-label="Close menu"
               >
-                <CloseIcon />
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M13 1L1 13M1 1L13 13" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                </svg>
               </button>
             </div>
 

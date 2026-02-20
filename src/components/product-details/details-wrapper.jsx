@@ -6,6 +6,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useDispatch, useSelector } from 'react-redux';
+import { toast } from 'react-toastify';
 import { FaStar, FaStarHalfAlt, FaFileAlt, FaCommentDots, FaHeart } from 'react-icons/fa';
 import { AiOutlineStar, AiOutlineHeart } from 'react-icons/ai';
 import Link from 'next/link';
@@ -269,7 +270,25 @@ const DetailsWrapper = ({ productItem = {} }) => {
   const dispatch = useDispatch();
   const { wishlist } = useSelector((state) => state.wishlist);
   const isInWishlist = wishlist?.some((prd) => pick(prd?._id, prd?.id) === productId);
-  const toggleWishlist = () => dispatch(add_to_wishlist(productItem));
+  
+  const toggleWishlist = () => {
+    // Check if already in wishlist
+    if (isInWishlist) {
+      // Show notification that it's already in wishlist
+      toast.info('Product already in wishlist', {
+        position: 'top-center',
+        autoClose: 2000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        theme: 'light',
+      });
+      return;
+    }
+    
+    dispatch(add_to_wishlist(productItem));
+  };
 
   // Download Catalogue Handler with PDF generation
   const handleRequestSample = async () => {

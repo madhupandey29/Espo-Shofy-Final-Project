@@ -112,20 +112,39 @@ export const authApi = apiSlice.injectEndpoints({
           const { data } = await queryFulfilled;
           const { user } = data || {};
           const userId =
-            user?._id || user?.id || data?.userId || data?.id || ""; // ← adjust if needed
+            user?._id || user?.id || data?.userId || data?.id || "";
 
           if (user) {
-            Cookies.set("userInfo", JSON.stringify({ user }), { 
-              expires: 7, // 7 days
+            // Map EspoCRM format to internal format before storing
+            const mappedUser = {
+              _id: user.id || user._id,
+              id: user.id || user._id,
+              firstName: user.firstName || '',
+              lastName: user.lastName || '',
+              name: user.name || `${user.firstName || ''} ${user.lastName || ''}`.trim(),
+              email: user.emailAddress || user.email || '',
+              phone: user.phoneNumber || user.phone || '',
+              organisation: user.organizationNameRaw || user.organisation || '',
+              address: user.addressStreet || user.address || '',
+              city: user.addressCity || user.city || '',
+              state: user.addressState || user.state || '',
+              country: user.addressCountry || user.country || '',
+              pincode: user.addressPostalCode || user.pincode || '',
+              avatar: user.avatar || user.userImage || null,
+              userImage: user.userImage || user.avatar || null,
+            };
+            
+            Cookies.set("userInfo", JSON.stringify({ user: mappedUser }), { 
+              expires: 7,
               sameSite: 'lax',
               path: '/'
             });
-          }
-          if (userId) {
-            persistUserIdLS(userId);
-          }
-          if (user || userId) {
-            dispatch(userLoggedIn({ user, userId }));
+            
+            if (userId) {
+              persistUserIdLS(userId);
+            }
+            
+            dispatch(userLoggedIn({ user: mappedUser, userId }));
           }
         } catch (err) {
           }
