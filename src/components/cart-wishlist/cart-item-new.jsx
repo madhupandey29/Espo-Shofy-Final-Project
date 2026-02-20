@@ -67,7 +67,7 @@ const CURRENCY_SYMBOLS = {
 };
 
 /* ----------------------------- Cart Item Component ---------------------------- */
-const CartItemNew = ({ product, onRefresh, availableCurrencies = ['USD', 'INR', 'EUR', 'GBP'] }) => {
+const CartItemNew = ({ product, onRefresh, availableCurrencies = ['USD', 'EUR'] }) => {
   const userId = useSelector(selectUserId);
   const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://espobackend.vercel.app/api';
 

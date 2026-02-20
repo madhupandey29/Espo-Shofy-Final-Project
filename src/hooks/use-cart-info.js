@@ -88,7 +88,8 @@ const useCartInfo = () => {
                 if (qty > 0) {
                     const itemTotal = itemPrice * qty;
                     cartTotal.total += itemTotal;
-                    cartTotal.quantity += qty;
+                    // Count distinct products, not quantity
+                    cartTotal.quantity += 1;
                 }
                 
                 return cartTotal;

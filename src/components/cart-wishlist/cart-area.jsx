@@ -163,7 +163,11 @@ const CartArea = () => {
 
               <div className="cart-items-list">
                 {cart_products.map((item, i) => (
-                  <CartItem key={item.cartItemId || item._id || i} product={item} />
+                  <CartItem 
+                    key={item.cartItemId || item._id || i} 
+                    product={item} 
+                    onRefresh={refetch}
+                  />
                 ))}
               </div>
 
