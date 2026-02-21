@@ -82,32 +82,67 @@ export const fetch_cart_products = createAsyncThunk(
       console.log('🛒 Filtered cart items:', cartItems.length, 'out of', allItems.length);
 
       // Transform cart items to include product data
-      const transformedItems = cartItems.map(item => ({
-        // Cart metadata
-        _id: item.productId,
-        id: item.productId,
-        productId: item.productId,
-        cartItemId: item.id, // For update/delete operations
+      const transformedItems = await Promise.all(cartItems.map(async (item) => {
+        // Get price from product object if not at top level
+        let productPrice = item.product?.price || item.product?.salesPrice || 0;
+        let itemPrice = parseFloat(item.price) || productPrice;
         
-        // Cart-specific fields
-        orderQuantity: item.qty || 1,
-        qty: item.qty || 1,
-        quantity: item.qty || 1,
-        price: parseFloat(item.price) || 0,
-        priceCurrency: item.priceCurrency || 'USD',
-        priceConverted: item.priceConverted,
-        itemType: item.itemType,
+        // If price is still 0, try to fetch from product API
+        if ((!itemPrice || itemPrice === 0) && item.productId) {
+          try {
+            const productRes = await fetch(`${API_BASE_UNIFIED}/products/${item.productId}`, {
+              method: "GET",
+              headers: { 
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+              },
+              credentials: "include",
+            });
+            
+            if (productRes.ok) {
+              const productJson = await productRes.json();
+              const productData = productJson?.data || productJson;
+              
+              if (productData?.price) {
+                itemPrice = parseFloat(productData.price);
+                productPrice = itemPrice;
+                console.log('🛒 Fetched price for', item.productName, ':', itemPrice);
+              }
+            }
+          } catch (e) {
+            console.warn('🛒 Failed to fetch product price for', item.productId, ':', e);
+          }
+        }
         
-        // Product data from nested object
-        ...(item.product || {}),
-        
-        // Override with top-level fields
-        title: item.productName || item.product?.name || 'Product',
-        name: item.productName || item.product?.name || 'Product',
-        image: item.product?.image1CloudUrl || item.product?.img || '',
-        
-        // Keep original for reference
-        __originalCartItem: item,
+        return {
+          // Cart metadata
+          _id: item.productId,
+          id: item.productId,
+          productId: item.productId,
+          cartItemId: item.id, // For update/delete operations
+          
+          // Product data from nested object FIRST (so we can override)
+          ...(item.product || {}),
+          
+          // Cart-specific fields (OVERRIDE product fields)
+          orderQuantity: item.qty || 1,
+          qty: item.qty || 1,
+          quantity: item.qty || 1,
+          price: itemPrice || 0,
+          salesPrice: itemPrice || 0, // Add salesPrice for compatibility
+          priceCurrency: item.priceCurrency || item.product?.priceCurrency || 'INR',
+          priceConverted: item.priceConverted || itemPrice || 0,
+          itemType: item.itemType,
+          
+          // Override with top-level fields (ensure price is included)
+          title: item.productName || item.product?.name || 'Product',
+          name: item.productName || item.product?.name || 'Product',
+          image: item.product?.image1CloudUrl || item.product?.img || '',
+          slug: item.product?.slug || item.product?.productslug || '',
+          
+          // Keep original for reference
+          __originalCartItem: item,
+        };
       }));
 
       console.log('🛒 Transformed cart items:', transformedItems);
@@ -117,6 +152,7 @@ export const fetch_cart_products = createAsyncThunk(
       console.error('🛒 FETCH CART Error:', e);
       return rejectWithValue(e?.message || "Unknown error fetching cart");
     }
+    
   }
 );
 
@@ -141,8 +177,41 @@ export const add_to_cart = createAsyncThunk(
         return rejectWithValue("Item already in cart");
       }
       
-      // Using unified API endpoint (same as wishlist)
       const API_BASE_UNIFIED = process.env.NEXT_PUBLIC_API_BASE_URL || "https://espobackend.vercel.app/api";
+      
+      // Fetch product details to get the price if not provided
+      let productPrice = price;
+      let productCurrency = priceCurrency;
+      
+      if (!productPrice || productPrice === 0 || productPrice === '0.00') {
+        try {
+          console.log('🛒 Fetching product price for:', productId);
+          const productRes = await fetch(`${API_BASE_UNIFIED}/products/${productId}`, {
+            method: "GET",
+            headers: { 
+              "Content-Type": "application/json",
+              "Accept": "application/json"
+            },
+            credentials: "include",
+          });
+          
+          if (productRes.ok) {
+            const productJson = await productRes.json();
+            const productData = productJson?.data || productJson;
+            
+            if (productData?.price) {
+              productPrice = productData.price;
+              productCurrency = productData.priceCurrency || 'INR';
+              console.log('🛒 Fetched product price:', productPrice, productCurrency);
+            }
+          }
+        } catch (e) {
+          console.warn('🛒 Failed to fetch product price:', e);
+          // Continue with default price
+        }
+      }
+      
+      // Using unified API endpoint (same as wishlist)
       const url = `${API_BASE_UNIFIED}/wishlist`;
       
       const res = await fetch(url, {
@@ -157,8 +226,8 @@ export const add_to_cart = createAsyncThunk(
           productId: productId,
           itemType: 'cart',
           qty: quantity,
-          price: price || '0.00',
-          priceCurrency: priceCurrency
+          price: productPrice || '0.00',
+          priceCurrency: productCurrency
         }),
       });
       

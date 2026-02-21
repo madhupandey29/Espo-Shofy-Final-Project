@@ -157,6 +157,9 @@ const CartItemNew = ({ product, onRefresh, availableCurrencies = ['USD', 'EUR'] 
   const widthCm = Number(
     src.cm ?? src.widthCm ?? src.width_cm ?? src.width ?? product?.widthCm ?? product?.width_cm ?? product?.width
   );
+  
+  // Get unit of measurement from product
+  const unitOfMeasurement = src.uM || product?.uM || nested?.uM || 'Kg';
 
   const fabricTypeVal = toLabel(pick(src.category?.name, src.category, src.fabricType, src.fabric_type)) || 'Woven Fabrics';
   const contentVal = toLabel(pick(src.content));
@@ -180,7 +183,29 @@ const CartItemNew = ({ product, onRefresh, availableCurrencies = ['USD', 'EUR'] 
   const row2Parts = [weightVal, widthVal].filter((v) => nonEmpty(v) && !isNoneish(v));
 
   // Pricing
-  const unit = typeof salesPrice === 'number' ? salesPrice : Number.parseFloat(String(salesPrice)) || price || 0;
+  console.log('💰 Cart Item Pricing Debug:', {
+    productId: PID,
+    salesPrice,
+    price,
+    'product.price': product?.price,
+    'product.salesPrice': product?.salesPrice,
+    'product.priceConverted': product?.priceConverted,
+    'nested.price': nested?.price,
+    '__originalCartItem': product?.__originalCartItem,
+  });
+  
+  // Try multiple sources for price
+  const rawPrice = 
+    product?.price || 
+    product?.salesPrice || 
+    nested?.price || 
+    nested?.salesPrice ||
+    product?.__originalCartItem?.product?.price ||
+    salesPrice || 
+    price || 
+    0;
+  
+  const unit = typeof rawPrice === 'number' ? rawPrice : Number.parseFloat(String(rawPrice)) || 0;
   const displayPrice = product?.priceConverted || unit;
   const currencySymbol = CURRENCY_SYMBOLS[localCurrency] || localCurrency;
   const lineTotal = displayPrice * localQuantity;
@@ -199,9 +224,16 @@ const CartItemNew = ({ product, onRefresh, availableCurrencies = ['USD', 'EUR'] 
       setIsUpdating(true);
       
       try {
+        // Get the actual price from the product
+        const actualPrice = rawPrice || displayPrice || 0;
+        
         // Use PUT instead of PATCH - backend uses PUT /:base/:entity/:id
         const url = `${API_BASE}/wishlist/${encodeURIComponent(cartItemId)}`;
-        const payload = { qty: newQty, priceCurrency: localCurrency };
+        const payload = { 
+          qty: newQty, 
+          priceCurrency: localCurrency,
+          price: actualPrice.toString() // Include price in the update
+        };
         
         console.log('🔄 PUT request:', { url, payload });
         
@@ -234,7 +266,7 @@ const CartItemNew = ({ product, onRefresh, availableCurrencies = ['USD', 'EUR'] 
         setIsUpdating(false);
       }
     },
-    [cartItemId, userId, localCurrency, isUpdating, API_BASE, onRefresh, orderQuantity]
+    [cartItemId, userId, localCurrency, isUpdating, API_BASE, onRefresh, orderQuantity, rawPrice, displayPrice]
   );
 
   // Update currency
@@ -249,9 +281,15 @@ const CartItemNew = ({ product, onRefresh, availableCurrencies = ['USD', 'EUR'] 
       setIsUpdating(true);
       
       try {
+        // Get the actual price from the product
+        const actualPrice = rawPrice || displayPrice || 0;
+        
         // Use PUT instead of PATCH - backend uses PUT /:base/:entity/:id
         const url = `${API_BASE}/wishlist/${encodeURIComponent(cartItemId)}`;
-        const payload = { priceCurrency: newCurrency };
+        const payload = { 
+          priceCurrency: newCurrency,
+          price: actualPrice.toString() // Include price in the update
+        };
         
         console.log('💱 PUT request:', { url, payload });
         
@@ -284,7 +322,7 @@ const CartItemNew = ({ product, onRefresh, availableCurrencies = ['USD', 'EUR'] 
         setIsUpdating(false);
       }
     },
-    [cartItemId, userId, isUpdating, API_BASE, onRefresh, product?.priceCurrency]
+    [cartItemId, userId, isUpdating, API_BASE, onRefresh, product?.priceCurrency, rawPrice, displayPrice]
   );
 
   // Remove from cart
@@ -421,7 +459,7 @@ const CartItemNew = ({ product, onRefresh, availableCurrencies = ['USD', 'EUR'] 
               ))}
             </select>
             <span className="product-price">
-              {currencySymbol}{displayPrice.toFixed(2)}/Kg
+              {currencySymbol}{displayPrice.toFixed(2)}/{unitOfMeasurement}
             </span>
           </div>
 
@@ -473,7 +511,7 @@ const CartItemNew = ({ product, onRefresh, availableCurrencies = ['USD', 'EUR'] 
             >
               −
             </button>
-            <span className="qty-value">{localQuantity}Kg</span>
+            <span className="qty-value">{localQuantity}{unitOfMeasurement}</span>
             <button
               type="button"
               onClick={handleIncrement}

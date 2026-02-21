@@ -287,6 +287,21 @@ const WishlistItem = ({ product }) => {
       return;
     }
     if (!_id) return;
+    
+    // ✅ FIX: Check if item is already in cart before adding
+    if (isInCart) {
+      toast.info('Product is already in cart', {
+        position: 'top-center',
+        autoClose: 2000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        theme: 'light',
+      });
+      return;
+    }
+    
     try {
       setMoving(true);
       await dispatch(
@@ -318,15 +333,29 @@ const WishlistItem = ({ product }) => {
         toastId: `moved-${_id}`,
       });
     } catch (e) {
-      toast.error('Failed to move item to cart', {
-        position: 'top-center',
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        theme: 'light',
-      });
+      // Check if error is about duplicate item
+      const errorMsg = e?.message || String(e);
+      if (errorMsg.includes('already in cart') || errorMsg.includes('duplicate')) {
+        toast.info('Product is already in cart', {
+          position: 'top-center',
+          autoClose: 2000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          theme: 'light',
+        });
+      } else {
+        toast.error('Failed to move item to cart', {
+          position: 'top-center',
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          theme: 'light',
+        });
+      }
     } finally {
       setTimeout(() => setMoving(false), 250);
     }
