@@ -355,74 +355,51 @@ const CheckoutArea = () => {
       
       console.log('📦 Generated Order ID:', orderId);
       
-      // Create new ordered items (don't update existing checkout items)
-      // The backend creates new records with POST, not updates with PUT
-      const createPromises = cartItems.map(async (item) => {
-        // Get price from nested product object
+      // Update checkout items to Ordered status
+      const updatePromises = cartItems.map(async (item) => {
         const productPrice = item.product?.price || item.product?.salesPrice || 0;
         const itemPrice = parseFloat(item.price) || productPrice || 0;
         const currency = item.product?.priceCurrency || item.priceCurrency || 'INR';
         
-        console.log(`📝 Creating ordered item for ${item.productName}`);
-        console.log(`   Price: ${itemPrice}, Currency: ${currency}, Qty: ${item.qty}`);
+        console.log(`📝 Updating item to Ordered: ${item.productName} (ID: ${item.id})`);
+        console.log(`   ProductId: ${item.productId}, Price: ${itemPrice}, Currency: ${currency}, Qty: ${item.qty}`);
         
         try {
-          // Step 1: Create new ordered item
-          const createResponse = await fetch(`${API_BASE}/wishlist`, {
-            method: 'POST',
-            credentials: 'include',
+          // Update the existing checkout item to 'Ordered' status
+          const updateResponse = await fetch(`${API_BASE}/wishlist/${item.id}`, {
+            method: 'PUT',
             headers: { 
               'Content-Type': 'application/json',
               'Accept': 'application/json'
             },
+            credentials: 'include',
             body: JSON.stringify({
               customerAccountId: userId,
               productId: item.productId,
-              itemType: 'ordered',
-              qty: item.qty,
-              price: itemPrice.toString(),
-              priceCurrency: currency
+              itemType: 'Ordered'
             })
           });
           
-          if (!createResponse.ok) {
-            const errorText = await createResponse.text();
-            console.error(`❌ Failed to create ordered item:`, createResponse.status, errorText);
-            throw new Error(`Failed to create order for ${item.productName}: ${createResponse.status}`);
+          console.log(`📥 Response status:`, updateResponse.status);
+          
+          if (!updateResponse.ok) {
+            const errorText = await updateResponse.text();
+            console.error(`❌ Failed to update to Ordered:`, errorText);
+            throw new Error(`Failed to update order status for ${item.productName}: ${updateResponse.status}`);
           }
           
-          const createResult = await createResponse.json();
-          console.log(`✅ Created ordered item for ${item.productName}`);
+          const updateResult = await updateResponse.json();
+          console.log(`✅ Updated to Ordered:`, updateResult);
           
-          // Step 2: Delete the checkout item
-          try {
-            const deleteResponse = await fetch(`${API_BASE}/wishlist/${item.id}`, {
-              method: 'DELETE',
-              credentials: 'include',
-              headers: { 
-                'Accept': 'application/json'
-              }
-            });
-            
-            if (deleteResponse.ok) {
-              console.log(`✅ Deleted checkout item ${item.id}`);
-            } else {
-              console.warn(`⚠️ Failed to delete checkout item ${item.id}, but order was created`);
-            }
-          } catch (deleteError) {
-            console.warn(`⚠️ Error deleting checkout item:`, deleteError);
-            // Don't throw - order was already created successfully
-          }
-          
-          return createResult;
+          return updateResult;
         } catch (error) {
           console.error(`❌ Error processing ${item.productName}:`, error);
           throw error;
         }
       });
       
-      const createResults = await Promise.all(createPromises);
-      console.log('✅ All items moved to ordered status:', createResults.length);
+      const updateResults = await Promise.all(updatePromises);
+      console.log(`✅ Updated ${updateResults.length} items to Ordered status`);
       
       // Calculate total with correct prices
       const orderTotal = cartItems.reduce((sum, item) => {
@@ -596,21 +573,153 @@ const CheckoutArea = () => {
 
   if (cartItems.length === 0) {
     return (
-      <section className="checkout-area pb-120 pt-80">
-        <div className="container">
-          <div className="empty-cart-state">
-            <h3>Your cart is empty</h3>
-            <p>Add some items to your cart before checking out</p>
-            <button
-              type="button"
-              onClick={() => router.push('/fabric')}
-              className="btn-primary-modern mt-20"
-            >
-              Continue Shopping
-            </button>
+      <>
+        <section className="checkout-area pb-120 pt-80">
+          <div className="container">
+            <div className="empty-cart-state">
+              <div className="empty-cart-icon">
+                <svg viewBox="0 0 24 24" width="80" height="80" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <circle cx="9" cy="21" r="1"/>
+                  <circle cx="20" cy="21" r="1"/>
+                  <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+                </svg>
+              </div>
+              <h3>Your cart is empty</h3>
+              <p>Add some items to your cart before checking out</p>
+              <button
+                type="button"
+                onClick={() => router.push('/fabric')}
+                className="btn-primary-modern"
+              >
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                  <polyline points="9 22 9 12 15 12 15 22"/>
+                </svg>
+                Continue Shopping
+              </button>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+
+        <style jsx>{`
+          .empty-cart-state {
+            text-align: center;
+            padding: 80px 40px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+            max-width: 600px;
+            margin: 0 auto;
+          }
+
+          .empty-cart-icon {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 32px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6c757d;
+            position: relative;
+          }
+
+          .empty-cart-icon::before {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--tp-theme-primary) 0%, #1e3a8a 100%);
+            opacity: 0.1;
+            animation: pulse 2s ease-in-out infinite;
+          }
+
+          @keyframes pulse {
+            0%, 100% {
+              transform: scale(1);
+              opacity: 0.1;
+            }
+            50% {
+              transform: scale(1.1);
+              opacity: 0.15;
+            }
+          }
+
+          .empty-cart-state h3 {
+            font-size: 28px;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin-bottom: 16px;
+          }
+
+          .empty-cart-state p {
+            color: #6c757d;
+            margin-bottom: 32px;
+            font-size: 16px;
+            line-height: 1.6;
+          }
+
+          .btn-primary-modern {
+            background: linear-gradient(135deg, var(--tp-theme-primary) 0%, #1e3a8a 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 16px 40px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(44, 76, 151, 0.3);
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+          }
+
+          .btn-primary-modern:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(44, 76, 151, 0.4);
+          }
+
+          .btn-primary-modern svg {
+            transition: transform 0.3s ease;
+          }
+
+          .btn-primary-modern:hover svg {
+            transform: translateX(-3px);
+          }
+
+          @media (max-width: 768px) {
+            .empty-cart-state {
+              padding: 60px 24px;
+            }
+
+            .empty-cart-icon {
+              width: 100px;
+              height: 100px;
+            }
+
+            .empty-cart-icon svg {
+              width: 60px;
+              height: 60px;
+            }
+
+            .empty-cart-state h3 {
+              font-size: 24px;
+            }
+
+            .empty-cart-state p {
+              font-size: 15px;
+            }
+
+            .btn-primary-modern {
+              padding: 14px 32px;
+              font-size: 15px;
+            }
+          }
+        `}</style>
+      </>
     );
   }
 
@@ -1118,23 +1227,61 @@ const CheckoutArea = () => {
 
         .empty-cart-state {
           text-align: center;
-          padding: 60px 20px;
+          padding: 80px 40px;
           background: white;
-          border-radius: 16px;
-          box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+          border-radius: 20px;
+          box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+          max-width: 600px;
+          margin: 0 auto;
+        }
+
+        .empty-cart-icon {
+          width: 120px;
+          height: 120px;
+          margin: 0 auto 32px;
+          background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: #6c757d;
+          position: relative;
+        }
+
+        .empty-cart-icon::before {
+          content: '';
+          position: absolute;
+          width: 100%;
+          height: 100%;
+          border-radius: 50%;
+          background: linear-gradient(135deg, var(--tp-theme-primary) 0%, #1e3a8a 100%);
+          opacity: 0.1;
+          animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+          0%, 100% {
+            transform: scale(1);
+            opacity: 0.1;
+          }
+          50% {
+            transform: scale(1.1);
+            opacity: 0.15;
+          }
         }
 
         .empty-cart-state h3 {
-          font-size: 24px;
+          font-size: 28px;
           font-weight: 700;
           color: #1a1a1a;
-          margin-bottom: 12px;
+          margin-bottom: 16px;
         }
 
         .empty-cart-state p {
           color: #6c757d;
-          margin-bottom: 24px;
-          font-size: 15px;
+          margin-bottom: 32px;
+          font-size: 16px;
+          line-height: 1.6;
         }
 
         .btn-primary-modern {
@@ -1142,17 +1289,28 @@ const CheckoutArea = () => {
           color: white;
           border: none;
           border-radius: 12px;
-          padding: 12px 28px;
-          font-size: 14px;
+          padding: 16px 40px;
+          font-size: 16px;
           font-weight: 600;
           cursor: pointer;
           transition: all 0.3s ease;
           box-shadow: 0 4px 15px rgba(44, 76, 151, 0.3);
+          display: inline-flex;
+          align-items: center;
+          gap: 10px;
         }
 
         .btn-primary-modern:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 6px 20px rgba(44, 76, 151, 0.4);
+          transform: translateY(-3px);
+          box-shadow: 0 8px 25px rgba(44, 76, 151, 0.4);
+        }
+
+        .btn-primary-modern svg {
+          transition: transform 0.3s ease;
+        }
+
+        .btn-primary-modern:hover svg {
+          transform: translateX(-3px);
         }
 
         /* Responsive */
@@ -1187,6 +1345,33 @@ const CheckoutArea = () => {
 
           .order-items {
             max-height: 250px;
+          }
+
+          .empty-cart-state {
+            padding: 60px 24px;
+          }
+
+          .empty-cart-icon {
+            width: 100px;
+            height: 100px;
+          }
+
+          .empty-cart-icon svg {
+            width: 60px;
+            height: 60px;
+          }
+
+          .empty-cart-state h3 {
+            font-size: 24px;
+          }
+
+          .empty-cart-state p {
+            font-size: 15px;
+          }
+
+          .btn-primary-modern {
+            padding: 14px 32px;
+            font-size: 15px;
           }
         }
       `}</style>

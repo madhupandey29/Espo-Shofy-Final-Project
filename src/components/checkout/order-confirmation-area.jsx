@@ -35,15 +35,19 @@ const OrderConfirmationArea = () => {
         <div className="container">
           <div className="no-order-state">
             <div className="icon-wrapper">
-              <svg viewBox="0 0 24 24" width="64" height="64" fill="none" stroke="currentColor" strokeWidth="2">
+              <svg viewBox="0 0 24 24" width="80" height="80" fill="none" stroke="currentColor" strokeWidth="1.5">
                 <circle cx="12" cy="12" r="10"/>
-                <line x1="12" y1="8" x2="12" y2="12"/>
-                <line x1="12" y1="16" x2="12.01" y2="16"/>
+                <path d="M12 8v4"/>
+                <path d="M12 16h.01"/>
               </svg>
             </div>
             <h3>No Order Found</h3>
             <p>We couldn't find any order information. Please try placing an order first.</p>
             <Link href="/fabric" className="btn-primary-modern">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                <polyline points="9 22 9 12 15 12 15 22"/>
+              </svg>
               Continue Shopping
             </Link>
           </div>
@@ -507,22 +511,47 @@ const OrderConfirmationArea = () => {
           gap: 16px;
           justify-content: center;
           margin-top: 32px;
+          flex-wrap: wrap;
         }
 
+        .btn-whatsapp,
         .btn-continue-shopping,
         .btn-print-order {
-          padding: 14px 32px;
-          border-radius: 8px;
-          font-size: 15px;
+          padding: 16px 32px;
+          border-radius: 12px;
+          font-size: 16px;
           font-weight: 600;
           cursor: pointer;
-          transition: all 0.2s ease;
+          transition: all 0.3s ease;
           border: none;
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .btn-whatsapp {
+          background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
+          color: white;
+          flex: 1;
+          max-width: 300px;
+          justify-content: center;
+        }
+
+        .btn-whatsapp:hover {
+          transform: translateY(-3px);
+          box-shadow: 0 8px 25px rgba(37, 211, 102, 0.4);
+        }
+
+        .btn-whatsapp svg {
+          filter: drop-shadow(0 1px 2px rgba(0,0,0,0.2));
         }
 
         .btn-continue-shopping {
           background: var(--tp-theme-primary);
           color: var(--tp-common-white);
+          flex: 1;
+          max-width: 250px;
         }
 
         .btn-continue-shopping:hover {
@@ -535,58 +564,101 @@ const OrderConfirmationArea = () => {
           background: var(--tp-common-white);
           color: var(--tp-theme-primary);
           border: 2px solid var(--tp-theme-primary);
+          flex: 1;
+          max-width: 200px;
         }
 
         .btn-print-order:hover {
           background: var(--tp-grey-1);
+          transform: translateY(-2px);
         }
 
         .no-order-state {
           text-align: center;
-          padding: 60px 20px;
+          padding: 80px 40px;
           background: var(--tp-common-white);
-          border-radius: 16px;
-          box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+          border-radius: 20px;
+          box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+          max-width: 600px;
+          margin: 0 auto;
         }
 
         .icon-wrapper {
-          width: 80px;
-          height: 80px;
-          margin: 0 auto 24px;
-          background: #fee2e2;
+          width: 120px;
+          height: 120px;
+          margin: 0 auto 32px;
+          background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
           border-radius: 50%;
           display: flex;
           align-items: center;
           justify-content: center;
-          color: #dc2626;
+          color: #f59e0b;
+          position: relative;
+        }
+
+        .icon-wrapper::before {
+          content: '';
+          position: absolute;
+          width: 100%;
+          height: 100%;
+          border-radius: 50%;
+          background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+          opacity: 0.1;
+          animation: pulse-warning 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse-warning {
+          0%, 100% {
+            transform: scale(1);
+            opacity: 0.1;
+          }
+          50% {
+            transform: scale(1.1);
+            opacity: 0.15;
+          }
         }
 
         .no-order-state h3 {
-          font-size: 24px;
+          font-size: 28px;
           font-weight: 700;
-          color: var(--tp-text-1);
-          margin-bottom: 12px;
+          color: #1a1a1a;
+          margin-bottom: 16px;
         }
 
         .no-order-state p {
-          color: var(--tp-text-2);
-          margin-bottom: 24px;
+          color: #6c757d;
+          margin-bottom: 32px;
+          font-size: 16px;
+          line-height: 1.6;
         }
 
         .btn-primary-modern {
-          display: inline-block;
-          background: var(--tp-theme-primary);
-          color: var(--tp-common-white);
-          padding: 12px 24px;
-          border-radius: 8px;
+          display: inline-flex;
+          align-items: center;
+          gap: 10px;
+          background: linear-gradient(135deg, var(--tp-theme-primary) 0%, #1e3a8a 100%);
+          color: white;
+          padding: 16px 40px;
+          border-radius: 12px;
           text-decoration: none;
           font-weight: 600;
-          transition: all 0.2s ease;
+          font-size: 16px;
+          transition: all 0.3s ease;
+          box-shadow: 0 4px 15px rgba(44, 76, 151, 0.3);
         }
 
         .btn-primary-modern:hover {
           background: color-mix(in srgb, var(--tp-theme-primary) 90%, black);
-          transform: translateY(-1px);
+          transform: translateY(-3px);
+          box-shadow: 0 8px 25px rgba(44, 76, 151, 0.4);
+        }
+
+        .btn-primary-modern svg {
+          transition: transform 0.3s ease;
+        }
+
+        .btn-primary-modern:hover svg {
+          transform: translateX(-3px);
         }
 
         @media print {
@@ -615,16 +687,23 @@ const OrderConfirmationArea = () => {
           .next-steps-card {
             padding: 24px;
           }
+
+          .no-order-state {
+            padding: 60px 32px;
+          }
         }
 
         @media (max-width: 767px) {
           .action-buttons {
             flex-direction: column;
+            align-items: stretch;
           }
 
+          .btn-whatsapp,
           .btn-continue-shopping,
           .btn-print-order {
             width: 100%;
+            max-width: none;
           }
 
           .order-item {
@@ -635,6 +714,33 @@ const OrderConfirmationArea = () => {
           .item-total {
             margin-left: 0;
             align-self: flex-end;
+          }
+
+          .no-order-state {
+            padding: 60px 24px;
+          }
+
+          .icon-wrapper {
+            width: 100px;
+            height: 100px;
+          }
+
+          .icon-wrapper svg {
+            width: 60px;
+            height: 60px;
+          }
+
+          .no-order-state h3 {
+            font-size: 24px;
+          }
+
+          .no-order-state p {
+            font-size: 15px;
+          }
+
+          .btn-primary-modern {
+            padding: 14px 32px;
+            font-size: 15px;
           }
         }
       `}</style>
