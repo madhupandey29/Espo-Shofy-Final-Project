@@ -14,7 +14,7 @@ import {
   useUpdateProfileMutation,
   useLogoutUserMutation,
 } from '@/redux/features/auth/authApi';
-import { setUserId } from '@/redux/features/auth/authSlice';
+import { setUserId, userLoggedOut } from '@/redux/features/auth/authSlice';
 
 import { notifyError, notifySuccess } from '@/utils/toast';
 import styles from './UserProfile.module.css';
@@ -918,32 +918,37 @@ export default function UserProfile() {
   /* ---------------- Logout (Destroy Session) ---------------- */
   const handleLogout = async () => {
     try {
-      // ✅ Destroy session completely
+      // 1. Call logout mutation (clears cookies + localStorage)
       await logoutUser({ userId }).unwrap();
       
-      // Clear all session data
+      // 2. Dispatch Redux logout action
+      dispatch(userLoggedOut());
+      
+      // 3. Clear ALL session data (belt and suspenders approach)
       Cookies.remove('userInfo');
       Cookies.remove('sessionId');
+      Cookies.remove('userId');
       
       if (typeof window !== 'undefined') {
-        localStorage.removeItem('sessionId');
-        localStorage.removeItem('userId');
-        sessionStorage.clear(); // Clear all cached data
+        localStorage.clear(); // Clear ALL localStorage
+        sessionStorage.clear(); // Clear ALL sessionStorage
       }
       
       console.log('✅ Session destroyed, logging out');
       notifySuccess('Logged out successfully');
       
-      // Redirect to home page
+      // 4. Force hard reload to clear all cached state
       window.location.href = '/';
     } catch (err) {
-      // Even if API fails, clear local session
+      // Even if API fails, clear local session completely
+      dispatch(userLoggedOut());
+      
       Cookies.remove('userInfo');
       Cookies.remove('sessionId');
+      Cookies.remove('userId');
       
       if (typeof window !== 'undefined') {
-        localStorage.removeItem('sessionId');
-        localStorage.removeItem('userId');
+        localStorage.clear();
         sessionStorage.clear();
       }
       

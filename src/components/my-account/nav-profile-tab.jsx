@@ -11,8 +11,21 @@ const NavProfileTab = ({ orderData }) => {
   const router = useRouter();
   // handle logout
   const handleLogout = () => {
+    // 1. Dispatch Redux logout action
     dispatch(userLoggedOut());
-    router.push('/')
+    
+    // 2. Clear ALL storage
+    if (typeof window !== 'undefined') {
+      localStorage.clear();
+      sessionStorage.clear();
+    }
+    
+    // 3. Force hard reload to clear all cached state
+    if (typeof window !== 'undefined') {
+      window.location.href = '/';
+    } else {
+      router.push('/');
+    }
   }
   return (
     <div className="profile__main">

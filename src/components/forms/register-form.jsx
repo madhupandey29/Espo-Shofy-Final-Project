@@ -11,10 +11,10 @@ import { notifyError, notifySuccess } from '@/utils/toast';
 
 const schema = Yup.object().shape({
   firstName:     Yup.string().required('First name is required'),
-  lastName:      Yup.string().required('Last name is required'),
+  lastName:      Yup.string(),
   email:         Yup.string().required('Email is required').email('Enter a valid email'),
-  organisation:  Yup.string().required('Organisation is required'),
-  phone:         Yup.string().required('Phone number is required'),
+  organisation:  Yup.string(),
+  phone:         Yup.string(),
   address:       Yup.string(),
   city:          Yup.string(),
   state:         Yup.string(),
@@ -127,7 +127,7 @@ export default function RegisterForm() {
           <form onSubmit={handleSubmit(onFormSubmit)} className="space-y-4">
             {/* First Name */}
             <div className="tp-input-box">
-              <label className="tp-label" htmlFor="rf-firstname">First Name</label>
+              <label className="tp-label" htmlFor="rf-firstname">First Name <span style={{color: 'red'}}>*</span></label>
               <input
                 id="rf-firstname"
                 autoFocus
@@ -141,7 +141,7 @@ export default function RegisterForm() {
 
             {/* Last Name */}
             <div className="tp-input-box">
-              <label className="tp-label" htmlFor="rf-lastname">Last Name</label>
+              <label className="tp-label" htmlFor="rf-lastname">Last Name (Optional)</label>
               <input
                 id="rf-lastname"
                 {...register('lastName')}
@@ -154,7 +154,7 @@ export default function RegisterForm() {
 
             {/* Email */}
             <div className="tp-input-box">
-              <label className="tp-label" htmlFor="rf-email">Email</label>
+              <label className="tp-label" htmlFor="rf-email">Email <span style={{color: 'red'}}>*</span></label>
               <input
                 id="rf-email"
                 {...register('email')}
@@ -167,7 +167,7 @@ export default function RegisterForm() {
 
             {/* Organisation */}
             <div className="tp-input-box">
-              <label className="tp-label" htmlFor="rf-org">Organisation</label>
+              <label className="tp-label" htmlFor="rf-org">Organisation (Optional)</label>
               <input
                 id="rf-org"
                 {...register('organisation')}
@@ -180,7 +180,7 @@ export default function RegisterForm() {
 
             {/* Phone */}
             <div className="tp-input-box">
-              <label className="tp-label" htmlFor="rf-phone">Phone</label>
+              <label className="tp-label" htmlFor="rf-phone">Phone (Optional)</label>
               <input
                 id="rf-phone"
                 {...register('phone')}
@@ -193,12 +193,12 @@ export default function RegisterForm() {
 
             {/* Address */}
             <div className="tp-input-box">
-              <label className="tp-label" htmlFor="rf-address">Address</label>
+              <label className="tp-label" htmlFor="rf-address">Address (Optional)</label>
               <input
                 id="rf-address"
                 {...register('address')}
                 type="text"
-                placeholder="(Optional) Address"
+                placeholder="Address"
                 className="tp-input"
               />
               <ErrorMsg msg={errors.address?.message}/>
@@ -206,7 +206,7 @@ export default function RegisterForm() {
 
             {/* City */}
             <div className="tp-input-box">
-              <label className="tp-label" htmlFor="rf-city">City</label>
+              <label className="tp-label" htmlFor="rf-city">City (Optional)</label>
               <input
                 id="rf-city"
                 {...register('city')}
@@ -219,7 +219,7 @@ export default function RegisterForm() {
 
             {/* State */}
             <div className="tp-input-box">
-              <label className="tp-label" htmlFor="rf-state">State</label>
+              <label className="tp-label" htmlFor="rf-state">State (Optional)</label>
               <input
                 id="rf-state"
                 {...register('state')}
@@ -232,7 +232,7 @@ export default function RegisterForm() {
 
             {/* Country */}
             <div className="tp-input-box">
-              <label className="tp-label" htmlFor="rf-country">Country</label>
+              <label className="tp-label" htmlFor="rf-country">Country (Optional)</label>
               <input
                 id="rf-country"
                 {...register('country')}

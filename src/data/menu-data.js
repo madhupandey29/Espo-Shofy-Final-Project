@@ -9,7 +9,7 @@ const menu_data = [
     id: 2,
     // products: true,
     single_link: true,
-    title: 'Products',
+    title: 'Fabric',
     link: '/fabric',
     // product_pages: [
     //   {
@@ -128,7 +128,7 @@ export const mobile_menu = [
   {
     id: 2,
     single_link: true,
-    title: 'Products',
+    title: 'Fabric',
     link: '/fabric',
   },
   {

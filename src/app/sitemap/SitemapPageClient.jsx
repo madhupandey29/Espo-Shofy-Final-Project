@@ -446,7 +446,7 @@ const SitemapPageClient = () => {
           <div className={styles.footerActions}>
             <div className={styles.actionGroup}>
               <Link
-                href={`${process.env.NEXT_PUBLIC_SITE_URL}/sitemap.xml`}
+                href={`${process.env.NEXT_PUBLIC_SITE_URL}sitemap.xml`}
                 target="_blank"
                 className={styles.actionButton}
               >

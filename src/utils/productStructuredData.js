@@ -94,6 +94,158 @@ export const generateProductStructuredData = (product) => {
     };
   }
 
+  // ✅ Add additional product properties for rich snippets
+  const additionalProperties = [];
+
+  // Content (Material)
+  if (product.content) {
+    const contentValue = Array.isArray(product.content) 
+      ? product.content.join(', ') 
+      : product.content;
+    if (contentValue && contentValue !== 'N/A') {
+      additionalProperties.push({
+        "@type": "PropertyValue",
+        "name": "Content",
+        "value": contentValue
+      });
+    }
+  }
+
+  // Width
+  const cmNum = product.cm || product.width;
+  const inchNum = product.inch;
+  if (cmNum || inchNum) {
+    const widthParts = [];
+    if (cmNum) widthParts.push(`${cmNum} cm`);
+    if (inchNum) widthParts.push(`${Math.round(inchNum)} inch`);
+    const widthValue = widthParts.join(' / ');
+    if (widthValue) {
+      additionalProperties.push({
+        "@type": "PropertyValue",
+        "name": "Width",
+        "value": widthValue
+      });
+    }
+  }
+
+  // Weight (GSM/OZ)
+  if (product.gsm || product.oz) {
+    const weightParts = [];
+    if (product.gsm) weightParts.push(`${product.gsm} gsm`);
+    if (product.oz) weightParts.push(`${Number(product.oz).toFixed(1)} oz`);
+    const weightValue = weightParts.join(' / ');
+    if (weightValue) {
+      additionalProperties.push({
+        "@type": "PropertyValue",
+        "name": "Weight",
+        "value": weightValue
+      });
+    }
+  }
+
+  // Design
+  if (product.design) {
+    const designValue = typeof product.design === 'object' 
+      ? product.design.name 
+      : product.design;
+    if (designValue && designValue !== 'N/A') {
+      additionalProperties.push({
+        "@type": "PropertyValue",
+        "name": "Design",
+        "value": designValue
+      });
+    }
+  }
+
+  // Structure
+  if (product.structure && product.structure !== 'N/A') {
+    additionalProperties.push({
+      "@type": "PropertyValue",
+      "name": "Structure",
+      "value": product.structure
+    });
+  }
+
+  // Colors
+  if (product.colors || product.color) {
+    const colorsArray = Array.isArray(product.colors) 
+      ? product.colors 
+      : Array.isArray(product.color) 
+        ? product.color 
+        : [];
+    const colorNames = colorsArray
+      .map(c => typeof c === 'string' ? c : c?.name)
+      .filter(Boolean);
+    if (colorNames.length > 0) {
+      additionalProperties.push({
+        "@type": "PropertyValue",
+        "name": "Colors",
+        "value": colorNames.join(', ')
+      });
+    }
+  }
+
+  // Motif
+  if (product.motif || product.motifsize) {
+    const motifValue = typeof product.motif === 'object' 
+      ? (product.motif.name || product.motif.size) 
+      : (product.motif || product.motifsize);
+    if (motifValue && motifValue !== 'N/A') {
+      additionalProperties.push({
+        "@type": "PropertyValue",
+        "name": "Motif",
+        "value": motifValue
+      });
+    }
+  }
+
+  // Sales MOQ
+  if (product.salesMOQ) {
+    const moqValue = product.uM 
+      ? `${product.salesMOQ} ${product.uM}` 
+      : product.salesMOQ;
+    additionalProperties.push({
+      "@type": "PropertyValue",
+      "name": "Sales MOQ",
+      "value": moqValue.toString()
+    });
+  }
+
+  // Finish
+  if (product.finish) {
+    let finishArray = [];
+    if (Array.isArray(product.finish)) {
+      finishArray = product.finish.filter(Boolean);
+    } else {
+      const str = String(product.finish);
+      finishArray = str
+        .split(/[•,;]|\s-\s/)
+        .map(s => s.trim())
+        .filter(Boolean);
+    }
+    
+    // Clean up finish values
+    const cleanedFinishArray = finishArray.map(finish => {
+      let cleaned = finish.trim();
+      cleaned = cleaned.replace(/^Chemical\s*-\s*/i, '');
+      cleaned = cleaned.replace(/^Mechanical\s*-\s*/i, '');
+      return cleaned;
+    }).filter(Boolean);
+    
+    if (cleanedFinishArray.length > 0) {
+      additionalProperties.push({
+        "@type": "PropertyValue",
+        "name": "Finish",
+        "value": cleanedFinishArray.join(', ')
+      });
+    }
+  }
+
+  // Add additionalProperty to schema if we have any
+  if (additionalProperties.length > 0) {
+    productSchema.additionalProperty = additionalProperties;
+  }
+
   return productSchema;
 };
 

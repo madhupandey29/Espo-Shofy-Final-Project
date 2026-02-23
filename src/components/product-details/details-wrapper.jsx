@@ -7,7 +7,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
-import { FaStar, FaStarHalfAlt, FaFileAlt, FaCommentDots, FaHeart } from 'react-icons/fa';
+import { FaStar, FaStarHalfAlt, FaFileAlt, FaCommentDots, FaHeart, FaDownload } from 'react-icons/fa';
 import { AiOutlineStar, AiOutlineHeart } from 'react-icons/ai';
 import Link from 'next/link';
 
@@ -338,7 +338,7 @@ const DetailsWrapper = ({ productItem = {} }) => {
           if (btnText) {
             btnText.textContent = 'PDF Downloaded!';
             setTimeout(() => {
-              btnText.textContent = 'Download Catalogue';
+              btnText.textContent = 'Catalogue';
             }, 2000);
           }
         }
@@ -368,7 +368,7 @@ const DetailsWrapper = ({ productItem = {} }) => {
         button.disabled = false;
         const btnText = button.querySelector('.btn-text');
         if (btnText && btnText.textContent !== 'PDF Downloaded!') {
-          btnText.textContent = 'Download Catalogue';
+          btnText.textContent = 'Catalogue';
         }
       }
     }
@@ -530,8 +530,8 @@ const DetailsWrapper = ({ productItem = {} }) => {
             type="button"
             onClick={handleRequestSample}
           >
-            <FaFileAlt />
-            <span className="btn-text">Download Catalogue</span>
+            <FaDownload />
+            <span className="btn-text">Catalogue</span>
           </button>
 
           <Link href="/contact" style={{ flex: 1, textDecoration: 'none' }}>

@@ -19,7 +19,7 @@ export async function pingSearchEngines(sitemapUrl) {
 
 export function getSitemapUrl() {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL;
-  return `${baseUrl}/sitemap.xml`;
+  return `${baseUrl}sitemap.xml`;
 }
 
 export function logSitemapStats(sitemapData) {

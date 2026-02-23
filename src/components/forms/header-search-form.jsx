@@ -24,7 +24,7 @@ const HeaderSearchForm = () => {
             }}
             value={searchText || ''}
             type="text"
-            placeholder="Search for Products..."
+            placeholder="Search for Fabric..."
             maxLength={200}
             style={{ paddingRight: searchText ? '40px' : '40px' }}
           />

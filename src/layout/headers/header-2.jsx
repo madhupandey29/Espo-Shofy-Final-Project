@@ -10,6 +10,7 @@ import useSticky from '@/hooks/use-sticky';
 import useCartInfo from '@/hooks/use-cart-info';
 
 import { fetch_cart_products } from '@/redux/features/cartSlice';
+import { userLoggedOut } from '@/redux/features/auth/authSlice';
 import CartMiniSidebar from '@/components/common/cart-mini-sidebar';
 import OffCanvas from '@/components/common/off-canvas';
 import Menus from './header-com/menus';
@@ -216,19 +217,40 @@ const HeaderTwo = ({ style_2 = false }) => {
 
   const handleLogout = () => {
     try {
+      // 1. Dispatch Redux logout action (clears Redux state + cookies + localStorage)
+      dispatch(userLoggedOut());
+      
+      // 2. Clear any remaining session data
       if (typeof window !== 'undefined') {
-        localStorage.removeItem('userId');
-        localStorage.removeItem('sessionId');
+        localStorage.clear(); // Clear ALL localStorage
+        sessionStorage.clear(); // Clear ALL sessionStorage
+        
+        // Clear all cookies
         try {
           import('js-cookie')
-            .then((Cookies) => Cookies.default.remove('userInfo'))
+            .then((Cookies) => {
+              Cookies.default.remove('userInfo');
+              Cookies.default.remove('sessionId');
+              Cookies.default.remove('userId');
+            })
             .catch(() => {});
         } catch {}
       }
-    } finally {
+      
+      // 3. Update local state
       setHasSession(false);
       setUserOpen(false);
-      router.push('/');
+      
+      // 4. Force hard reload to clear all cached state
+      if (typeof window !== 'undefined') {
+        window.location.href = '/';
+      }
+    } catch (error) {
+      console.error('Logout error:', error);
+      // Fallback: still redirect even if error
+      if (typeof window !== 'undefined') {
+        window.location.href = '/';
+      }
     }
   };
 
@@ -332,8 +354,8 @@ const HeaderTwo = ({ style_2 = false }) => {
                             onChange={(e) => setSearchQuery(e.target.value)}
                             onKeyDown={onSearchKeyDown}
                             type="text"
-                            placeholder="Search for Products..."
-                            aria-label="Search products"
+                            placeholder="Search for Fabric..."
+                            aria-label="Search fabric"
                             autoComplete="off"
                             spellCheck={false}
                             inputMode="search"
@@ -377,8 +399,8 @@ const HeaderTwo = ({ style_2 = false }) => {
                               onChange={(e) => setSearchQuery(e.target.value)}
                               onKeyDown={onSearchKeyDown}
                               type="text"
-                              placeholder="Search products..."
-                              aria-label="Search products"
+                              placeholder="Search fabric..."
+                              aria-label="Search fabric"
                               autoComplete="off"
                               spellCheck={false}
                               inputMode="search"
