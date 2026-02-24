@@ -1,4 +1,6 @@
 import React from 'react';
+import { cookies } from 'next/headers';
+import { redirect } from 'next/navigation';
 import Wrapper from '@/layout/wrapper';
 import HeaderTwo from '@/layout/headers/header-2';
 import Footer from '@/layout/footers/footer';
@@ -20,6 +22,26 @@ export const runtime = 'nodejs';
 export const preferredRegion = 'auto';
 
 export default function ProfilePage() {
+  // ----- Server-side auth guard -----
+  const cookieStore = cookies();
+  const sessionId = cookieStore.get('sessionId')?.value || '';
+
+  let userId = '';
+  const userInfoRaw = cookieStore.get('userInfo')?.value;
+  if (userInfoRaw) {
+    try {
+      const parsed = JSON.parse(userInfoRaw);
+      userId = String(parsed?.user?._id || '');
+    } catch {
+      // ignore JSON parse errors
+    }
+  }
+
+  if (!sessionId && !userId) {
+    redirect(`/login?returnTo=${encodeURIComponent('/profile')}`);
+  }
+  // -----------------------------
+
   return (
     <Wrapper>
       <HeaderTwo />

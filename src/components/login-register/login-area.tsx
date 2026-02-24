@@ -6,6 +6,7 @@ import { FiSearch, FiEye, FiPackage } from 'react-icons/fi';
 import { TbBadge } from 'react-icons/tb';
 import LoginForm from '../forms/login-form';
 import styles from '../../components/auth/AuthArea.module.css';
+import { readAndClearReturnTo, sanitizeReturnTo } from '@/utils/authReturn';
 
 type Props = {
   onClose?: () => void;
@@ -27,6 +28,16 @@ const LoginArea: React.FC<Props> = ({ onClose, onSwitchToRegister }) => {
 
   const handleClose = useCallback(() => {
     if (onClose) { onClose(); return; }
+    
+    try {
+      const stored = readAndClearReturnTo();
+      if (stored) {
+        const dest = sanitizeReturnTo(stored);
+        router.push(dest);
+        return;
+      }
+    } catch {}
+    
     if (typeof window !== 'undefined' && window.history.length > 1) router.back();
     else router.push('/');
   }, [onClose, router]);

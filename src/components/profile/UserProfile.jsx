@@ -147,11 +147,11 @@ const getClientSessionId = () => {
 
 const redirectToLogin = () => {
   try {
-    // Only use pathname to avoid encoding loops with existing redirect parameters
-    const redirect = typeof window !== 'undefined'
-      ? window.location.pathname
+    // Capture full URL with query params and hash
+    const returnTo = typeof window !== 'undefined'
+      ? `${window.location.pathname}${window.location.search}${window.location.hash}`
       : '/profile';
-    window.location.href = `/login?redirect=${encodeURIComponent(redirect)}`;
+    window.location.href = `/login?returnTo=${encodeURIComponent(returnTo)}`;
   } catch {
     window.location.href = '/login';
   }

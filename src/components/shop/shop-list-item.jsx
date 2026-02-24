@@ -9,6 +9,7 @@ import { add_to_cart, fetch_cart_products, openCartMini } from "@/redux/features
 import { add_to_wishlist } from "@/redux/features/wishlist-slice";
 import { add_to_compare } from "@/redux/features/compareSlice";
 import { mapProductFields, getStructureName, getContentName, getFinishName } from "@/utils/productFieldMapper";
+import { useAuthAction } from "@/utils/authUtils";
 
 import { useGetSubstructureQuery } from "@/redux/features/substructureApi";
 import { useGetContentByIdQuery } from "@/redux/features/contentApi";
@@ -36,35 +37,27 @@ const getSessionUser = () => {
   };
 };
 
-/** Fire the same login modal event your header listens for */
-const openLoginModal = () => {
-  if (typeof window === "undefined") return;
-  try {
-    window.dispatchEvent(new CustomEvent("auth:open", { detail: { mode: "login" } }));
-  } catch (err) {
-    }
-};
 
 const ShopListItem = ({ product }) => {
   const { img, image, title, price, salesPrice, discount, description } = product || {};
   const dispatch = useDispatch();
+  const { requireAuth } = useAuthAction();
 
-  /** Gate add-to-cart behind session like wishlist does */
-  const guardedAddToCart = async (prd) => {
-    const { sessionId, userId } = getSessionUser();
-    if (!sessionId || !userId) { openLoginModal(); return; }
-    try {
-      const pid = prd?._id || prd?.id || prd?.productId;
-      if (!pid) return;
-      await dispatch(add_to_cart({ userId, productId: pid, quantity: 1 })).unwrap();
-      await dispatch(fetch_cart_products({ userId }));
-      dispatch(openCartMini());
-    } catch (e) {
-      // ignore
-    }
-  };
+  // ✅ Standardized auth-gated actions using requireAuth
+  const onWishlist = requireAuth(async () => {
+    dispatch(add_to_wishlist(product));
+  });
 
-  const handleWishlistProduct = (prd) => dispatch(add_to_wishlist(prd));
+  const onCart = requireAuth(async () => {
+    const userId = localStorage.getItem('userId');
+    const pid = product?._id || product?.id || product?.productId;
+    if (!userId || !pid) return;
+    
+    await dispatch(add_to_cart({ userId, productId: pid, quantity: 1 })).unwrap();
+    await dispatch(fetch_cart_products({ userId }));
+    dispatch(openCartMini());
+  });
+
   const handleCompareProduct = (prd) => dispatch(add_to_compare(prd));
 
   const isCloudinaryUrl = (url) =>
@@ -289,7 +282,7 @@ const ShopListItem = ({ product }) => {
             {/* ❤️ Wishlist */}
             <button
               type="button"
-              onClick={() => handleWishlistProduct(product)}
+              onClick={() => onWishlist()}
               className="tp-product-action-btn-2 tp-product-add-to-wishlist-btn hover:text-sky-500 focus:text-sky-500 active:text-sky-500 transition-colors"
             >
               <Wishlist />
@@ -299,7 +292,7 @@ const ShopListItem = ({ product }) => {
             {/* 🛒 Cart icon → same gate as wishlist page */}
             <button
               type="button"
-              onClick={() => guardedAddToCart(product)}
+              onClick={() => onCart()}
               className="tp-product-action-btn-2 tp-product-add-to-cart-btn"
             >
               <Cart />
@@ -356,7 +349,7 @@ const ShopListItem = ({ product }) => {
           {/* Add To Cart button with the same guarded logic */}
           <div className="tp-product-list-add-to-cart">
             <button
-              onClick={() => guardedAddToCart(product)}
+              onClick={() => onCart()}
               className="tp-product-list-add-to-cart-btn"
             >
               Add To Cart

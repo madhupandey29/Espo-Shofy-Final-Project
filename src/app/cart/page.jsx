@@ -43,7 +43,7 @@ export default function CartPage() {
 
   // If neither sessionId nor userId is present, bounce to login
   if (!sessionId && !userId) {
-    redirect(`/login?redirect=${encodeURIComponent('/cart')}`);
+    redirect(`/login?returnTo=${encodeURIComponent('/cart')}`);
   }
   // -----------------------------
 

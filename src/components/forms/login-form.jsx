@@ -8,6 +8,7 @@ import * as Yup from 'yup';
 import { useRouter, useSearchParams } from 'next/navigation';
 import ErrorMsg from '../common/error-msg';
 import { notifyError, notifySuccess } from '@/utils/toast';
+import { readAndClearReturnTo, sanitizeReturnTo } from '@/utils/authReturn';
 
 /* ---------------- helpers ---------------- */
 const isEmail = (v) => /^\S+@\S+\.\S+$/.test(String(v || '').trim());
@@ -24,26 +25,6 @@ const otpRequestSchema = Yup.object().shape({
 export default function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  
-  // Safely decode redirect parameter to prevent encoding loops
-  const getRedirectUrl = () => {
-    const redirectParam = searchParams.get('redirect');
-    if (!redirectParam) return '/';
-    
-    try {
-      // Decode the URL and ensure it's a valid path
-      const decoded = decodeURIComponent(redirectParam);
-      // Ensure it starts with / and doesn't contain protocol (security)
-      if (decoded.startsWith('/') && !decoded.includes('://')) {
-        return decoded;
-      }
-    } catch (e) {/*  */
-      }
-    
-    return '/';
-  };
-  
-  const redirect = getRedirectUrl();
 
   const [savedIdentifier, setSavedIdentifier] = useState('');
   const [otp, setOtp] = useState('');
@@ -209,8 +190,22 @@ export default function LoginForm() {
       notifySuccess('Logged in successfully');
       setOtp('');
 
-      const dest = redirect || '/';
-      router.push(dest);
+      // ✅ STEP 3: Proper redirect (sessionStorage > query > home) + REPLACE
+      let dest = '/';
+      try {
+        // Next.js hook is safer than window.location.search in app router
+        const qpReturnTo = searchParams?.get('returnTo');
+        
+        const stored = readAndClearReturnTo(); // one-time read
+        const candidate = stored || qpReturnTo || '/';
+        
+        dest = sanitizeReturnTo(candidate);
+      } catch {
+        dest = '/';
+      }
+      
+      // ✅ IMPORTANT: replace (so user won't go back to /login)
+      router.replace(dest);
     } catch (err) {
       console.error('❌ Login error:', err);
       setError(err?.message || 'Login failed. Please try again.');

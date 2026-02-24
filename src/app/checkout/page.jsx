@@ -37,7 +37,7 @@ export default function CheckoutPage() {
   }
 
   if (!sessionId && !userId) {
-    redirect(`/login?redirect=${encodeURIComponent('/checkout')}`);
+    redirect(`/login?returnTo=${encodeURIComponent('/checkout')}`);
   }
 
   return (

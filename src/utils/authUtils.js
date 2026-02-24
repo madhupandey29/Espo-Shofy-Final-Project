@@ -1,29 +1,34 @@
 import { useSelector } from 'react-redux';
+import { getReturnToFromCurrentUrl, saveReturnTo } from '@/utils/authReturn';
+
+const hasClientSession = () => {
+  if (typeof window === 'undefined') return false;
+  const sid = localStorage.getItem('sessionId');
+  const uid = localStorage.getItem('userId');
+  return !!(sid || uid);
+};
 
 export const useAuthAction = () => {
-  const { user } = useSelector((state) => state.auth);
+  const { user } = useSelector((state) => state.auth || {});
 
   const requireAuth = (action) => {
     return async (...args) => {
-      if (!user) {
+      const authed = !!user || hasClientSession();
+      
+      if (!authed) {
         try {
-          // Only use pathname to avoid encoding loops with existing redirect parameters
-          const currentPath = window.location.pathname;
-          const redirectUrl = `/login?redirect=${encodeURIComponent(currentPath)}`;
-          window.location.href = redirectUrl;
-          return false;
-        } catch (error) {
+          const returnTo = getReturnToFromCurrentUrl(); // ✅ includes ?query + #hash
+          saveReturnTo(returnTo);
+          // ✅ use returnTo param (not redirect)
+          window.location.href = `/login?returnTo=${encodeURIComponent(returnTo)}`;
+        } catch {
           window.location.href = '/login';
-          return false;
         }
+        return false;
       }
 
       if (typeof action === 'function') {
-        try {
-          return await action(...args);
-        } catch (error) {
-          throw error;
-        }
+        return await action(...args);
       }
 
       return true;
@@ -32,7 +37,7 @@ export const useAuthAction = () => {
 
   return {
     requireAuth,
-    isAuthenticated: !!user
+    isAuthenticated: !!user || hasClientSession(),
   };
 };
 

@@ -14,6 +14,7 @@ import { userLoggedOut } from '@/redux/features/auth/authSlice';
 import CartMiniSidebar from '@/components/common/cart-mini-sidebar';
 import OffCanvas from '@/components/common/off-canvas';
 import Menus from './header-com/menus';
+import { saveReturnTo, getReturnToFromCurrentUrl } from '@/utils/authReturn';
 
 import { CartTwo, Search } from '@/svg';
 import { FaHeart, FaUser } from 'react-icons/fa';
@@ -241,10 +242,25 @@ const HeaderTwo = ({ style_2 = false }) => {
       setHasSession(false);
       setUserOpen(false);
       
-      // 4. Force hard reload to clear all cached state
-      if (typeof window !== 'undefined') {
-        window.location.href = '/';
-      }
+      // 4. Smart redirect: stay on public pages, go home for protected pages
+      const here = (() => {
+        try {
+          const { pathname, search, hash } = window.location;
+          return `${pathname}${search}${hash}` || '/';
+        } catch {
+          return '/';
+        }
+      })();
+      
+      // If user is on protected page, go home; else stay
+      const isProtected =
+        here.startsWith('/cart') ||
+        here.startsWith('/checkout') ||
+        here.startsWith('/profile') ||
+        here.startsWith('/wishlist') ||
+        here.startsWith('/order');
+      
+      window.location.href = isProtected ? '/' : here;
     } catch (error) {
       console.error('Logout error:', error);
       // Fallback: still redirect even if error
@@ -255,12 +271,6 @@ const HeaderTwo = ({ style_2 = false }) => {
   };
 
   const onOpenCart = () => router.push('/cart');
-
-  const currentUrl = useMemo(() => {
-    if (typeof window === 'undefined') return '/';
-    const url = new URL(window.location.href);
-    return url.pathname;
-  }, []);
 
   useEffect(() => {
     try {
@@ -511,15 +521,23 @@ const HeaderTwo = ({ style_2 = false }) => {
                               )}
                             </>
                           ) : (
-                            <Link
-                              href={pathname === '/login' ? '/login' : `/login?redirect=${encodeURIComponent(currentUrl)}`}
+                            <button
+                              type="button"
                               className="tp-header-action-btn signin-btn"
                               aria-label="Sign in"
-                              prefetch
+                              onClick={() => {
+                                try {
+                                  const returnTo = getReturnToFromCurrentUrl();
+                                  saveReturnTo(returnTo);
+                                  router.push('/login');
+                                } catch {
+                                  router.push('/login');
+                                }
+                              }}
                             >
                               <FaUser className="signin-icon" />
                               <span className="signin-text">Sign in</span>
-                            </Link>
+                            </button>
                           )}
                         </div>
 

@@ -29,7 +29,7 @@ export function middleware(req: NextRequest) {
     const redirectTo = pathname + (search || '');
     const url = req.nextUrl.clone();
     url.pathname = '/login';
-    url.search = `?redirect=${encodeURIComponent(redirectTo)}`;
+    url.search = `?returnTo=${encodeURIComponent(redirectTo)}`;
     return NextResponse.redirect(url);
   }
 
