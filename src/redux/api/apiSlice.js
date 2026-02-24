@@ -165,6 +165,45 @@ export const apiSlice = createApi({
       ],
     }),
 
+    // Blog API endpoints
+    getBlogs: builder.query({
+      query: () => ({
+        url: "blog",
+        method: "GET",
+      }),
+      transformResponse: (response) => {
+        // Handle both direct array response and wrapped response
+        if (Array.isArray(response)) {
+          return response.filter(blog => !blog.deleted && blog.status === 'Approved');
+        }
+        if (response?.data && Array.isArray(response.data)) {
+          return response.data.filter(blog => !blog.deleted && blog.status === 'Approved');
+        }
+        return [];
+      },
+      providesTags: ["Blogs"],
+      keepUnusedDataFor: 300, // Cache for 5 minutes
+    }),
+
+    getBlogById: builder.query({
+      query: (id) => ({
+        url: `blog/${id}`,
+        method: "GET",
+      }),
+      transformResponse: (response) => {
+        if (response?.id) {
+          return response;
+        }
+        if (response?.data?.id) {
+          return response.data;
+        }
+        return null;
+      },
+      providesTags: (_result, _err, id) => [
+        { type: "Blog", id }
+      ],
+    }),
+
     // ...other endpoints (unchanged)
   }),
 
@@ -209,7 +248,19 @@ export const apiSlice = createApi({
     "Author",
     "ChatHistory",
     "WebsiteFaq",
+    "Blogs",
+    "Blog",
   ],
 });
 
-export const { useGetFilterOptionsQuery, useGetFieldValuesQuery, useGetECatalogueFieldValuesQuery, useGetProductsByFieldValueQuery, useGetProductBySlugQuery, useGetAuthorsQuery, useGetAuthorByIdQuery } = apiSlice;
+export const { 
+  useGetFilterOptionsQuery, 
+  useGetFieldValuesQuery, 
+  useGetECatalogueFieldValuesQuery, 
+  useGetProductsByFieldValueQuery, 
+  useGetProductBySlugQuery, 
+  useGetAuthorsQuery, 
+  useGetAuthorByIdQuery,
+  useGetBlogsQuery,
+  useGetBlogByIdQuery 
+} = apiSlice;

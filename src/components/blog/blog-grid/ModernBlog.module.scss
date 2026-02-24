@@ -158,13 +158,13 @@
 
 // Modern Blog Card Styles - Enhanced Design
 .modernBlogCard {
-  background: var(--tp-common-white);
+  background: transparent; // Changed from white to transparent
   border-radius: 16px;
   overflow: hidden;
-  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.06);
+  box-shadow: none; // Removed shadow
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
-  border: 1px solid rgba(0, 0, 0, 0.05);
+  border: none; // Removed border
   animation: ageFloatIn 0.6s ease forwards;
   opacity: 0;
   width: 100%;
@@ -173,7 +173,6 @@
   &:hover {
     transform: translateY(-8px);
     box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
-    border-color: var(--tp-theme-primary);
     
     .cardImg {
       transform: scale(1.05);

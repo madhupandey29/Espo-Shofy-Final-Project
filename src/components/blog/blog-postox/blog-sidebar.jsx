@@ -1,11 +1,19 @@
 'use client';
 import React from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import signature from '@assets/img/blog/signature/signature.png';
-import { useGetAuthorsQuery } from '@/redux/api/apiSlice';
+import { useGetAuthorsQuery, useGetBlogsQuery } from '@/redux/api/apiSlice';
+import { getTopTags } from '@/utils/blogTags';
 
 const BlogSidebar = () => {
   const { data: apiResponse, isLoading, error } = useGetAuthorsQuery();
+  
+  // Fetch all blogs to extract popular tags
+  const { data: allBlogs = [], isLoading: blogsLoading } = useGetBlogsQuery();
+  
+  // Extract popular tags from all blogs
+  const popularTags = getTopTags(allBlogs, 8);
 
   // Extract authors from API response
   const authors = apiResponse?.success && apiResponse?.data ? apiResponse.data : [];
@@ -64,12 +72,24 @@ const BlogSidebar = () => {
         <div className="tp-sidebar-widget mb-35">
           <h3 className="tp-sidebar-widget-title">Popular Tags</h3>
           <div className="tp-sidebar-widget-content tagcloud">
-            <a href="#">Textiles</a>
-            <a href="#">Sustainability</a>
-            <a href="#">Fabric Trends</a>
-            <a href="#">Design</a>
-            <a href="#">Innovation</a>
-            <a href="#">AmritaGlobal</a>
+            {blogsLoading ? (
+              <div style={{ textAlign: 'center', color: '#666', padding: '10px' }}>
+                Loading tags...
+              </div>
+            ) : popularTags.length > 0 ? (
+              popularTags.map((tag, index) => (
+                <Link 
+                  key={index} 
+                  href={`/blog/tag/${encodeURIComponent(tag.toLowerCase())}`}
+                >
+                  {tag}
+                </Link>
+              ))
+            ) : (
+              <div style={{ textAlign: 'center', color: '#666', padding: '10px' }}>
+                No tags available
+              </div>
+            )}
           </div>
         </div>
       </div>

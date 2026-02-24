@@ -5,6 +5,8 @@ import Link from 'next/link';
 import AuthorProfile from '../author/AuthorProfile';
 import styles from './BlogDetails.module.scss';
 import { cleanBlogContent } from '@/utils/cleanBlogContent';
+import { useGetBlogsQuery } from '@/redux/api/apiSlice';
+import { getTopTags } from '@/utils/blogTags';
 
 const fmt = (iso) => {
   if (!iso) return '';
@@ -33,6 +35,18 @@ const html = (s) => ({ __html: s || '' });
 
 const BlogDetailsArea = ({ blog }) => {
   const sidebarRef = useRef(null);
+  
+  // Fetch all blogs to extract popular tags
+  const { data: allBlogs = [], isLoading: blogsLoading, error: blogsError } = useGetBlogsQuery();
+  
+  // Debug logging
+  console.log('BlogDetailsArea - Blogs Loading:', blogsLoading);
+  console.log('BlogDetailsArea - Blogs Error:', blogsError);
+  console.log('BlogDetailsArea - All Blogs:', allBlogs);
+  
+  // Extract popular tags from all blogs
+  const popularTags = getTopTags(allBlogs, 10);
+  console.log('BlogDetailsArea - Popular Tags:', popularTags);
 
   // No sticky behavior - sidebar scrolls normally with content
 
@@ -216,15 +230,29 @@ const BlogDetailsArea = ({ blog }) => {
             <div className={styles.popularTagsCard}>
               <h3 className={styles.cardTitle}>Popular Tags</h3>
               <div className={styles.tagsList}>
-                {['Textiles', 'Sustainability', 'Fabric Trends', 'Design', 'Innovation', 'AmritaGlobal', 'Manufacturing', 'Quality'].map((tag, index) => (
-                  <Link 
-                    key={index} 
-                    href={`/blog?tag=${tag.toLowerCase()}`} 
-                    className={styles.tag}
-                  >
-                    {tag}
-                  </Link>
-                ))}
+                {blogsLoading ? (
+                  <div style={{ textAlign: 'center', color: '#666', padding: '10px' }}>
+                    Loading tags...
+                  </div>
+                ) : blogsError ? (
+                  <div style={{ textAlign: 'center', color: '#dc2626', padding: '10px' }}>
+                    Error loading tags: {blogsError?.message || 'Unknown error'}
+                  </div>
+                ) : popularTags.length > 0 ? (
+                  popularTags.map((tag, index) => (
+                    <Link 
+                      key={index} 
+                      href={`/blog/tag/${encodeURIComponent(tag.toLowerCase())}`} 
+                      className={styles.tag}
+                    >
+                      {tag}
+                    </Link>
+                  ))
+                ) : (
+                  <div style={{ textAlign: 'center', color: '#666', padding: '10px' }}>
+                    No tags available (Blogs: {allBlogs.length})
+                  </div>
+                )}
               </div>
             </div>
           </div>

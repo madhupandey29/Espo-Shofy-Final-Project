@@ -1,7 +1,6 @@
 import Wrapper from "@/layout/wrapper";
 import HeaderTwo from "@/layout/headers/header-2";
-import SectionTitle from "@/components/blog/blog-grid/section-title";
-import BlogGridArea from "@/components/blog/blog-grid/blog-grid-area";
+import BlogContentWrapper from "@/components/blog/blog-grid/blog-content-wrapper";
 import Footer from "@/layout/footers/footer";
 import CompactUniversalBreadcrumb from "@/components/breadcrumb/compact-universal-breadcrumb";
 import { generateMetadata as generateSEOMetadata } from "@/utils/seo";
@@ -133,8 +132,7 @@ export default async function BlogPage() {
       <Wrapper>
         <HeaderTwo style_2={true} />
         <CompactUniversalBreadcrumb items={breadcrumbItems} />
-        <SectionTitle />
-        <BlogGridArea />
+        <BlogContentWrapper />
         <Footer primary_style={true} />
       </Wrapper>
     </>

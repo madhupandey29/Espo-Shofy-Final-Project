@@ -13,11 +13,17 @@ const fetchBlogs = async () => {
   return Array.isArray(json?.data) ? json.data : [];
 };
 
-const BlogGridArea = () => {
+const BlogGridArea = ({ tagname = null }) => {
+  const selectedTag = tagname; // Use prop instead of URL param
+  
+  console.log('BlogGridArea - Selected Tag:', selectedTag);
+  
   const [allBlogs, setAllBlogs] = useState([]);
+  const [filteredBlogs, setFilteredBlogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState('');
 
+  // Fetch all blogs
   useEffect(() => {
     let alive = true;
     (async () => {
@@ -35,6 +41,32 @@ const BlogGridArea = () => {
     })();
     return () => { alive = false; };
   }, []);
+
+  // Filter blogs when tag changes or blogs are loaded
+  useEffect(() => {
+    console.log('Filtering - Selected Tag:', selectedTag);
+    console.log('Filtering - All Blogs:', allBlogs.length);
+    
+    if (!selectedTag) {
+      // No tag selected, show all blogs
+      setFilteredBlogs(allBlogs);
+      console.log('Filtering - Showing all blogs');
+    } else {
+      // Filter blogs by selected tag (case-insensitive)
+      const filtered = allBlogs.filter(blog => {
+        if (!blog?.tags || !Array.isArray(blog.tags)) return false;
+        const hasTag = blog.tags.some(tag => 
+          tag.toLowerCase() === selectedTag.toLowerCase()
+        );
+        if (hasTag) {
+          console.log('Blog matched:', blog.title, 'Tags:', blog.tags);
+        }
+        return hasTag;
+      });
+      console.log('Filtering - Filtered blogs:', filtered.length);
+      setFilteredBlogs(filtered);
+    }
+  }, [selectedTag, allBlogs]);
 
   if (loading) {
     return (
@@ -69,9 +101,23 @@ const BlogGridArea = () => {
   return (
     <section className={`${styles.modernBlogArea} py-5`}>
       <div className="container">
-        {/* Modern Blog Grid - Show all blogs */}
+        {/* Show selected tag filter */}
+        {selectedTag && (
+          <div className="mb-4">
+            <div className="d-flex align-items-center justify-content-between">
+              <h5 className="mb-0">
+                Showing blogs tagged with: <span className="badge bg-primary">{selectedTag}</span>
+              </h5>
+              <a href="/blog" className="btn btn-sm btn-outline-secondary">
+                Clear Filter
+              </a>
+            </div>
+          </div>
+        )}
+
+        {/* Modern Blog Grid - Show filtered blogs */}
         <div className={styles.modernBlogGrid}>
-          {allBlogs.map((blog, idx) => (
+          {filteredBlogs.map((blog, idx) => (
             <ModernBlogCard 
               key={blog._id || blog.id || idx} 
               blog={blog} 
@@ -81,9 +127,18 @@ const BlogGridArea = () => {
         </div>
 
         {/* Show message if no blogs found */}
-        {allBlogs.length === 0 && !loading && !err && (
+        {filteredBlogs.length === 0 && !loading && !err && (
           <div className="text-center py-5">
-            <p className="text-muted">No blog posts found.</p>
+            {selectedTag ? (
+              <>
+                <p className="text-muted">No blog posts found with tag "{selectedTag}".</p>
+                <a href="/blog" className="btn btn-primary mt-3">
+                  View All Blogs
+                </a>
+              </>
+            ) : (
+              <p className="text-muted">No blog posts found.</p>
+            )}
           </div>
         )}
       </div>
