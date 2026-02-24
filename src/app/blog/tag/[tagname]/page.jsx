@@ -5,27 +5,103 @@ import Footer from "@/layout/footers/footer";
 import CompactUniversalBreadcrumb from "@/components/breadcrumb/compact-universal-breadcrumb";
 import { generateMetadata as generateSEOMetadata } from "@/utils/seo";
 import { BreadcrumbJsonLd } from "@/utils/breadcrumbStructuredData";
+import { getPageSeoMetadata, fetchTopicPageByName, PAGE_NAMES } from "@/utils/topicPageSeoIntegration";
+import { BlogPageJsonLd } from "@/utils/blogPageStructuredData";
 
 // Revalidate every 60 seconds
 export const revalidate = 60;
 
-// Generate metadata for tag pages
+const API_BASE = (process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000').replace(/\/+$/,'');
+const BLOG_PATH = process.env.NEXT_PUBLIC_API_BLOG_PATH || '/blog';
+
+// Server-side function to fetch blogs
+async function fetchBlogs() {
+  try {
+    const response = await fetch(`${API_BASE}${BLOG_PATH}`, {
+      next: { revalidate: 600 } // Cache for 10 minutes
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to fetch blogs');
+    }
+    
+    const data = await response.json();
+    return Array.isArray(data?.data) ? data.data : [];
+  } catch (error) {
+    console.error('Error fetching blogs:', error);
+    return [];
+  }
+}
+
+// Extract first blog image from blogs array
+function getFirstBlogImage(blogs) {
+  if (!Array.isArray(blogs) || blogs.length === 0) return null;
+  
+  const firstBlog = blogs[0];
+  const blogImage1 = firstBlog?.blogimage1;
+  const blogImage2 = firstBlog?.blogimage2;
+  
+  // Handle different image formats
+  let imageUrl = null;
+  
+  if (blogImage1) {
+    if (typeof blogImage1 === 'string') {
+      imageUrl = blogImage1;
+    } else if (typeof blogImage1 === 'object') {
+      imageUrl = blogImage1.url || blogImage1.secure_url || blogImage1.src || blogImage1.path;
+    }
+  }
+  
+  if (!imageUrl && blogImage2) {
+    if (typeof blogImage2 === 'string') {
+      imageUrl = blogImage2;
+    } else if (typeof blogImage2 === 'object') {
+      imageUrl = blogImage2.url || blogImage2.secure_url || blogImage2.src || blogImage2.path;
+    }
+  }
+  
+  return imageUrl;
+}
+
+// Generate metadata - Same as main blog page
 export async function generateMetadata({ params }) {
-  const tagname = params.tagname;
-  const decodedTag = decodeURIComponent(tagname);
+  // Fetch blogs for OG image
+  const blogs = await fetchBlogs();
+  const firstBlogImage = getFirstBlogImage(blogs);
+  
+  // Fetch SEO data from topic page API (same as main blog page)
+  const topicMetadata = await getPageSeoMetadata(PAGE_NAMES.BLOG, {
+    title: null,
+    description: null,
+    keywords: null,
+  });
+
+  // Extract canonical URL from the metadata object
+  const canonicalFromApi = topicMetadata.alternates?.canonical || null;
   
   return generateSEOMetadata({
-    title: `${decodedTag} - Blog Articles`,
-    description: `Browse all blog articles tagged with ${decodedTag}. Discover insights and knowledge about ${decodedTag}.`,
-    keywords: `${decodedTag}, blog, articles`,
-    path: `/blog/tag/${tagname}`,
+    title: topicMetadata.title,
+    description: topicMetadata.description,
+    keywords: topicMetadata.keywords,
+    path: "/blog",
+    canonicalOverride: canonicalFromApi,
+    ogImage: firstBlogImage,
     robots: "index, follow"
   });
 }
 
-export default function BlogTagPage({ params }) {
+export default async function BlogTagPage({ params }) {
   const tagname = params.tagname;
   const decodedTag = decodeURIComponent(tagname);
+  
+  // Fetch blogs and topic page data server-side
+  const blogs = await fetchBlogs();
+  
+  // Fetch RAW topic page data for structured data (not the Next.js metadata)
+  const topicPageData = await fetchTopicPageByName(PAGE_NAMES.BLOG);
+  
+  // Base URL for structured data
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.amrita-fashions.com';
   
   const breadcrumbItems = [
     { label: 'Home', href: '/' },
@@ -42,6 +118,13 @@ export default function BlogTagPage({ params }) {
 
   return (
     <>
+      {/* Blog Page Structured Data - Same pattern as main blog page */}
+      <BlogPageJsonLd 
+        topicPageData={topicPageData} 
+        blogs={blogs} 
+        baseUrl={baseUrl} 
+      />
+      
       {/* Breadcrumb Structured Data */}
       <BreadcrumbJsonLd breadcrumbItems={breadcrumbStructuredData} />
       
