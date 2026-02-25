@@ -26,7 +26,9 @@ const CollectionMedia = ({ product, className = '' }) => {
         const media = await getCollectionMediaForProduct(product);
         setCollectionMedia(media);
       } catch (error) {
-        } finally {
+        // Silently fail - collection media is optional enhancement
+        console.error('Failed to load collection media:', error);
+      } finally {
         setLoading(false);
       }
     };

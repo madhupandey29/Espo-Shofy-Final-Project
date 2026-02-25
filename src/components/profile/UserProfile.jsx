@@ -316,6 +316,8 @@ export default function UserProfile() {
       setOrders(Array.isArray(list) ? list : []);
       setOrdersLoaded(true);
     } catch (e) {
+      // Log error for debugging but show user-friendly message
+      console.error('Failed to fetch orders:', e);
       setOrdersErr('Failed to load orders');
     } finally {
       setOrdersLoading(false);
@@ -500,7 +502,9 @@ export default function UserProfile() {
       
       setCountries(list);
       setCountriesLoaded(true);
-    } catch {
+    } catch (error) {
+      // Silently fail - countries list is optional, form can still work without it
+      console.error('Failed to load countries:', error);
       setCountries([]);
       setCountriesLoaded(true);
     }
@@ -599,7 +603,9 @@ export default function UserProfile() {
         setCityName('');
         setValue('city', '', { shouldDirty: true });
       }
-    } catch {
+    } catch (error) {
+      // Silently fail - states list is optional, user can still enter manually
+      console.error('Failed to load states:', error);
       setStates([]);
       setStateName('');
       setCities([]);
@@ -647,7 +653,9 @@ export default function UserProfile() {
         setCityName('');
         setValue('city', '', { shouldDirty: true });
       }
-    } catch {
+    } catch (error) {
+      // Silently fail - cities list is optional, user can still enter manually
+      console.error('Failed to load cities:', error);
       setCities([]);
       setCityName('');
       setValue('city', '');
@@ -908,7 +916,12 @@ export default function UserProfile() {
       }
     }
 
-    try { await refetchSession?.(); } catch { }
+    try { 
+      await refetchSession?.(); 
+    } catch (error) {
+      // Silently ignore session refetch errors - not critical
+      console.error('Failed to refetch session:', error);
+    }
 
     notifySuccess('Profile updated successfully');
     clearAllEditing();

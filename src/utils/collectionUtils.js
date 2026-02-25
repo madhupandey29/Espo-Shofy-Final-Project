@@ -154,7 +154,9 @@ export const useCollectionMedia = () => {
       
       setCollectionsMap(newMap);
     } catch (error) {
-      } finally {
+      // Silently ignore collection fetch errors - collections are optional enhancement
+      console.error('Failed to fetch collections:', error);
+    } finally {
       setLoading(false);
     }
   };

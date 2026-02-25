@@ -145,7 +145,7 @@ const ShopTopRight = ({ selectHandleFilter, onSearchResults }) => {
       <div className="shopSort d-none d-lg-block">
         <select onChange={selectHandleFilter} aria-label="Sort products">
           <option value="default">Sort: Recommended</option>
-          <option value="new">What's New</option>
+          <option value="new">{`What's`} New</option>
           <option value="priceLow">Price: Low to High</option>
           <option value="priceHigh">Price: High to Low</option>
           <option value="nameAsc">Name: A to Z</option>

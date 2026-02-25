@@ -17,14 +17,18 @@ const persistUserIdLS = (uid) => {
   if (!uid || typeof window === "undefined") return;
   try {
     localStorage.setItem("userId", uid);
-  } catch  { return [];}
+  } catch {
+    // localStorage not available
+  }
 };
 
 const clearUserIdLS = () => {
   if (typeof window === "undefined") return;
   try {
     localStorage.removeItem("userId");
-  } catch {return [];}
+  } catch {
+    // localStorage not available
+  }
 };
 
 export const authApi = apiSlice.injectEndpoints({
@@ -52,7 +56,9 @@ export const authApi = apiSlice.injectEndpoints({
         try {
           await queryFulfilled;
         } catch (err) {
-          }
+          // Silently ignore query errors - handled by RTK Query
+          console.error('Register query failed:', err);
+        }
       },
     }),
 
@@ -87,7 +93,8 @@ export const authApi = apiSlice.injectEndpoints({
             dispatch(userLoggedIn({ user, userId }));
           }
         } catch (err) {
-          }
+          // Login failed
+        }
       },
     }),
 
@@ -147,7 +154,8 @@ export const authApi = apiSlice.injectEndpoints({
             dispatch(userLoggedIn({ user: mappedUser, userId }));
           }
         } catch (err) {
-          }
+          // OTP verification failed
+        }
       },
     }),
 
@@ -282,7 +290,9 @@ export const authApi = apiSlice.injectEndpoints({
           const userId = getUserIdLS();
           dispatch(userLoggedIn({ user: data, userId }));
         } catch (err) {
-          }
+          // Silently ignore query errors - handled by RTK Query
+          console.error('Session info query failed:', err);
+        }
       },
     }),
 

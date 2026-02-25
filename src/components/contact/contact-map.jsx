@@ -38,7 +38,7 @@ const ContactMap = () => {
             <div className="map-fallback">
               <div className="fallback-content">
                 <h4>Map Temporarily Unavailable</h4>
-                <p>We're experiencing technical difficulties with the map display.</p>
+                <p>{`We're`} experiencing technical difficulties with the map display.</p>
                 <div className="fallback-links">
                   <a href={viewLink} target="_blank" rel="noopener noreferrer" className="fallback-btn">
                     View on Google Maps

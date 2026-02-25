@@ -3,7 +3,7 @@
 import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { FaPlay, FaDownload, FaIndustry, FaCogs, FaWarehouse, FaClipboardCheck, FaPhoneAlt, FaCalendarAlt, FaTimes, FaWhatsapp } from 'react-icons/fa';
+import { FaPlay, FaDownload, FaIndustry, FaCogs, FaWarehouse, FaPhoneAlt, FaTimes, FaWhatsapp } from 'react-icons/fa';
 import { useGetOfficeInformationQuery } from '@/redux/features/officeInformationApi';
 import styles from './Capabilities.module.scss';
 
@@ -48,10 +48,12 @@ const CapabilitiesClient = () => {
               behavior: 'smooth'
             });
           } else {
-                      }
+            // Element not found - will retry after render
+          }
         }, 300); // Increased delay
       } else if (hash) {
-              } else {
+        // Unknown hash - ignore
+      } else {
                 setActiveTab('products'); // Default tab
       }
     };

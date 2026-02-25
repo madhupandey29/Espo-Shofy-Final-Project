@@ -41,7 +41,6 @@ export default function FloatingChatbot() {
     isTyping,
     sendMessage,
     toggleChatbot,
-    openChatbot,
     closeChatbot,
     clearChat,
     userContext

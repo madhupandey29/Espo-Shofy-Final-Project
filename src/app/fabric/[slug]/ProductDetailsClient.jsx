@@ -7,7 +7,7 @@ import ProductDetailsArea from '@/components/product-details/product-details-are
 import ProductDetailsLoader from '@/components/loader/prd-details-loader';
 import ErrorMsg from '@/components/common/error-msg';
 
-import { useGetSingleNewProductQuery, useGetSingleNewProductByIdQuery } from '@/redux/features/newProductApi';
+import { useGetSingleNewProductQuery } from '@/redux/features/newProductApi';
 
 function mapBackendProductToFrontend(p) {
   // Handle Cloudinary image URLs - use correct API field names and remove trailing hash
@@ -126,19 +126,22 @@ function mapBackendProductToFrontend(p) {
 
 export default function ProductDetailsClient({ slug, initialProduct = null }) {
   // Clean the slug by removing trailing hash character
-  // ✅ If server (ISR) already provided product, render immediately (no client fetch)
-if (initialProduct) {
-  const product = mapBackendProductToFrontend(initialProduct?.data ?? initialProduct);
-  return <ProductDetailsArea product={product} />;
-}
+  const cleanSlug = slug ? String(slug).replace(/#$/, '') : slug;
   
-  // Get product by slug (now uses the fixed API that searches all products)
+  // IMPORTANT: Call hooks BEFORE any conditional returns (React Hooks rules)
   const {
     data: productData,
     isLoading,
     isError,
-  } = useGetSingleNewProductQuery(cleanSlug, { skip: !cleanSlug });
+  } = useGetSingleNewProductQuery(cleanSlug, { skip: !cleanSlug || !!initialProduct });
+  
+  // ✅ If server (ISR) already provided product, render immediately (no client fetch)
+  if (initialProduct) {
+    const product = mapBackendProductToFrontend(initialProduct?.data ?? initialProduct);
+    return <ProductDetailsArea product={product} />;
+  }
 
+  // Now handle loading/error states after hooks are called
   if (isLoading) return <ProductDetailsLoader loading />;
   if (isError) return <ErrorMsg msg="There was an error loading the product" />;
   if (!productData?.data) return <ErrorMsg msg="Product not found. Please check the URL or try again." />;

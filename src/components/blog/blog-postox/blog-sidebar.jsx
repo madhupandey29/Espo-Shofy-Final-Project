@@ -7,7 +7,7 @@ import { useGetAuthorsQuery, useGetBlogsQuery } from '@/redux/api/apiSlice';
 import { getTopTags } from '@/utils/blogTags';
 
 const BlogSidebar = () => {
-  const { data: apiResponse, isLoading, error } = useGetAuthorsQuery();
+  const { data: apiResponse, isLoading } = useGetAuthorsQuery();
   
   // Fetch all blogs to extract popular tags
   const { data: allBlogs = [], isLoading: blogsLoading } = useGetBlogsQuery();

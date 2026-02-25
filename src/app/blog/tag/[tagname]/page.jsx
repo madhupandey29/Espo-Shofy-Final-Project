@@ -64,7 +64,7 @@ function getFirstBlogImage(blogs) {
 }
 
 // Generate metadata - Same as main blog page
-export async function generateMetadata({ params }) {
+export async function generateMetadata() {
   // Fetch blogs for OG image
   const blogs = await fetchBlogs();
   const firstBlogImage = getFirstBlogImage(blogs);

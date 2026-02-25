@@ -7,7 +7,6 @@ import Link from 'next/link';
 const HERO_VIDEO = '/videos/canva_mix.mp4';
 
 const EYEBROW = 'eCatalogue by Amrita Global Enterprises';
-const TITLE = "Premium Quality Fabrics by eCatalogue";
 const SUBTITLE =
   'Discover premium cotton fabrics, mercerized finishes, and textile excellence. From Nokia to Majestica collections - quality fabrics for fashion, home, and industrial use.';
 const CTA = { href: '/fabric', label: 'Discover Now' };

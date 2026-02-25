@@ -1,6 +1,6 @@
 'use client';
 import React from 'react';
-import { Comment, Date as DateIcon, UserTwo } from '@/svg';
+import { Date as DateIcon, UserTwo } from '@/svg';
 
 // Utility: detect if a string likely contains HTML tags
 const looksLikeHtml = (s) => typeof s === 'string' && /<\/?[a-z][\s\S]*>/i.test(s);

@@ -1,5 +1,5 @@
 'use client';
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import AuthorProfile from '../author/AuthorProfile';
@@ -34,7 +34,6 @@ const calculateReadingTime = (content) => {
 const html = (s) => ({ __html: s || '' });
 
 const BlogDetailsArea = ({ blog }) => {
-  const sidebarRef = useRef(null);
   
   // Fetch all blogs to extract popular tags
   const { data: allBlogs = [], isLoading: blogsLoading, error: blogsError } = useGetBlogsQuery();
@@ -209,14 +208,14 @@ const BlogDetailsArea = ({ blog }) => {
 
             {/* Quote Block - Simple */}
             <div className={styles.quoteBlock}>
-              "Quality is not an act, it is a habit. Excellence in textile manufacturing 
-              comes from consistent dedication to superior materials and processes."
+              {`"`}Quality is not an act, it is a habit. Excellence in textile manufacturing 
+              comes from consistent dedication to superior materials and processes.{`"`}
               <br />— {author}
             </div>
           </div>
 
           {/* Clean Sidebar */}
-          <div className={styles.sidebar} ref={sidebarRef}>
+          <div className={styles.sidebar}>
             {/* Author Section - First in Sidebar */}
             <div className={styles.authorSidebarSection}>
               <AuthorProfile 

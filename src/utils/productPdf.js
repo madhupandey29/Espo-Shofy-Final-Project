@@ -1,5 +1,5 @@
 // PDF Generation Utility for Product Details
-// @ts-ignore - QRCode module doesn't have TypeScript definitions
+// @ts-expect-error - QRCode module doesn't have TypeScript definitions
 import QRCode from "qrcode";
 
 // Environment variables
@@ -598,8 +598,10 @@ function drawHeader(doc, { pageW, headerTop, logoDataUrl, logoSize, companyName,
     try {
       doc.addImage(logoDataUrl, fmt, dx, dy, drawW, drawH);
       } catch (error) {
+        // Error adding logo image - continue without logo
       }
   } else {
+    // No logo data available
     }
   
   if (headerCompanyName) {
@@ -728,7 +730,9 @@ function drawCollectionProductCard(doc, p, x, y, w, h, { BORDER, TEXT = [15, 23,
       const fit = fitContain(srcW, srcH, boxW, boxH);
       try {
         doc.addImage(imgDataUrl, fmt, imgBoxX + inset + fit.dx, imgBoxY + inset + fit.dy, fit.w || boxW, fit.h || boxH);
-      } catch {}
+      } catch {
+        // Error adding image - continue without image
+      }
     }
   } else {
     doc.setFont("helvetica", "bold");
@@ -853,6 +857,24 @@ function drawCardSpecsTable(doc, p, x, y, w, h, { BORDER, TEXT } = {}) {
   drawMiniSpecCell(doc, x, y3, colW, r4, "Content", content, { TEXT });
   drawMiniSpecCell(doc, x + colW, y3, colW, r4, "Motif", motif, { TEXT });
 }
+
+/* ------------------------------ Table Cell Helper ------------------------------ */
+function drawCell(doc, x, y0, w, label, value, TEXT) {
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(8.2);
+  doc.setTextColor(30, 64, 175);
+  doc.text(toUpperLabel(label), x + 8, y0 + 7.6);
+
+  const v = cleanStr(value);
+  if (!v) return;
+
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(9.2);
+  doc.setTextColor(TEXT[0], TEXT[1], TEXT[2]);
+  const cx = x + w * 0.65;
+  doc.text(v, cx, y0 + 7.6, { align: "center" });
+}
+
 /* ------------------------------ Main PDF Generation Function ------------------------------ */
 export async function downloadProductPdf(product, options = {}) {
   const {
@@ -1072,6 +1094,7 @@ export async function downloadProductPdf(product, options = {}) {
         try {
           doc.addImage(imgDataUrl, fmt, imgX + 2, imgY + 2, imgW - 4, imgH - 4);
         } catch (error) {
+          // Error adding hero image - continue without image
           }
       }
     }
@@ -1103,6 +1126,7 @@ export async function downloadProductPdf(product, options = {}) {
       const optionsText = collectionCount === 1 ? "1 Option" : `${fmtNum(collectionCount, 0)} Options`;
       doc.text(optionsText, bx + 8.2, by + badgeH * 0.68);
       } else {
+        // No collection count badge needed
       }
 
     // Right content block
@@ -1155,6 +1179,7 @@ export async function downloadProductPdf(product, options = {}) {
         gap: STAR_GAP,
       });
       } else {
+        // No rating available to display
       }
 
     // Title and tagline
@@ -1181,6 +1206,7 @@ export async function downloadProductPdf(product, options = {}) {
       doc.setTextColor(0, 0, 0);
       doc.text(code, rightX, titleTopY);
       } else {
+        // No title or code available
       }
 
     // Description paragraph
@@ -1217,31 +1243,14 @@ export async function downloadProductPdf(product, options = {}) {
     }
     doc.line(tableX, tableY + rowH * 4, tableX + tableW, tableY + rowH * 4);
 
-    // Table cell helper
-    function drawCell(x, y0, w, label, value) {
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(8.2);
-      doc.setTextColor(30, 64, 175);
-      doc.text(toUpperLabel(label), x + 8, y0 + 7.6);
-
-      const v = cleanStr(value);
-      if (!v) return;
-
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(9.2);
-      doc.setTextColor(TEXT[0], TEXT[1], TEXT[2]);
-      const cx = x + w * 0.65;
-      doc.text(v, cx, y0 + 7.6, { align: "center" });
-    }
-
     // Fill table cells
-    drawCell(tableX, tableY + rowH * 0, cellW, "Content", joinArr(product?.content));
-    drawCell(tableX + cellW, tableY + rowH * 0, cellW, "Width", getWidthText(product));
-    drawCell(tableX, tableY + rowH * 1, cellW, "Weight", getWeightText(product));
-    drawCell(tableX + cellW, tableY + rowH * 1, cellW, "Design", cleanStr(product?.design));
-    drawCell(tableX, tableY + rowH * 2, cellW, "Structure", cleanStr(product?.structure));
-    drawCell(tableX + cellW, tableY + rowH * 2, cellW, "Colors", joinArr(product?.color || product?.colors));
-    drawCell(tableX, tableY + rowH * 3, cellW, "Motif", cleanStr(product?.motif));
+    drawCell(doc, tableX, tableY + rowH * 0, cellW, "Content", joinArr(product?.content), TEXT);
+    drawCell(doc, tableX + cellW, tableY + rowH * 0, cellW, "Width", getWidthText(product), TEXT);
+    drawCell(doc, tableX, tableY + rowH * 1, cellW, "Weight", getWeightText(product), TEXT);
+    drawCell(doc, tableX + cellW, tableY + rowH * 1, cellW, "Design", cleanStr(product?.design), TEXT);
+    drawCell(doc, tableX, tableY + rowH * 2, cellW, "Structure", cleanStr(product?.structure), TEXT);
+    drawCell(doc, tableX + cellW, tableY + rowH * 2, cellW, "Colors", joinArr(product?.color || product?.colors), TEXT);
+    drawCell(doc, tableX, tableY + rowH * 3, cellW, "Motif", cleanStr(product?.motif), TEXT);
     
     const moqVal = (() => {
       const moq = isNum(product?.salesMOQ) ? fmtNum(product.salesMOQ, 0) : cleanStr(product?.salesMOQ);
@@ -1249,7 +1258,7 @@ export async function downloadProductPdf(product, options = {}) {
       const um = cleanStr(product?.uM);
       return um ? `${moq} ${um}` : `${moq}`;
     })();
-    drawCell(tableX + cellW, tableY + rowH * 3, cellW, "Sales MOQ", moqVal);
+    drawCell(doc, tableX + cellW, tableY + rowH * 3, cellW, "Sales MOQ", moqVal, TEXT);
 
     // Finish row
     const finishY = tableY + rowH * 4;
@@ -1288,6 +1297,7 @@ export async function downloadProductPdf(product, options = {}) {
       try {
         doc.addImage(finalQrDataUrl, "PNG", qrX + (qrCardW - qrSize) / 2, qrY + 6, qrSize, qrSize);
       } catch (error) {
+        // Error adding QR code - continue without QR
         }
 
       doc.setFont("helvetica", "bold");
@@ -1348,8 +1358,10 @@ export async function downloadProductPdf(product, options = {}) {
           }
         });
         } else {
+          // No items to display
         }
     } else {
+      // Section data not available
       }
 
     // ✅ NEW: Add collection products as 2x2 grid on additional pages

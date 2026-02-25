@@ -42,7 +42,7 @@ const OrderConfirmationArea = () => {
               </svg>
             </div>
             <h3>No Order Found</h3>
-            <p>We couldn't find any order information. Please try placing an order first.</p>
+            <p>We {`couldn't`} find any order information. Please try placing an order first.</p>
             <Link href="/fabric" className="btn-primary-modern">
               <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
@@ -141,7 +141,7 @@ const OrderConfirmationArea = () => {
               </div>
               <h1 className="success-title">Thank You for Your Order!</h1>
               <p className="success-message">
-                Your order has been received and is being processed. We'll contact you shortly with payment details.
+                Your order has been received and is being processed. {`We'll`} contact you shortly with payment details.
               </p>
             </div>
 
@@ -234,12 +234,12 @@ const OrderConfirmationArea = () => {
                 </div>
 
                 <div className="next-steps-card">
-                  <h3 className="card-title">What's Next?</h3>
+                  <h3 className="card-title">{`What's`} Next?</h3>
                   <ul className="steps-list">
                     <li>Our team will review your order</li>
-                    <li>We'll contact you for payment details</li>
-                    <li>Once payment is confirmed, we'll process your order</li>
-                    <li>You'll receive shipping updates via email</li>
+                    <li>{`We'll`} contact you for payment details</li>
+                    <li>Once payment is confirmed, {`we'll`} process your order</li>
+                    <li>{`You'll`} receive shipping updates via email</li>
                   </ul>
                 </div>
               </div>

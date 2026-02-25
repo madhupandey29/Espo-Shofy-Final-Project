@@ -208,9 +208,7 @@ export default function PopularProducts() {
       return hasPopularTag && hasCatalogueTag;
     });
     
-    if (filteredProducts.length > 0) {
-      } else {
-      }
+    // Debug logging removed - filtering logic is working correctly
     
     return {
       ...sharedData,

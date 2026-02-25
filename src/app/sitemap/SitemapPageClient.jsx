@@ -38,6 +38,8 @@ const SitemapPageClient = () => {
       
       setSitemapData(data);
     } catch (error) {
+      // Log error for debugging and use fallback data
+      console.error('Failed to fetch sitemap data:', error);
       // Enhanced fallback data with more realistic examples
       const fallbackOrigin = process.env.NEXT_PUBLIC_SITE_URL;
       const fallbackData = [
@@ -290,7 +292,9 @@ const SitemapPageClient = () => {
         buttonElement.style.background = '';
       }, 1000);
     } catch (err) {
-      }
+      // Silently fail - clipboard API may not be available
+      console.error('Failed to copy to clipboard:', err);
+    }
   };
 
   const getPageTitle = (url) => {

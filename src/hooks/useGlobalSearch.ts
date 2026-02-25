@@ -31,7 +31,12 @@ export default function useGlobalSearch(debounceMs = 250) {
       setQuery((prev) => (prev === v ? prev : v));
     });
     return () => {
-      try { unsubscribe?.(); } catch {}
+      try { 
+        unsubscribe?.(); 
+      } catch (error) {
+        // Silently handle unsubscribe errors - cleanup is optional
+        console.error('Failed to unsubscribe from search:', error);
+      }
     };
   }, []);
 

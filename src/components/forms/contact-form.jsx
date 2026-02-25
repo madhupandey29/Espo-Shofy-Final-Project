@@ -138,7 +138,7 @@ export default function ContactForm({ onSuccess, storageKey = DEFAULT_STORAGE_KE
     
     // Basic phone validation if provided - more lenient
     if (formData.phone && formData.phone.trim()) {
-      const cleanPhone = formData.phone.replace(/[\s\-\(\)\+]/g, '');
+      const cleanPhone = formData.phone.replace(/[\s\-()\\+]/g, '');
       if (!/^\d{7,15}$/.test(cleanPhone)) {
         errors.phone = 'Please enter a valid phone number (7-15 digits)';
       } else if (cleanPhone.length < 10) {
@@ -526,7 +526,7 @@ export default function ContactForm({ onSuccess, storageKey = DEFAULT_STORAGE_KE
             fontWeight: 'bold'
           }}>✓</div>
           <h3 style={{color: '#0F2235', fontSize: '20px', fontWeight: '700', margin: '0 0 6px'}}>Request Submitted</h3>
-          <p style={{color: '#475569', margin: '0', fontSize: '14px'}}>Thank you! We'll contact you soon.</p>
+          <p style={{color: '#475569', margin: '0', fontSize: '14px'}}>Thank you! {`We'll`} contact you soon.</p>
         </div>
       </div>
     );

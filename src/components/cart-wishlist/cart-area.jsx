@@ -50,7 +50,9 @@ const CartArea = () => {
       // Either rely on invalidation, or force a refetch for instant UI sync:
       refetch();
     } catch (e) {
-      }
+      // Log error for debugging
+      console.error('Failed to clear cart:', e);
+    }
   };
 
   // ✅ Proceed only navigates – no API calls here
@@ -143,7 +145,7 @@ const CartArea = () => {
                 </svg>
               </div>
               <h3>Your cart is empty</h3>
-              <p>Looks like you haven't added anything to your cart yet</p>
+              <p>Looks like you {`haven't`} added anything to your cart yet</p>
               <button
                 type="button"
                 className="btn-start-shopping"

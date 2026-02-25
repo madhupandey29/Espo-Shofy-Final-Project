@@ -94,8 +94,10 @@ export const cartApi = apiSlice.injectEndpoints({
       async onQueryStarted({ productId, quantity }, { queryFulfilled }) {
         try {
           const result = await queryFulfilled;
-          } catch (err) {
-          }
+        } catch (err) {
+          // Silently ignore query errors - handled by RTK Query
+          console.error('Add to cart query failed:', err);
+        }
       },
     }),
 
@@ -151,8 +153,10 @@ export const cartApi = apiSlice.injectEndpoints({
       async onQueryStarted(arg, { queryFulfilled }) {
         try {
           await queryFulfilled;
-          } catch (err) {
-          }
+        } catch (err) {
+          // Silently ignore query errors - handled by RTK Query
+          console.error('Clear cart query failed:', err);
+        }
       },
     }),
 
@@ -169,8 +173,10 @@ export const cartApi = apiSlice.injectEndpoints({
       async onQueryStarted({ productId, quantity }, { queryFulfilled }) {
         try {
           const result = await queryFulfilled;
-          } catch (err) {
-          }
+        } catch (err) {
+          // Silently ignore query errors - handled by RTK Query
+          console.error('Update cart quantity query failed:', err);
+        }
       },
     }),
   }),

@@ -645,7 +645,7 @@ const DetailsThumbWrapper = ({
                   } else if (!embedUrl.includes('/embed/')) {
                     // If it's already an embed URL, use as is
                     // Otherwise try to extract video ID from any YouTube URL format
-                    const match = embedUrl.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/);
+                    const match = embedUrl.match(/(?:youtube\.com\/(?:[^/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?/\s]{11})/);
                     if (match) {
                       embedUrl = `https://www.youtube-nocookie.com/embed/${match[1]}?rel=0&modestbranding=1&showinfo=0&origin=${typeof window !== 'undefined' ? window.location.origin : ''}`;
                     }
@@ -896,7 +896,7 @@ const DetailsThumbWrapper = ({
                         const videoId = embedUrl.split('v=')[1]?.split('&')[0];
                         embedUrl = `https://www.youtube-nocookie.com/embed/${videoId}?rel=0&modestbranding=1&showinfo=0&origin=${typeof window !== 'undefined' ? window.location.origin : ''}`;
                       } else if (!embedUrl.includes('/embed/')) {
-                        const match = embedUrl.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/);
+                        const match = embedUrl.match(/(?:youtube\.com\/(?:[^/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?/\s]{11})/);
                         if (match) {
                           embedUrl = `https://www.youtube-nocookie.com/embed/${match[1]}?rel=0&modestbranding=1&showinfo=0&origin=${typeof window !== 'undefined' ? window.location.origin : ''}`;
                         }

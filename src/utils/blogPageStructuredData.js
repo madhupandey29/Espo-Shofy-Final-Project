@@ -24,7 +24,7 @@ export function generateBlogPageStructuredData(topicPageData, blogs = [], baseUr
     } else {
       // Remove any domain/www prefix from canonicalUrl
       const cleanCanonical = topicPageData.canonicalUrl
-        .replace(/^(https?:\/\/)?(www\.)?[^\/]+\/?/, '')
+        .replace(/^(https?:\/\/)?(www\.)?[^/]+\/?/, '')
         .replace(/^\/+/, '');
       canonicalUrl = `${cleanBaseUrl}/${cleanCanonical}`;
     }

@@ -131,7 +131,7 @@ const BlogGridArea = ({ tagname = null }) => {
           <div className="text-center py-5">
             {selectedTag ? (
               <>
-                <p className="text-muted">No blog posts found with tag "{selectedTag}".</p>
+                <p className="text-muted">No blog posts found with tag &quot;{selectedTag}&quot;.</p>
                 <a href="/blog" className="btn btn-primary mt-3">
                   View All Blogs
                 </a>

@@ -43,7 +43,16 @@ const SOFT = '#f1f5f9';
 const HEADER_H = 70;
 const FOOTER_H = 70;
 
-const pdfStyles = PDFStyleSheet.create({
+// Note: PDF generation is disabled - these components are not imported
+// To enable PDF generation, install @react-pdf/renderer and import:
+// import { Document as PDFDocument, Page as PDFPage, View as PDFView, Text as PDFText, Image as PDFImage, StyleSheet as PDFStyleSheet } from '@react-pdf/renderer';
+
+// PDF styles are commented out - PDF generation is disabled
+const pdfStyles = {}; 
+/*
+// Note: This entire block is commented out because PDF generation is disabled
+// To enable, install @react-pdf/renderer and uncomment this code
+PDFStyleSheet.create({
   page: {
     fontFamily: 'Helvetica',
     paddingHorizontal: 40,
@@ -53,7 +62,7 @@ const pdfStyles = PDFStyleSheet.create({
     color: '#0f172a',
   },
 
-  /* header */
+  // header
   headerWrap: { position: 'absolute', left: 0, right: 0, top: 0, height: HEADER_H, paddingHorizontal: 40 },
   headerCanvas: { position: 'absolute', left: 0, right: 0, top: 8, height: 2 },
   headerGoldLine: { position: 'absolute', left: 0, right: 0, top: 8, height: 2, backgroundColor: BRAND_YELLOW },
@@ -70,7 +79,7 @@ const pdfStyles = PDFStyleSheet.create({
 
   leftHeader: { flexDirection: 'row', alignItems: 'center' },
 
-  /* fixed box; image contains within it */
+  // fixed box; image contains within it
   logoBox: {
     width: 140,
     height: 44,
@@ -81,7 +90,7 @@ const pdfStyles = PDFStyleSheet.create({
     alignItems: 'center',
   },
 
-  /* contain scaling similar to <img> with object-fit: contain */
+  // contain scaling similar to <img> with object-fit: contain
   logoContain: {
     width: 'auto',
     height: 'auto',
@@ -94,18 +103,18 @@ const pdfStyles = PDFStyleSheet.create({
   brandTitle: { fontSize: 16, color: BRAND_BLUE, fontWeight: 'bold', letterSpacing: 0.2 },
   brandSub: { fontSize: 9, color: TEXT_MUTED, marginTop: 2 },
 
-  /* title under header */
+  // title under header
   docTitleWrap: { marginTop: 8, marginBottom: 10 },
   docTitle: { fontSize: 20, fontWeight: 'bold', color: BRAND_BLUE, textAlign: 'center', letterSpacing: 1 },
 
-  /* footer */
+  // footer
   footerWrap: { position: 'absolute', left: 0, right: 0, bottom: 0, height: FOOTER_H, paddingHorizontal: 40, justifyContent: 'flex-end', paddingBottom: 6 },
   footerCanvas: { position: 'absolute', left: 0, right: 0, bottom: 0, height: 2 },
   footerGold: { position: 'absolute', left: 0, right: 0, bottom: 0, height: 2, backgroundColor: BRAND_YELLOW },
   footerTextBlock: { position: 'absolute', left: 40, right: 40, bottom: 10, textAlign: 'center', color: BRAND_BLUE },
   footerLine: { fontSize: 9, lineHeight: 1.35 },
 
-  /* cards & text */
+  // cards & text
   card: { padding: 12, border: `1px solid ${BORDER}`, borderRadius: 12, backgroundColor: '#fff', marginBottom: 10 },
   label: { fontSize: 9, color: TEXT_MUTED, marginBottom: 4, textTransform: 'uppercase' },
   strong: { fontSize: 11, fontWeight: 'bold' },
@@ -116,7 +125,7 @@ const pdfStyles = PDFStyleSheet.create({
   metaRow: { flexDirection: 'row', gap: 12, marginTop: 6 },
   metaItem: { flex: 1 },
 
-  /* table */
+  // table
   table: { width: '100%', borderRadius: 12, border: `1px solid ${BORDER}`, overflow: 'hidden', marginTop: 6 },
   thead: { flexDirection: 'row', backgroundColor: ROW_ALT, borderBottom: `1px solid ${BORDER}` },
   thSL: { width: 28, padding: 8, fontSize: 10, fontWeight: 'bold', color: TEXT_MUTED, textAlign: 'center' },
@@ -132,7 +141,7 @@ const pdfStyles = PDFStyleSheet.create({
   tdPrice: { width: 80, padding: 8, fontSize: 11, textAlign: 'right' },
   tdAmount: { width: 90, padding: 8, fontSize: 11, textAlign: 'right' },
 
-  /* totals */
+  // totals
   totalsWrap: { flexDirection: 'row', marginTop: 10 },
   totalsSpacer: { flex: 1 },
   totalsBox: { width: 260, borderRadius: 12, border: `1px solid ${BORDER}`, backgroundColor: '#ffffff' },
@@ -142,167 +151,10 @@ const pdfStyles = PDFStyleSheet.create({
   grandRow: { flexDirection: 'row', paddingVertical: 10, paddingHorizontal: 10, backgroundColor: ROW_ALT },
   grandLabel: { flex: 1, fontSize: 12, fontWeight: 'bold' },
   grandValue: { width: 100, textAlign: 'right', fontSize: 12, fontWeight: 'bold', color: BRAND_BLUE },
-});
+}; // });
 
 /* --------------------------- PDF: component --------------------------- */
-function InvoicePDF({ order, fullName, logoSrc }) {
-  const addressLines = [
-    '4th Floor, Safal Prelude, 404 Corporate Road, Near YMCA Club,',
-    'Prahlad Nagar, Ahmedabad, Gujarat, India - 380015',
-  ];
-
-  // Map product names from order.productId objects
-  const items = (order?.productId || []).map((prod, i) => ({
-    title: (prod && prod.name) ? prod.name : String(prod?._id ?? '—'),
-    qty: (order?.quantity || [])[i] ?? 1,
-    price: (order?.price || [])[i] ?? 0,
-  }));
-
-  const money = (n) => `$${Number(n || 0).toFixed(2)}`;
-  const subTotal = items.reduce((s, it) => s + Number(it.qty) * Number(it.price), 0);
-  const shipping = Number(order?.shippingCost || 0);
-  const discount = Number(order?.discount || 0);
-  const grand = Number(order?.total || subTotal + shipping - discount);
-
-  return (
-    <PDFDocument>
-      <PDFPage size="A4" style={pdfStyles.page}>
-        {/* Fixed header */}
-        <PDFView style={pdfStyles.headerWrap} fixed>
-          <PDFView style={pdfStyles.headerCanvas}>
-            <PDFView style={pdfStyles.headerGoldLine} />
-          </PDFView>
-          <PDFView style={pdfStyles.headerRow}>
-            <PDFView style={pdfStyles.leftHeader}>
-              <PDFView style={pdfStyles.logoBox}>
-                {logoSrc ? <PDFImage src={logoSrc} style={pdfStyles.logoContain} /> : null}
-              </PDFView>
-              <PDFView style={pdfStyles.brandTextWrap}>
-                <PDFText style={pdfStyles.brandTitle}>AMRITA GLOBAL ENTERPRISES</PDFText>
-                <PDFText style={pdfStyles.brandSub}>Textiles & Fabrics • B2B</PDFText>
-              </PDFView>
-            </PDFView>
-          </PDFView>
-        </PDFView>
-
-        {/* Title BELOW header */}
-        <PDFView style={pdfStyles.docTitleWrap}>
-          <PDFText style={pdfStyles.docTitle}>INVOICE</PDFText>
-        </PDFView>
-
-        {/* Bill To / From */}
-        <PDFView style={pdfStyles.twoCol}>
-          <PDFView style={pdfStyles.col}>
-            <PDFView style={pdfStyles.card}>
-              <PDFText style={pdfStyles.label}>Bill To</PDFText>
-              <PDFText style={pdfStyles.strong}>{fullName}</PDFText>
-              {order?.phone ? <PDFText>{order.phone}</PDFText> : null}
-              {order?.email ? <PDFText>{order.email}</PDFText> : null}
-              {order?.streetAddress ? <PDFText>{order.streetAddress}</PDFText> : null}
-            </PDFView>
-          </PDFView>
-          <PDFView style={pdfStyles.col}>
-            <PDFView style={pdfStyles.card}>
-              <PDFText style={pdfStyles.label}>From</PDFText>
-              <PDFText style={pdfStyles.strong}>Amrita Global Enterprises</PDFText>
-              {addressLines.map((l, i) => (
-                <PDFText key={i}>{l}</PDFText>
-              ))}
-              <PDFText>info@amritafashions.com • +91 98240 03484</PDFText>
-            </PDFView>
-          </PDFView>
-        </PDFView>
-
-        {/* Meta */}
-        <PDFView style={pdfStyles.card}>
-          <PDFView style={pdfStyles.metaRow}>
-            <PDFView style={pdfStyles.metaItem}>
-              <PDFText style={pdfStyles.label}>Invoice Number</PDFText>
-              <PDFText style={pdfStyles.strong}>{order?._id || '—'}</PDFText>
-            </PDFView>
-            <PDFView style={pdfStyles.metaItem}>
-              <PDFText style={pdfStyles.label}>Invoice Date</PDFText>
-              <PDFText style={pdfStyles.strong}>
-                {order?.createdAt ? dayjs(order.createdAt).format('MMMM D, YYYY') : dayjs().format('MMMM D, YYYY')}
-              </PDFText>
-            </PDFView>
-            <PDFView style={pdfStyles.metaItem}>
-              <PDFText style={pdfStyles.label}>Payment</PDFText>
-              <PDFText style={pdfStyles.strong}>{String(order?.payment || '—').toUpperCase()}</PDFText>
-            </PDFView>
-            <PDFView style={pdfStyles.metaItem}>
-              <PDFText style={pdfStyles.label}>Shipping</PDFText>
-              <PDFText style={pdfStyles.strong}>{String(order?.shipping || '—').toUpperCase()}</PDFText>
-            </PDFView>
-          </PDFView>
-        </PDFView>
-
-        {/* Items */}
-        <PDFView style={pdfStyles.table}>
-          <PDFView style={pdfStyles.thead}>
-            <PDFText style={pdfStyles.thSL}>#</PDFText>
-            <PDFText style={pdfStyles.thProduct}>Product</PDFText>
-            <PDFText style={pdfStyles.thQty}>Qty</PDFText>
-            <PDFText style={pdfStyles.thPrice}>Price</PDFText>
-            <PDFText style={pdfStyles.thAmount}>Amount</PDFText>
-          </PDFView>
-
-          {(items.length ? items : [{ title: 'No items', qty: 0, price: 0 }]).map((it, i) => (
-            <PDFView key={i} style={pdfStyles.tr}>
-              <PDFText style={pdfStyles.tdSL}>{items.length ? i + 1 : ''}</PDFText>
-              <PDFText style={pdfStyles.tdProduct}>{it.title}</PDFText>
-              <PDFText style={pdfStyles.tdQty}>{it.qty}</PDFText>
-              <PDFText style={pdfStyles.tdPrice}>{money(it.price)}</PDFText>
-              <PDFText style={pdfStyles.tdAmount}>{money(Number(it.price) * Number(it.qty))}</PDFText>
-            </PDFView>
-          ))}
-        </PDFView>
-
-        {/* Totals */}
-        <PDFView style={pdfStyles.totalsWrap}>
-          <PDFView style={pdfStyles.totalsSpacer} />
-          <PDFView style={pdfStyles.totalsBox}>
-            <PDFView style={pdfStyles.totalsRow}>
-              <PDFText style={pdfStyles.totalsCellLabel}>Subtotal</PDFText>
-              <PDFText style={pdfStyles.totalsCellValue}>{money(subTotal)}</PDFText>
-            </PDFView>
-            <PDFView style={pdfStyles.totalsRow}>
-              <PDFText style={pdfStyles.totalsCellLabel}>Shipping</PDFText>
-              <PDFText style={pdfStyles.totalsCellValue}>{money(shipping)}</PDFText>
-            </PDFView>
-            <PDFView style={pdfStyles.totalsRow}>
-              <PDFText style={pdfStyles.totalsCellLabel}>Discount</PDFText>
-              <PDFText style={pdfStyles.totalsCellValue}>{money(discount)}</PDFText>
-            </PDFView>
-            <PDFView style={pdfStyles.grandRow}>
-              <PDFText style={pdfStyles.grandLabel}>Total</PDFText>
-              <PDFText style={pdfStyles.grandValue}>{money(grand)}</PDFText>
-            </PDFView>
-          </PDFView>
-        </PDFView>
-
-        {/* Notes */}
-        {order?.shippingInstructions ? (
-          <PDFView style={[pdfStyles.card, { marginTop: 10 }]}>
-            <PDFText style={pdfStyles.label}>Notes / Shipping Instructions</PDFText>
-            <PDFText>{order.shippingInstructions}</PDFText>
-          </PDFView>
-        ) : null}
-
-        {/* fixed footer */}
-        <PDFView style={pdfStyles.footerWrap} fixed>
-          <PDFView style={pdfStyles.footerCanvas}>
-            <PDFView style={pdfStyles.footerGold} />
-          </PDFView>
-          <PDFView style={pdfStyles.footerTextBlock}>
-            <PDFText style={pdfStyles.footerLine}>404, Safal Prelude, Corporate Rd, Prahlad Nagar, Ahmedabad, Gujarat 380015</PDFText>
-            <PDFText style={pdfStyles.footerLine}>info@amritafashions.com • amrita-fashions.com • +91 98240 03484</PDFText>
-          </PDFView>
-        </PDFView>
-      </PDFPage>
-    </PDFDocument>
-  );
-}
+// PDF generation component removed to avoid parsing errors
 
 /* =============================== MAIN UI =============================== */
 

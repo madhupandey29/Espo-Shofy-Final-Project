@@ -114,7 +114,12 @@ const HeaderTwo = ({ style_2 = false }) => {
   };
 
   const goToPage = (href) => {
-    try { window.scrollTo?.(0, 0); } catch {}
+    try { 
+      window.scrollTo?.(0, 0); 
+    } catch (error) {
+      // Silently ignore scroll errors - not critical
+      console.error('Failed to scroll:', error);
+    }
     router.push(href);
   };
 
@@ -234,8 +239,14 @@ const HeaderTwo = ({ style_2 = false }) => {
               Cookies.default.remove('sessionId');
               Cookies.default.remove('userId');
             })
-            .catch(() => {});
-        } catch {}
+            .catch((error) => {
+              // Silently ignore cookie removal errors
+              console.error('Failed to remove cookies:', error);
+            });
+        } catch (error) {
+          // Silently ignore dynamic import errors
+          console.error('Failed to import js-cookie:', error);
+        }
       }
       
       // 3. Update local state
@@ -277,7 +288,10 @@ const HeaderTwo = ({ style_2 = false }) => {
       ['/fabric', '/wishlist', '/cart', '/profile', '/login', '/register'].forEach((p) => {
         if (router.prefetch) router.prefetch(p);
       });
-    } catch {}
+    } catch (error) {
+      // Silently ignore prefetch errors - not critical
+      console.error('Failed to prefetch routes:', error);
+    }
   }, [router]);
 
   return (

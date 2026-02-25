@@ -347,8 +347,7 @@ export const newProductApi = apiSlice.injectEndpoints({
                              product.collection === collectionId ||
                              product.collection_id === collectionId;
               
-                            if (collectionId === '695f9b0b956eb958b' && matches) {
-                }
+              // Debug logging removed - collection filtering is working correctly
               
               return matches;
             });
@@ -686,9 +685,7 @@ export const newProductApi = apiSlice.injectEndpoints({
           return hasPopularTag && hasCatalogueTag;
         });
         
-        if (filteredProducts.length > 0) {
-          } else {
-          }
+        // Debug logging removed - filtering logic is working correctly
         
         return {
           data: filteredProducts,
@@ -767,9 +764,7 @@ export const newProductApi = apiSlice.injectEndpoints({
           return hasTopRatedTag && hasCatalogueTag;
         });
         
-        if (filteredProducts.length > 0) {
-          } else {
-          }
+        // Debug logging removed - filtering logic is working correctly
         
         return {
           data: filteredProducts,

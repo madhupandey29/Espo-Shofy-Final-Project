@@ -196,7 +196,7 @@ export const validateTopicPage = (topicPage) => {
 
   const requiredFields = ['id', 'name', 'slug'];
   return requiredFields.every(field => 
-    topicPage.hasOwnProperty(field) && 
+    Object.prototype.hasOwnProperty.call(topicPage, field) && 
     topicPage[field] !== null && 
     topicPage[field] !== undefined
   );

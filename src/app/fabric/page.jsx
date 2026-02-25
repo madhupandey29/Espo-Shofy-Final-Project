@@ -98,7 +98,8 @@ async function fetchAllProducts() {
     });
     
     Object.entries(collectionStats).forEach(([collection, count]) => {
-      });
+      // Collection stats logged for debugging
+    });
 
     // Apply merchTag filtering if MERCH_TAG_FILTER is set
     if (MERCH_TAG_FILTER && products.length > 0) {
@@ -165,7 +166,8 @@ async function fetchFromCollections(API_BASE2, MERCH_TAG_FILTER) {
         }
       }
     } catch (error) {
-      }
+      // Collection fetch failed - continue with other collections
+    }
   }
 
   // Apply filtering if needed

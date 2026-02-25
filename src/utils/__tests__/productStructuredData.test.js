@@ -1,3 +1,4 @@
+/* eslint-env jest */
 import { generateProductStructuredData } from '../productStructuredData';
 
 describe('generateProductStructuredData', () => {

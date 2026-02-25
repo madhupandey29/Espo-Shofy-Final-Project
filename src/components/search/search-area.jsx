@@ -173,7 +173,7 @@ export default function SearchArea() {
                   </form>
                   {searchText && (
                     <div className="tp-search-result-info">
-                      <p>Search results for: <strong>"{searchText}"</strong></p>
+                      <p>Search results for: <strong>{`"`}{searchText}{`"`}</strong></p>
                       <button
                         onClick={clearSearch}
                         className="tp-search-back-btn"

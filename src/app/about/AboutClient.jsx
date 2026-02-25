@@ -70,7 +70,7 @@ const AboutClient = () => {
               <h3>Our Fabric Legacy</h3>
               <p>Founded in 1990 by master weaver Eleanor Sterling, AGE Fabrics began as a small atelier dedicated to preserving traditional textile arts. What started as a passion for reviving forgotten weaving techniques has blossomed into a globally recognized fabric house.</p>
               <p>Today, we collaborate with over 200 artisans across three continents, preserving traditional craftsmanship while innovating with sustainable materials and techniques. Our fabrics grace the collections of leading fashion houses and interior designers worldwide.</p>
-              <p>Every fabric tells a story – from the silkworms nurtured in sustainable farms to the hands that weave intricate patterns. We believe in fabrics that don't just cover surfaces but transform spaces and experiences.</p>
+              <p>Every fabric tells a story – from the silkworms nurtured in sustainable farms to the hands that weave intricate patterns. We believe in fabrics that {`don't`} just cover surfaces but transform spaces and experiences.</p>
             </div>
             <div className={styles.storyImage}>
               <Image 

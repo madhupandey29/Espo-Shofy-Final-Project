@@ -1,6 +1,5 @@
 import React from 'react';
 import Wrapper from '@/layout/wrapper';
-import SEO from '@/components/seo';
 import HeaderTwo from '@/layout/headers/header-2';
 import Footer from '@/layout/footers/footer';
 import CompactUniversalBreadcrumb from '@/components/breadcrumb/compact-universal-breadcrumb';

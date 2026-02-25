@@ -4,7 +4,7 @@ import { NextResponse } from 'next/server';
 export async function POST(request) {
   try {
     const body = await request.json();
-    const { message, mode, sessionId, context } = body;
+    const { message, context } = body;
 
     // Basic validation
     if (!message || typeof message !== 'string') {

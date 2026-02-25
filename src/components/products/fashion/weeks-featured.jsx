@@ -223,9 +223,7 @@ const WeeksFeatured = () => {
       return hasTopRatedTag && hasCatalogueTag;
     });
     
-    if (filteredProducts.length > 0) {
-      } else {
-      }
+    // Debug logging removed - filtering logic is working correctly
     
     return {
       ...sharedData,

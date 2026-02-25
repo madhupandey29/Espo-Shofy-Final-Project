@@ -13,7 +13,10 @@ export const saveReturnTo = (value: string) => {
   if (!isBrowser()) return;
   try {
     sessionStorage.setItem(RETURN_TO_KEY, value || '/');
-  } catch {}
+  } catch (error) {
+    // Silently ignore sessionStorage errors - not critical
+    console.error('Failed to save returnTo:', error);
+  }
 };
 
 export const readAndClearReturnTo = () => {
@@ -35,7 +38,12 @@ export const sanitizeReturnTo = (candidate: string | null | undefined) => {
     // ✅ If candidate is accidentally percent-encoded, decode once
     let c = candidate;
     if (/%2F|%3F|%23|%26/i.test(c)) {
-      try { c = decodeURIComponent(c); } catch {}
+      try { 
+        c = decodeURIComponent(c); 
+      } catch (error) {
+        // Silently ignore decode errors - use original value
+        console.error('Failed to decode returnTo:', error);
+      }
     }
     
     // Allow only same-origin relative URLs

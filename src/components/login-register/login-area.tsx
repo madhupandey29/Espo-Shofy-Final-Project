@@ -36,7 +36,9 @@ const LoginArea: React.FC<Props> = ({ onClose, onSwitchToRegister }) => {
         router.push(dest);
         return;
       }
-    } catch {}
+    } catch {
+      // Failed to read return URL - continue with default navigation
+    }
     
     if (typeof window !== 'undefined' && window.history.length > 1) router.back();
     else router.push('/');
