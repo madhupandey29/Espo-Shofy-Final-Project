@@ -6,18 +6,6 @@ import Providers from '@/components/provider';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import Script from 'next/script';
 import { Inter, Poppins } from 'next/font/google';
-import dynamic from 'next/dynamic';
-
-// Dynamic imports for non-critical components
-const LazyFloatingButtons = dynamic(() => import('@/components/common/FloatingButtons'), {
-  ssr: false,
-  loading: () => null,
-});
-
-const LazyFloatingChatbot = dynamic(() => import('@/components/chatbot/FloatingChatbot'), {
-  ssr: false,
-  loading: () => null,
-});
 
 // Optimize Google Fonts with next/font (self-hosted, no render blocking)
 // Reduced font weights for better performance (only keep commonly used weights)
@@ -292,13 +280,8 @@ export default async function RootLayout({ children }) {
         <ErrorBoundary>
           <Providers>
             {children}
-            {/* Move chatbot inside Providers so it has access to Redux State*/}
-            <LazyFloatingChatbot />
           </Providers>
         </ErrorBoundary>
-
-        {/* Non-critical components loaded after main content */}
-        <LazyFloatingButtons />
       </body>
     </html>
   );

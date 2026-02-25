@@ -22,9 +22,9 @@ export const fetchCache = "default-no-store";
 export const runtime = 'nodejs';
 export const preferredRegion = 'auto';
 
-export default function CartPage() {
+export default async function CartPage() {
   // ----- Server-side guard -----
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
 
   // Primary auth: session cookie (middleware also relies on this)
   const sessionId = cookieStore.get('sessionId')?.value || '';

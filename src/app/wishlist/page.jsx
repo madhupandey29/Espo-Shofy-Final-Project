@@ -20,9 +20,9 @@ export const fetchCache = "default-no-store";
 export const runtime = 'nodejs';
 export const preferredRegion = 'auto';
 
-export default function WishlistPage() {
+export default async function WishlistPage() {
   // ----- Server-side auth guard -----
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const sessionId = cookieStore.get('sessionId')?.value || '';
 
   let userId = '';

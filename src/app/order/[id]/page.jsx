@@ -14,9 +14,13 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 export const fetchCache = "default-no-store";
 
-export default function OrderPage({ params, searchParams }) {
+export default async function OrderPage({ params, searchParams }) {
+  // Await params and searchParams
+  const { id: orderId } = await params;
+  const sp = await searchParams;
+  
   // ----- Server-side auth guard -----
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const sessionId = cookieStore.get('sessionId')?.value || '';
 
   let userId = '';
@@ -30,15 +34,12 @@ export default function OrderPage({ params, searchParams }) {
     }
   }
 
-  // Route folder is [id], so params.id is the order id
-  const orderId = params?.id;
-
   if (!sessionId && !userId) {
     redirect(`/login?returnTo=${encodeURIComponent(`/order/${orderId}`)}`);
   }
   // -----------------------------
 
-  const userIdParam = searchParams?.userId ?? null; // optional, we also resolve from localStorage in OrderArea
+  const userIdParam = sp?.userId ?? null; // optional, we also resolve from localStorage in OrderArea
 
   return (
     <Wrapper>

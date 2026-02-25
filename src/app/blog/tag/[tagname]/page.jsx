@@ -91,7 +91,7 @@ export async function generateMetadata() {
 }
 
 export default async function BlogTagPage({ params }) {
-  const tagname = params.tagname;
+  const { tagname } = await params;
   const decodedTag = decodeURIComponent(tagname);
   
   // Fetch blogs and topic page data server-side

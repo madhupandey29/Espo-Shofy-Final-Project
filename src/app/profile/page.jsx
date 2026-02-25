@@ -21,9 +21,9 @@ export const fetchCache = 'default-no-store';
 export const runtime = 'nodejs';
 export const preferredRegion = 'auto';
 
-export default function ProfilePage() {
+export default async function ProfilePage() {
   // ----- Server-side auth guard -----
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const sessionId = cookieStore.get('sessionId')?.value || '';
 
   let userId = '';

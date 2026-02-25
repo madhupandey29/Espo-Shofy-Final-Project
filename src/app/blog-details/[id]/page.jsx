@@ -134,7 +134,8 @@ function tagsToKeywords(blog) {
 }
 
 export async function generateMetadata({ params }) {
-  const blog = await getBlog(params.id);
+  const { id } = await params;
+  const blog = await getBlog(id);
 
   const title = blog?.title ? `${blog.title}` : "Blog Details";
   const description =
@@ -165,14 +166,15 @@ export async function generateMetadata({ params }) {
     description,
     // ONLY tags, no fallback:
     keywords: keywordsFromTags,
-    path: `/blog-details/${params.id}`,
+    path: `/blog-details/${id}`,
     ogImage: ogImageUrl,
     robots: "index, follow",
   });
 }
 
 export default async function BlogDetails({ params }) {
-  const blog = await getBlog(params.id);
+  const { id } = await params;
+  const blog = await getBlog(id);
   const author = await getAuthor();
 
   // Generate structured data
@@ -186,7 +188,7 @@ export default async function BlogDetails({ params }) {
   const breadcrumbJsonLdData = [
     { name: "Home", url: "/" },
     { name: "Blog", url: "/blog" },
-    { name: blogTitle, url: `/blog-details/${params.id}` },
+    { name: blogTitle, url: `/blog-details/${id}` },
   ];
 
   return (

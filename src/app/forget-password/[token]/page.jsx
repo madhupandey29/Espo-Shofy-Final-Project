@@ -4,10 +4,11 @@ export const metadata = {
   title: "Shofy - Forget Password Page",
 };
 
-export default function ForgetPasswordPage({ params }) {
+export default async function ForgetPasswordPage({ params }) {
+  const { token } = await params;
   return (
     <>
-      <ForgotPasswordArea token={params.token} />
+      <ForgotPasswordArea token={token} />
     </>
   );
 }

@@ -8,13 +8,7 @@ import { BreadcrumbJsonLd } from '@/utils/breadcrumbStructuredData';
 import { FaqJsonLd } from '@/utils/faqStructuredData';
 import { CollectionItemListJsonLd } from '@/utils/collectionItemListStructuredData';
 
-import dynamic from 'next/dynamic';
-
-// Dynamically import the structured data component to avoid hydration issues
-const ProductStructuredDataHead = dynamic(
-  () => import('@/components/seo/ProductStructuredDataHead'),
-  { ssr: false }
-);
+import ProductStructuredDataHeadClient from '@/components/seo/ProductStructuredDataHead.client';
 
 export const revalidate = 600;
 
@@ -155,7 +149,7 @@ async function getCollectionProducts(collectionId) {
   Metadata
 ----------------------------- */
 export async function generateMetadata({ params }) {
-  const { slug } = params;
+  const { slug } = await params;
 
   const product = await getProductBySlug(slug);
 
@@ -195,7 +189,7 @@ export async function generateMetadata({ params }) {
   Page component
 ----------------------------- */
 export default async function Page({ params }) {
-  const { slug } = params;
+  const { slug } = await params;
 
   try {
     // Fetch product data for structured data
@@ -226,7 +220,7 @@ export default async function Page({ params }) {
     return (
       <>
         {/* Render JSON-LD outside Wrapper for SSR */}
-        <ProductStructuredDataHead productStructuredData={productStructuredData} />
+        <ProductStructuredDataHeadClient productStructuredData={productStructuredData} />
         <BreadcrumbJsonLd breadcrumbItems={breadcrumbStructuredData} />
         <FaqJsonLd product={product} websiteFaqs={websiteFaqs} />
         <CollectionItemListJsonLd 

@@ -5,13 +5,7 @@ import Footer from "@/layout/footers/footer";
 import { generateMetadata as generateSEOMetadata, getOptimizedLogoUrl } from "@/utils/seo";
 import { generateProductStructuredData } from "@/utils/productStructuredData";
 
-import dynamic from 'next/dynamic';
-
-// Dynamically import the structured data component to avoid hydration issues
-const StructuredDataScripts = dynamic(
-  () => import('@/components/seo/StructuredDataScripts'),
-  { ssr: false }
-);
+import StructuredDataScriptsClient from '@/components/seo/StructuredDataScripts.client';
 
 // Server-side function to fetch product data for metadata
 async function getProductData(productId) {
@@ -34,7 +28,8 @@ async function getProductData(productId) {
 
 export async function generateMetadata({ searchParams }) {
   // Get product ID from search params or use default
-  const productId = searchParams?.id || "6431364df5a812bd37e765ac";
+  const sp = await searchParams;
+  const productId = sp?.id || "6431364df5a812bd37e765ac";
   
   // Fetch product data for metadata
   const product = await getProductData(productId);
@@ -76,7 +71,8 @@ export async function generateMetadata({ searchParams }) {
 }
 
 export default async function ProductDetailsPage({ searchParams }) {
-  const productId = searchParams?.id || "6431364df5a812bd37e765ac";
+  const sp = await searchParams;
+  const productId = sp?.id || "6431364df5a812bd37e765ac";
   
   // Fetch product data for structured data
   const product = await getProductData(productId);

@@ -21,8 +21,8 @@ export const fetchCache = "default-no-store";
 export const runtime = 'nodejs';
 export const preferredRegion = 'auto';
 
-export default function CheckoutPage() {
-  const cookieStore = cookies();
+export default async function CheckoutPage() {
+  const cookieStore = await cookies();
   const sessionId = cookieStore.get('sessionId')?.value || '';
 
   let userId = '';

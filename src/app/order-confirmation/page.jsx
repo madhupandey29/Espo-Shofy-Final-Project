@@ -16,9 +16,9 @@ export const metadata = {
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-export default function OrderConfirmationPage() {
+export default async function OrderConfirmationPage() {
   // ----- Server-side auth guard -----
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const sessionId = cookieStore.get('sessionId')?.value || '';
 
   let userId = '';

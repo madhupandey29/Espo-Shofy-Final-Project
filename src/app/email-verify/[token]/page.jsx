@@ -4,10 +4,11 @@ export const metadata = {
   title: "Shofy - Email Verify Page",
 };
 
-export default function EmailVerifyPage({ params }) {
+export default async function EmailVerifyPage({ params }) {
+  const { token } = await params;
   return (
     <>
-      <EmailVerifyArea token={params.token} />
+      <EmailVerifyArea token={token} />
     </>
   );
 }
