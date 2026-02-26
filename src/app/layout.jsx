@@ -2,8 +2,6 @@ import './globals.scss';
 import '../styles/carousel-mobile-fix.css';
 import '../styles/security-protection.css';
 import '../styles/safe-responsive-fixes.css';
-import Providers from '@/components/provider';
-import ErrorBoundary from '@/components/ErrorBoundary';
 import Script from 'next/script';
 import { Inter, Poppins } from 'next/font/google';
 
@@ -277,11 +275,7 @@ export default async function RootLayout({ children }) {
           </noscript>
         )}
 
-        <ErrorBoundary>
-          <Providers>
-            {children}
-          </Providers>
-        </ErrorBoundary>
+        {children}
       </body>
     </html>
   );

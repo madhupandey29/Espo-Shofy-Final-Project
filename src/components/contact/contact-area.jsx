@@ -1,17 +1,14 @@
 'use client';
 import React from 'react';
 import ContactForm from '../forms/contact-form';
-import { useGetOfficeInformationQuery } from '@/redux/features/officeInformationApi';
 
 import { FaFacebookF, FaInstagram, FaLinkedinIn, FaYoutube, FaPinterestP } from 'react-icons/fa';
 import { FaXTwitter } from 'react-icons/fa6';
 
-export default function ContactArea() {
-  const { data: officeInfo, isLoading, error } = useGetOfficeInformationQuery();
-
-  // Use the same filtering logic as footer - get the first filtered company
-  const office = officeInfo?.success && Array.isArray(officeInfo?.data) && officeInfo.data.length ? officeInfo.data[0] : null;
-
+export default function ContactArea({ office = null }) {
+  const isLoading = false; // Data is fetched server-side
+  const error = false; // If there was an error, office would be null
+  
   // Map API response to expected format using the same pattern as footer
   const contactData = office
     ? {

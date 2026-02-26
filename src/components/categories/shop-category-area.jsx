@@ -1,12 +1,10 @@
 'use client';
 import React from "react";
 import ErrorMsg from "../common/error-msg";
-import { useGetShowCategoryQuery } from "@/redux/features/categoryApi";
 import { useRouter } from "next/navigation";
 import ShopCategoryLoader from "../loader/shop/shop-category-loader";
 
-const ShopCategoryArea = () => {
-  const { data: categories, isLoading, isError } = useGetShowCategoryQuery();
+const ShopCategoryArea = ({ categories = null, isLoading = false, isError = false }) => {
   const router = useRouter();
   // handle category route
   const handleCategoryRoute = (title) => {
@@ -28,7 +26,7 @@ const ShopCategoryArea = () => {
   if (!isLoading && isError) {
     content = <ErrorMsg msg="There was an error" />;
   }
-  if (!isLoading && !isError && categories?.result?.length === 0) {
+  if (!isLoading && !isError && (!categories?.result || categories?.result?.length === 0)) {
     content = <ErrorMsg msg="No Category found!" />;
   }
   if (!isLoading && !isError && categories?.result?.length > 0) {

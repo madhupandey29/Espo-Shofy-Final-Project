@@ -65,11 +65,11 @@ const PopularProductImages = () => {
     <div style={{ margin: '18px 0' }}>
       <div style={headingStyle}>Popular Products</div>
       <hr style={dividerStyle} />
-      {products.data.slice(0, 3).map((item) => {
+      {products.data.slice(0, 3).map((item, i) => {
         const slug = item.slug || item._id;
         const cleanSlug = slug ? String(slug).replace(/#$/, '') : slug;
         return (
-          <Link href={`/fabric/${cleanSlug}`} target="_blank" rel="noopener noreferrer" key={item._id} style={{ textDecoration: 'none', display: 'block' }}>
+          <Link href={`/fabric/${cleanSlug}`} target="_blank" rel="noopener noreferrer" key={`popular-${i}-${item._id || item.id}`} style={{ textDecoration: 'none', display: 'block' }}>
             <div style={rowStyle}>
               <Image
                 src={item.image?.startsWith('http') ? item.image : '/assets/img/product/product-1.jpg'}

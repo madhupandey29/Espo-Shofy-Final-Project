@@ -299,7 +299,8 @@ const ShopContent = ({
                     {/* ✅ Infinite Scroll Grid */}
                     <div className="products-grid">
                       {displayedProducts.map((item, i) => {
-                        const uniqueKey = item._id || item.id || `product-${i}`;
+                        // Always use index to ensure uniqueness, even if products are duplicated
+                        const uniqueKey = `product-${i}-${item._id || item.id || 'unknown'}`;
                         return (
                           <ProductItem 
                             key={uniqueKey} 

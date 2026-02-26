@@ -1,22 +1,22 @@
 'use client';
 
-import dynamic from 'next/dynamic';
-
-const LazyFloatingButtons = dynamic(() => import('@/components/common/FloatingButtons'), {
-  ssr: false,
-  loading: () => null,
-});
-
-const LazyFloatingChatbot = dynamic(() => import('@/components/chatbot/FloatingChatbot'), {
-  ssr: false,
-  loading: () => null,
-});
+import { useEffect, useState } from 'react';
+import FloatingButtons from '@/components/common/FloatingButtons';
+import FloatingChatbot from '@/components/chatbot/FloatingChatbot';
 
 export default function ClientOnlyFloating() {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) return null;
+
   return (
     <>
-      <LazyFloatingButtons />
-      <LazyFloatingChatbot />
+      <FloatingButtons />
+      <FloatingChatbot />
     </>
   );
 }

@@ -77,9 +77,9 @@ const ShopHiddenSidebarArea = ({
             <div className="tp-shop-items-wrapper tp-shop-item-primary">
               {/* ✅ Only one (grid) slider now */}
               <div className="row">
-                {filteredRows.slice(0, visibleCount).map((item) => (
-                  <div key={item._id} className="col-xl-3 col-lg-4 col-md-6 col-sm-6">
-                    <ProductItem product={item} />
+                {filteredRows.slice(0, visibleCount).map((item, i) => (
+                  <div key={`product-${i}-${item._id || item.id || 'unknown'}`} className="col-xl-3 col-lg-4 col-md-6 col-sm-6">
+                    <ProductItem product={item} index={i} />
                   </div>
                 ))}
               </div>

@@ -1,8 +1,8 @@
 import Link from "next/link";
 import Image from "next/image";
-import Wrapper from "@/layout/wrapper";
-import HeaderTwo from "@/layout/headers/header-2";
-import Footer from "@/layout/footers/footer";
+import WrapperISR from "@/layout/wrapper-isr";
+import HeaderTwoISR from "@/layout/headers/header-2-isr";
+import FooterISR from "@/layout/footers/footer-isr";
 import error from '@assets/img/error/error.png';
 
 export const metadata = {
@@ -11,8 +11,8 @@ export const metadata = {
 
 export default function NotFound() {
   return (
-    <Wrapper>
-      <HeaderTwo style_2={true} />
+    <WrapperISR>
+      <HeaderTwoISR style_2={true} />
       {/* 404 area start */}
       <section className="tp-error-area pt-110 pb-110">
         <div className="container">
@@ -38,7 +38,7 @@ export default function NotFound() {
         </div>
       </section>
       {/* 404 area end */}
-      <Footer primary_style={true} />
-    </Wrapper>
+      <FooterISR />
+    </WrapperISR>
   );
 }

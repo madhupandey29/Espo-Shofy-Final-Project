@@ -1,7 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef } from 'react';
-import dynamic from 'next/dynamic';
+import { useEffect, useRef } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, Pagination, A11y, Keyboard, Autoplay } from 'swiper/modules';
 import { Rating } from 'react-simple-star-rating';
@@ -348,4 +347,4 @@ function FashionTestimonial() {
   );
 }
 
-export default dynamic(() => Promise.resolve(FashionTestimonial), { ssr: false });
+export default FashionTestimonial;

@@ -191,12 +191,33 @@ const CARD_W = 320;
 const CARD_H = 320;
 
 /* ---------------- component ---------------- */
-const WeeksFeatured = () => {
-  const { data: sharedData, isError, isLoading, error } = useGetAllProductsForFilteringQuery();
+const WeeksFeatured = ({ products: propProducts }) => {
+  // Always call the hook (React rules), but we'll ignore it if props provided
+  const { data: sharedData, isError: reduxIsError, isLoading: reduxIsLoading, error: reduxError } = useGetAllProductsForFilteringQuery();
   const swiperRef = useRef(null);
 
-  // Filter products for Top Rated section (BOTH TopRatedFabrics AND ecatalogue tags)
+  // Determine if we're using props (ISR mode) or Redux (CSR mode)
+  const usingProps = propProducts && Array.isArray(propProducts) && propProducts.length > 0;
+  
+  // Use appropriate loading/error states
+  const isLoading = usingProps ? false : reduxIsLoading;
+  const isError = usingProps ? false : reduxIsError;
+  const error = usingProps ? null : reduxError;
+
+  // Use prop products if provided (ISR), otherwise use RTK Query (fallback)
   const products = React.useMemo(() => {
+    // If products passed as props, use them (ISR mode)
+    if (usingProps) {
+      return {
+        success: true,
+        data: propProducts,
+        total: propProducts.length,
+        filtered: true,
+        filterTags: ['TopRatedFabrics', 'ecatalogue']
+      };
+    }
+
+    // Otherwise use RTK Query data (client-side fallback)
     if (!sharedData) {
       return null; // Still loading
     }
@@ -232,7 +253,7 @@ const WeeksFeatured = () => {
       filtered: true,
       filterTags: [topRatedTag, catalogueTag]
     };
-  }, [sharedData]);
+  }, [sharedData, propProducts]);
 
     useEffect(() => {
     const handleResize = () => {
@@ -246,8 +267,10 @@ const WeeksFeatured = () => {
   }, []);
 
   let content = null;
-  if (isLoading) content = <HomeTwoFeaturedPrdLoader loading />;
-  else if (isError) {
+  
+  // Skip loading state if we have prop products (ISR mode)
+  if (!propProducts && isLoading) content = <HomeTwoFeaturedPrdLoader loading />;
+  else if (!propProducts && isError) {
     content = (
       <div style={{ padding: '40px 20px', textAlign: 'center' }}>
         <h4 style={{ color: '#ef4444', marginBottom: '16px' }}>Unable to Load Top Rated Products</h4>
@@ -261,7 +284,7 @@ const WeeksFeatured = () => {
     );
   }
   // Check if data has an error (API returned error response but RTK Query didn't treat it as error)
-  else if (products && products.success === false) {
+  else if (!propProducts && products && products.success === false) {
     content = (
       <div style={{ padding: '40px 20px', textAlign: 'center' }}>
         <h4 style={{ color: '#ef4444', marginBottom: '16px' }}>Unable to Load Top Rated Products</h4>

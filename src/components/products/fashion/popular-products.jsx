@@ -176,12 +176,44 @@ const SLIDER_OPTS = {
 const CARD_W = 260;
 const CARD_H = 300;
 
-export default function PopularProducts() {
-  const { data: sharedData, isError, isLoading, error } = useGetAllProductsForFilteringQuery();
+export default function PopularProducts({ products: propProducts }) {
+  const [mounted, setMounted] = React.useState(false);
+  
+  // Only mount on client side
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
+  
+  // Determine if we're using props (ISR mode) or Redux (CSR mode)
+  const usingProps = propProducts && Array.isArray(propProducts) && propProducts.length > 0;
+  
+  // Always call the hook (React rules), but we'll only use it if Redux is available
+  // When props are provided, the hook will still be called but we'll ignore its result
+  const reduxResult = useGetAllProductsForFilteringQuery();
+  
   const swiperRef = useRef(null);
+  
+  // Use appropriate loading/error states
+  // If using props, ignore Redux states entirely
+  const isLoading = usingProps ? false : (reduxResult?.isLoading || false);
+  const isError = usingProps ? false : (reduxResult?.isError || false);
+  const error = usingProps ? null : (reduxResult?.error || null);
+  const sharedData = usingProps ? null : (reduxResult?.data || null);
 
-  // Filter products for Popular section (BOTH PopularFabrics AND ecatalogue tags)
+  // Use prop products if provided (ISR), otherwise use RTK Query (fallback)
   const data = React.useMemo(() => {
+    // If products passed as props, use them (ISR mode)
+    if (usingProps) {
+      return {
+        success: true,
+        data: propProducts,
+        total: propProducts.length,
+        filtered: true,
+        filterTags: ['PopularFabrics', 'ecatalogue']
+      };
+    }
+
+    // Otherwise use RTK Query data (client-side fallback)
     if (!sharedData) {
       return null; // Still loading
     }
@@ -217,7 +249,7 @@ export default function PopularProducts() {
       filtered: true,
       filterTags: [popularTag, catalogueTag]
     };
-  }, [sharedData]);
+  }, [sharedData, propProducts]);
 
     useEffect(() => {
     const handleResize = () => {
@@ -230,8 +262,11 @@ export default function PopularProducts() {
   }, []);
 
   let carousel = <ErrorMsg msg="No Products found!" />;
-  if (isLoading) carousel = <HomeTwoPopularPrdLoader loading />;
-  if (!isLoading && isError) {
+  
+  // Skip loading state if we have prop products (ISR mode)
+  if (!propProducts && isLoading) carousel = <HomeTwoPopularPrdLoader loading />;
+  
+  if (!propProducts && !isLoading && isError) {
     carousel = (
       <div style={{ padding: '40px 20px', textAlign: 'center' }}>
         <h4 style={{ color: '#ef4444', marginBottom: '16px' }}>Unable to Load Popular Products</h4>
@@ -246,7 +281,7 @@ export default function PopularProducts() {
   }
 
   // Check if data has an error (API returned error response but RTK Query didn't treat it as error)
-  if (!isLoading && !isError && data && data.success === false) {
+  if (!propProducts && !isLoading && !isError && data && data.success === false) {
     carousel = (
       <div style={{ padding: '40px 20px', textAlign: 'center' }}>
         <h4 style={{ color: '#ef4444', marginBottom: '16px' }}>Unable to Load Popular Products</h4>
