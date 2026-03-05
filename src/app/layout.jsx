@@ -1,7 +1,4 @@
 import './globals.scss';
-import '../styles/carousel-mobile-fix.css';
-import '../styles/security-protection.css';
-import '../styles/safe-responsive-fixes.css';
 import Providers from '@/components/provider';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import Script from 'next/script';
@@ -15,7 +12,7 @@ const inter = Inter({
   display: 'swap',
   variable: '--font-inter',
   preload: true,
-   adjustFontFallback: false,
+  adjustFontFallback: false,
 });
 
 const poppins = Poppins({
@@ -24,7 +21,7 @@ const poppins = Poppins({
   display: 'swap',
   variable: '--font-poppins',
   preload: true,
-   adjustFontFallback: false,
+  adjustFontFallback: false,
 });
 
 // Separate viewport export (required for Next.js 14+)
@@ -156,6 +153,16 @@ export default async function RootLayout({ children }) {
         <link rel="preconnect" href="https://res.cloudinary.com" crossOrigin="anonymous" />
         <link rel="preconnect" href="https://fonts.googleapis.com" crossOrigin="anonymous" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+
+        {/* Defer non-critical CSS */}
+        <link rel="preload" href="/styles/carousel-mobile-fix.css" as="style" onLoad="this.onload=null;this.rel='stylesheet'" />
+        <link rel="preload" href="/styles/security-protection.css" as="style" onLoad="this.onload=null;this.rel='stylesheet'" />
+        <link rel="preload" href="/styles/safe-responsive-fixes.css" as="style" onLoad="this.onload=null;this.rel='stylesheet'" />
+        <noscript>
+          <link rel="stylesheet" href="/styles/carousel-mobile-fix.css" />
+          <link rel="stylesheet" href="/styles/security-protection.css" />
+          <link rel="stylesheet" href="/styles/safe-responsive-fixes.css" />
+        </noscript>
 
         {/* Google Analytics */}
         {gaId && (
