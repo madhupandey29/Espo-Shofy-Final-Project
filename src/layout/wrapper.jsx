@@ -2,16 +2,32 @@
 
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { ToastContainer } from 'react-toastify';
+import dynamic from 'next/dynamic';
 import 'react-toastify/dist/ReactToastify.css';
 
+// Lazy load Bootstrap JS only when needed
 if (typeof window !== 'undefined') {
-  require('bootstrap/dist/js/bootstrap');
+  import('bootstrap/dist/js/bootstrap');
 }
 
-import BackToTopCom from '@/components/common/back-to-top';
-import ProductModal from '@/components/common/product-modal';
-import FloatingButtons from '@/components/common/FloatingButtons';
+// Lazy load heavy components for better initial load
+const BackToTopCom = dynamic(() => import('@/components/common/back-to-top'), {
+  ssr: false,
+});
+
+const ProductModal = dynamic(() => import('@/components/common/product-modal'), {
+  ssr: false,
+});
+
+const FloatingButtons = dynamic(() => import('@/components/common/FloatingButtons'), {
+  ssr: false,
+});
+
+const ToastContainer = dynamic(
+  () => import('react-toastify').then((mod) => mod.ToastContainer),
+  { ssr: false }
+);
+
 import { get_cart_products, initialOrderQuantity } from '@/redux/features/cartSlice';
 import { get_compare_products } from '@/redux/features/compareSlice';
 import useAuthCheck from '@/hooks/use-auth-check';

@@ -148,30 +148,20 @@ export default async function RootLayout({ children }) {
         <link rel="dns-prefetch" href="https://res.cloudinary.com" />
         <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
         <link rel="dns-prefetch" href="https://www.google-analytics.com" />
-        <link rel="dns-prefetch" href="https://www.clarity.ms" />
         
         <link rel="preconnect" href="https://res.cloudinary.com" crossOrigin="anonymous" />
         <link rel="preconnect" href="https://fonts.googleapis.com" crossOrigin="anonymous" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
 
-        {/* Defer non-critical CSS */}
-        <link rel="preload" href="/styles/carousel-mobile-fix.css" as="style" onLoad="this.onload=null;this.rel='stylesheet'" />
-        <link rel="preload" href="/styles/security-protection.css" as="style" onLoad="this.onload=null;this.rel='stylesheet'" />
-        <link rel="preload" href="/styles/safe-responsive-fixes.css" as="style" onLoad="this.onload=null;this.rel='stylesheet'" />
-        <noscript>
-          <link rel="stylesheet" href="/styles/carousel-mobile-fix.css" />
-          <link rel="stylesheet" href="/styles/security-protection.css" />
-          <link rel="stylesheet" href="/styles/safe-responsive-fixes.css" />
-        </noscript>
+        {/* Remove preload for non-critical CSS - let them load async */}
 
-        {/* Google Analytics */}
+        {/* Google Analytics - Deferred for better performance */}
         {gaId && (
           <>
-            {/* ✅ beforeInteractive so it appears in View Page Source */}
-            <Script strategy="beforeInteractive" src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`} />
+            <Script strategy="lazyOnload" src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`} />
             <Script
               id="ga-script"
-              strategy="beforeInteractive"
+              strategy="lazyOnload"
               dangerouslySetInnerHTML={{
                 __html: `
                   window.dataLayer = window.dataLayer || [];
@@ -184,11 +174,11 @@ export default async function RootLayout({ children }) {
           </>
         )}
 
-        {/* Microsoft Clarity */}
+        {/* Microsoft Clarity - Deferred */}
         {clarityId && (
           <Script
             id="clarity-script"
-            strategy="beforeInteractive"
+            strategy="lazyOnload"
             dangerouslySetInnerHTML={{
               __html: `
                 (function(c,l,a,r,i,t,y){

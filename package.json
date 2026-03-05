@@ -16,6 +16,7 @@
     "build:force": "cross-env DISABLE_ESLINT_PLUGIN=true CI=false next build --webpack",
     "build:analyze": "cross-env ANALYZE=true npm run build",
     "build:verify": "node scripts/verify-build-optimizations.js",
+    "analyze:performance": "node scripts/analyze-performance.js",
     "test-sitemap-page": "node scripts/test-sitemap-page.js",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
