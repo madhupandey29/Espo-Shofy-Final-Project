@@ -198,7 +198,6 @@ const nextConfig = {
       'framer-motion',
       'react-toastify',
       'bootstrap',
-      'react-slick',
       'swiper',
     ],
     optimizeCss: true,
@@ -271,7 +270,7 @@ const nextConfig = {
             },
             carousel: {
               name: 'carousel',
-              test: /[\\/]node_modules[\\/](react-slick|slick-carousel|swiper)[\\/]/,
+              test: /[\\/]node_modules[\\/]swiper[\\/]/,
               priority: 35,
               enforce: true,
             },

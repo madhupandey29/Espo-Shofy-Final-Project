@@ -56,8 +56,6 @@ console.log('\n📦 Checking for heavy dependencies...');
 const packageJson = JSON.parse(fs.readFileSync(path.join(process.cwd(), 'package.json'), 'utf8'));
 const heavyDeps = [
   'bootstrap',
-  'react-slick',
-  'slick-carousel',
   'swiper',
   'framer-motion',
   '@react-pdf/renderer',
