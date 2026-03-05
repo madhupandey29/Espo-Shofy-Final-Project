@@ -890,6 +890,15 @@ export async function downloadProductPdf(product, options = {}) {
   } = options;
 
   try {
+    // Track download initiation
+    if (typeof window !== 'undefined') {
+      import('@/utils/analytics').then(({ trackDownload }) => {
+        const fileName = `${product?.title || 'product'}_catalog.pdf`;
+        const productId = product?._id || product?.id;
+        trackDownload(fileName, 'pdf', productId);
+      });
+    }
+    
     // Notify progress
     if (onProgress) onProgress('Initializing PDF generation...');
     

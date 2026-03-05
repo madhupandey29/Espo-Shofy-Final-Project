@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import Wrapper from "@/layout/wrapper";
@@ -9,10 +10,14 @@ export const metadata = {
   title: "Error Page",
 };
 
+export const dynamic = 'force-dynamic';
+
 export default function NotFound() {
   return (
     <Wrapper>
-      <HeaderTwo style_2={true} />
+      <Suspense fallback={<div style={{ height: '80px' }} />}>
+        <HeaderTwo style_2={true} />
+      </Suspense>
       {/* 404 area start */}
       <section className="tp-error-area pt-110 pb-110">
         <div className="container">

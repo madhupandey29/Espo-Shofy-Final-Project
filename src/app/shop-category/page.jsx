@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import Wrapper from "@/layout/wrapper";
 import HeaderTwo from "@/layout/headers/header-2";
 import Footer from "@/layout/footers/footer";
@@ -8,10 +9,14 @@ export const metadata = {
   title: "Shofy - Category Page",
 };
 
+export const dynamic = 'force-dynamic';
+
 export default function CategoryPage() {
   return (
     <Wrapper>
-      <HeaderTwo style_2={true} />
+      <Suspense fallback={<div style={{ height: '80px' }} />}>
+        <HeaderTwo style_2={true} />
+      </Suspense>
       <ShopBreadcrumb title="Only Categories" subtitle="Only Categories" />
       <CategoryShowcase />
       <Footer primary_style={true} />

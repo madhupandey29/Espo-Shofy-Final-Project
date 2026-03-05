@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import Wrapper from "@/layout/wrapper";
 import HeaderTwo from "@/layout/headers/header-2";
 import ProductDetailsClient from "./ProductDetailsClient";
@@ -6,6 +7,8 @@ import { generateMetadata as generateSEOMetadata, getOptimizedLogoUrl } from "@/
 import { generateProductStructuredData } from "@/utils/productStructuredData";
 
 import StructuredDataScriptsClient from '@/components/seo/StructuredDataScripts.client';
+
+export const dynamic = 'force-dynamic';
 
 // Server-side function to fetch product data for metadata
 async function getProductData(productId) {

@@ -201,7 +201,6 @@ const nextConfig = {
       'swiper',
     ],
     optimizeCss: true,
-    cssChunking: 'loose',
   },
 
   onDemandEntries: {

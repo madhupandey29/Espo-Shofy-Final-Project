@@ -14,6 +14,9 @@ import { getPageSeoMetadata, PAGE_NAMES } from "@/utils/topicPageSeoIntegration"
 ---------------------------------------------- */
 export const revalidate = 120;
 
+// Force dynamic rendering for pages with useSearchParams
+export const dynamic = 'force-dynamic';
+
 /* ---------------------------------------------
    Metadata (Dynamic SEO from Topic Page API)
 ---------------------------------------------- */

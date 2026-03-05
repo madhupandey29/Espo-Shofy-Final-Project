@@ -54,7 +54,14 @@ export const authApi = apiSlice.injectEndpoints({
       }),
       async onQueryStarted(arg, { queryFulfilled }) {
         try {
-          await queryFulfilled;
+          const { data } = await queryFulfilled;
+          
+          // Track signup event
+          if (data && typeof window !== 'undefined') {
+            import('@/utils/analytics').then(({ trackSignup }) => {
+              trackSignup('email');
+            });
+          }
         } catch (err) {
           // Silently ignore query errors - handled by RTK Query
           console.error('Register query failed:', err);
@@ -91,6 +98,13 @@ export const authApi = apiSlice.injectEndpoints({
           }
           if (user || userId) {
             dispatch(userLoggedIn({ user, userId }));
+            
+            // Track login event
+            if (typeof window !== 'undefined') {
+              import('@/utils/analytics').then(({ trackLogin }) => {
+                trackLogin('email', userId);
+              });
+            }
           }
         } catch (err) {
           // Login failed
@@ -152,6 +166,13 @@ export const authApi = apiSlice.injectEndpoints({
             }
             
             dispatch(userLoggedIn({ user: mappedUser, userId }));
+            
+            // Track OTP login event
+            if (typeof window !== 'undefined') {
+              import('@/utils/analytics').then(({ trackLogin }) => {
+                trackLogin('otp', userId);
+              });
+            }
           }
         } catch (err) {
           // OTP verification failed

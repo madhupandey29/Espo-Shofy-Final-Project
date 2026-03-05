@@ -18,6 +18,15 @@ const GoogleSignUp = () => {
       signUpProvider(user?.credential).then((res) => {
         if (res?.data) {
           notifySuccess("Login success!");
+          
+          // Track Google login
+          const userId = res?.data?.user?._id || res?.data?.user?.id || res?.data?.userId;
+          if (typeof window !== 'undefined') {
+            import('@/utils/analytics').then(({ trackLogin }) => {
+              trackLogin('google', userId);
+            });
+          }
+          
           router.push('/profile');
         } else {
           notifyError(res.error?.message);

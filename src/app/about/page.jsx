@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import Wrapper from '@/layout/wrapper';
 import HeaderTwo from '@/layout/headers/header-2';
 import Footer from '@/layout/footers/footer';
@@ -11,6 +11,9 @@ import { generateAboutPageStructuredData } from '@/utils/aboutPageStructuredData
 
 // Revalidate every 60 seconds
 export const revalidate = 60;
+
+// Force dynamic rendering for pages with useSearchParams
+export const dynamic = 'force-dynamic';
 
 /* -----------------------------
   Metadata (Dynamic SEO from Topic Page API)
@@ -70,7 +73,9 @@ const AboutPage = async () => {
       )}
       
       <Wrapper>
-        <HeaderTwo style_2={true} />
+        <Suspense fallback={<div style={{ height: '80px' }} />}>
+          <HeaderTwo style_2={true} />
+        </Suspense>
         <CompactUniversalBreadcrumb items={breadcrumbItems} />
         <AboutClient />
         <Footer primary_style={true} />

@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import Wrapper from "@/layout/wrapper";
 import HeaderTwo from "@/layout/headers/header-2";
 import BlogContentWrapper from "@/components/blog/blog-grid/blog-content-wrapper";
@@ -10,6 +11,9 @@ import { BlogPageJsonLd } from "@/utils/blogPageStructuredData";
 
 // Revalidate every 60 seconds
 export const revalidate = 60;
+
+// Force dynamic rendering for pages with useSearchParams
+export const dynamic = 'force-dynamic';
 
 const API_BASE = (process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000').replace(/\/+$/,'');
 const BLOG_PATH = process.env.NEXT_PUBLIC_API_BLOG_PATH || '/blog';
@@ -129,7 +133,9 @@ export default async function BlogTagPage({ params }) {
       <BreadcrumbJsonLd breadcrumbItems={breadcrumbStructuredData} />
       
       <Wrapper>
-        <HeaderTwo style_2={true} />
+        <Suspense fallback={<div style={{ height: '80px' }} />}>
+          <HeaderTwo style_2={true} />
+        </Suspense>
         <CompactUniversalBreadcrumb items={breadcrumbItems} />
         <BlogContentWrapper tagname={decodedTag} />
         <Footer primary_style={true} />

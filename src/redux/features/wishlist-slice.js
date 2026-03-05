@@ -138,6 +138,13 @@ export const toggleWishlistItem = createAsyncThunk(
         const json = await addToWishlistApi(customerAccountId, pid);
 
         notifySuccess('Added to wishlist');
+        
+        // Track add to wishlist event
+        if (typeof window !== 'undefined' && product) {
+          import('@/utils/analytics').then(({ trackAddToWishlist }) => {
+            trackAddToWishlist(product);
+          });
+        }
 
         // Return the new wishlist data from response
         if (json.success && Array.isArray(json.data)) {

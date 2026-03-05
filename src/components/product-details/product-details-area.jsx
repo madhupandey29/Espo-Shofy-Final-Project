@@ -1,9 +1,10 @@
 'use client';
-import React from 'react';
+import React, { useEffect } from 'react';
 
 import ErrorMsg                     from '../common/error-msg';
 import ProductDetailsBreadcrumb     from '../breadcrumb/product-details-breadcrumb';
 import ProductDetailsContent        from './product-details-content';
+import { trackProductView }         from '@/utils/analytics';
 
 /* -------------------------------------------------------------------- */
 /*  ProductDetailsArea                                                  */
@@ -13,6 +14,13 @@ const ProductDetailsArea = ({ product }) => {
   if (!product) return <ErrorMsg msg="No product found!" />;
 
   const breadcrumbTitle = product.productTitle || product.title || product.name || 'Product';
+
+  // Track product view
+  useEffect(() => {
+    if (product) {
+      trackProductView(product);
+    }
+  }, [product]);
 
   return (
     <>

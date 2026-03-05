@@ -127,10 +127,17 @@ export const cartApi = apiSlice.injectEndpoints({
         };
       },
       invalidatesTags: (result, error, { userId }) => [{ type: "Cart", id: userId ?? "UNKNOWN" }],
-      async onQueryStarted({ productId }, { queryFulfilled }) {
+      async onQueryStarted({ productId, product }, { queryFulfilled }) {
         try {
           const result = await queryFulfilled;
           console.log('🗑️ RTK Query - Remove success:', result);
+          
+          // Track remove from cart event
+          if (product && typeof window !== 'undefined') {
+            import('@/utils/analytics').then(({ trackRemoveFromCart }) => {
+              trackRemoveFromCart(product);
+            });
+          }
         } catch (err) {
           console.error('🗑️ RTK Query - Remove error:', err);
         }
@@ -170,9 +177,16 @@ export const cartApi = apiSlice.injectEndpoints({
         };
       },
       invalidatesTags: (result, error, { userId }) => [{ type: "Cart", id: userId ?? "UNKNOWN" }],
-      async onQueryStarted({ productId, quantity }, { queryFulfilled }) {
+      async onQueryStarted({ productId, quantity, product }, { queryFulfilled }) {
         try {
           const result = await queryFulfilled;
+          
+          // Track add to cart event
+          if (product && typeof window !== 'undefined') {
+            import('@/utils/analytics').then(({ trackAddToCart }) => {
+              trackAddToCart(product, quantity);
+            });
+          }
         } catch (err) {
           // Silently ignore query errors - handled by RTK Query
           console.error('Update cart quantity query failed:', err);

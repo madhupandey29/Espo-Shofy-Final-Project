@@ -6,6 +6,9 @@ import { generateMetadata as generateSEOMetadata, getOptimizedLogoUrl } from "@/
 // Revalidate every 60 seconds
 export const revalidate = 60;
 
+// Force dynamic rendering for pages with useSearchParams
+export const dynamic = 'force-dynamic';
+
 
 /* ---------------------------------------------
    Server fetch helpers for ISR Home

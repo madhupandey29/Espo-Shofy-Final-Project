@@ -25,6 +25,13 @@ const useSearchFormSubmit = () => {
     e.preventDefault();
 
     if (searchText && searchText.trim()) {
+      // Track search event
+      if (typeof window !== 'undefined') {
+        import('@/utils/analytics').then(({ trackSearch }) => {
+          trackSearch(searchText.trim());
+        });
+      }
+      
       // Always redirect to fabric page with search query
       const trimmedSearch = searchText.trim();
       let route = `/fabric?q=${encodeURIComponent(trimmedSearch)}`;

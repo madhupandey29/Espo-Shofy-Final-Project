@@ -1,6 +1,7 @@
 import './globals.scss';
 import Providers from '@/components/provider';
 import ErrorBoundary from '@/components/ErrorBoundary';
+import AnalyticsTracker from '@/components/analytics/AnalyticsTracker';
 import Script from 'next/script';
 import { Inter, Poppins } from 'next/font/google';
 
@@ -286,6 +287,7 @@ export default async function RootLayout({ children }) {
 
         <ErrorBoundary>
           <Providers>
+            <AnalyticsTracker />
             {children}
           </Providers>
         </ErrorBoundary>

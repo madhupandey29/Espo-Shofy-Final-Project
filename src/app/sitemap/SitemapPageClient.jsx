@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { 
   FiHome, FiFileText, FiTrendingUp
@@ -343,7 +343,9 @@ const SitemapPageClient = () => {
 
   return (
     <Wrapper>
-      <HeaderTwo style_2 />
+      <Suspense fallback={<div style={{ height: '80px' }} />}>
+        <HeaderTwo style_2 />
+      </Suspense>
       
       <div className={styles.sitemapContainer}>
         {/* Hero Section */}

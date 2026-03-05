@@ -1,4 +1,5 @@
 // app/blog-details/[id]/page.jsx
+import { Suspense } from "react";
 import HeaderTwo from "@/layout/headers/header-2";
 import Wrapper from "@/layout/wrapper";
 import Footer from "@/layout/footers/footer";
@@ -200,7 +201,9 @@ export default async function BlogDetails({ params }) {
       <BreadcrumbJsonLd breadcrumbItems={breadcrumbJsonLdData} />
 
       <Wrapper>
-        <HeaderTwo style_2 />
+        <Suspense fallback={<div style={{ height: '80px' }} />}>
+          <HeaderTwo style_2 />
+        </Suspense>
 
         {/* Hidden H1 for SEO */}
         <h1
