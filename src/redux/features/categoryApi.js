@@ -30,6 +30,24 @@ export const categoryApi = apiSlice.injectEndpoints({
       query: id => `/category/${id}`,
       providesTags: (r, _e, id) => [{ type: "Category", id }],
     }),
+
+    /** ───── Get categories by field name (e.g., category field) ───── */
+    getCategoriesByField: builder.query({
+      query: (fieldName) => `/product/fieldname/${fieldName}`,
+      providesTags: ["Category"],
+      transformResponse: (res) => {
+        // API returns: { success: true, entity: "CProduct", field: "category", values: [...], total: N }
+        if (res?.success && res?.values) {
+          return {
+            success: res.success,
+            categories: res.values,
+            total: res.total,
+            field: res.field,
+          };
+        }
+        return { success: false, categories: [], total: 0 };
+      },
+    }),
   }),
 });
 
@@ -37,5 +55,6 @@ export const {
   useAddCategoryMutation,
   useGetShowCategoryQuery,
   useGetProductTypeCategoryQuery,
-  useGetCategoryByIdQuery,     //  ←  use this in DetailsTabNav
+  useGetCategoryByIdQuery,
+  useGetCategoriesByFieldQuery,  // ← new hook for field-based categories
 } = categoryApi;

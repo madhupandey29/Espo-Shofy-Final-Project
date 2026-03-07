@@ -10,6 +10,10 @@ import HeaderTwo from "@/layout/headers/header-2";
 import FashionBanner from "@/components/banner/fashion-banner";
 
 // ✅ Lazy load below-the-fold components with ssr: false to prevent bailout
+const HomeCategorySection = dynamic(
+  () => import("@/components/categories/home-category-section"),
+  { ssr: false, loading: () => <div style={{ minHeight: "300px" }} /> }
+);
 const PopularProducts = dynamic(
   () => import("@/components/products/fashion/popular-products"),
   { ssr: false, loading: () => <div style={{ minHeight: "500px" }} /> }
@@ -92,6 +96,7 @@ export default function HomePageTwoClient({ office = null, homeProducts = [], ho
       <HeaderTwo />
 
       <FashionBanner />
+      <HomeCategorySection />
       <PopularProducts products={homeProducts} />
       <WeeksFeatured products={homeProducts} />
       <FeatureAreaTwo />
